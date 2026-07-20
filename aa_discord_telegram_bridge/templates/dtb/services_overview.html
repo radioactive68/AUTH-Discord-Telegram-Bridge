@@ -83,10 +83,8 @@
 
                     <p>
                         <small class="text-muted">
-                            {% if bot_link %}Step 2:{% else %}Step 1:{% endif %}
-                            Click "Link Account" below and enter your @username.<br>
-                            {% if bot_link %}Step 3:{% else %}Step 2:{% endif %}
-                            If you already pressed Start, you're done — no code needed. Otherwise the bot sends a code to enter here.
+                            Click "Link Account" below and enter your @username.
+                            If you already pressed Start, you're done.
                         </small>
                     </p>
 
@@ -121,7 +119,7 @@
                     <li>You can enable/disable notifications at any time</li>
                     <li>When you leave the alliance, you will be automatically removed from Telegram groups</li>
                     <li>After linking, you are automatically invited to the alliance Telegram group(s)</li>
-                    <li>To link, just open the bot and press <code>/start</code>, then click "Link Account" — no code needed</li>
+                    <li>To link, just open the bot and press <code>/start</code>, then click "Link Account"</li>
                 </ul>
 
                 {% if perms.dtb.manage_dtb_rules %}
