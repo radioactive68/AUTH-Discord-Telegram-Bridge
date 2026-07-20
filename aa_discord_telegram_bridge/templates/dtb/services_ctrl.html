@@ -1,0 +1,35 @@
+﻿{% load dtb_tags %}
+<tr>
+    <td>
+        <i class="fab fa-telegram"></i> {{ service_name }}
+    </td>
+    <td>
+        {% if profile.telegram_username %}
+            @{{ profile.telegram_username }}
+            {% if profile.is_active %}
+                <span class="badge bg-success">Active</span>
+            {% else %}
+                <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+        {% else %}
+            <span class="text-muted">Not linked</span>
+        {% endif %}
+    </td>
+    <td>
+        <a href="{% url 'dtb:services_overview' %}" target="_blank">
+            <i class="fas fa-external-link-alt"></i> Open
+        </a>
+    </td>
+    <td>
+        {% if profile.telegram_username %}
+            {% if profile.notifications_enabled %}
+                <a href="{% url 'dtb:toggle_notifications' %}" class="btn btn-warning btn-sm">Disable</a>
+            {% else %}
+                <a href="{% url 'dtb:toggle_notifications' %}" class="btn btn-success btn-sm">Enable</a>
+            {% endif %}
+            <a href="{% url 'dtb:unlink_telegram' %}" class="btn btn-danger btn-sm">Unlink</a>
+        {% else %}
+            <a href="{% url 'dtb:services_overview' %}" class="btn btn-primary btn-sm">Link Account</a>
+        {% endif %}
+    </td>
+</tr>

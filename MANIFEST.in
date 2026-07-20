@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+recursive-include aa_discord_telegram_bridge/templates *
+recursive-include aa_discord_telegram_bridge/migrations *
+recursive-include aa_discord_telegram_bridge/static *
+recursive-include aa_discord_telegram_bridge/templatetags *

@@ -1,0 +1,145 @@
+﻿{% extends 'allianceauth/base-bs5.html' %}
+
+{% block page_title %}Connection Status{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Connection Status</h2>
+        <hr>
+        <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary btn-sm mb-3">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+
+        <div class="mb-3">
+            <button type="button" id="dtb-test-btn" class="btn btn-primary">
+                <i class="fas fa-sync"></i> Test Connection Now
+            </button>
+            <span id="dtb-test-spinner" class="d-none ms-2">
+                <i class="fas fa-spinner fa-spin"></i> Testing...
+            </span>
+            <span class="d-none">{% csrf_token %}</span>
+        </div>
+
+        <div class="row" id="dtb-status-cards">
+            <div class="col-md-6">
+                <div class="card mb-3" data-service="bot">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-robot"></i>
+                            Discord Forwarder Bot
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            <strong>Status:</strong>
+                            {% if bot_running %}
+                                <span class="badge bg-success">Running</span>
+                            {% else %}
+                                <span class="badge bg-danger">Stopped</span>
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Last heartbeat:</strong>
+                            {% if bot_last_seen is not None %}
+                                {{ bot_last_seen }}s ago
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% for status in statuses %}
+            <div class="col-md-6">
+                <div class="card mb-3" data-service="{{ status.service }}">
+                    <div class="card-header">
+                        <h5>
+                            {% if status.service == 'discord' %}
+                                <i class="fab fa-discord"></i>
+                            {% else %}
+                                <i class="fab fa-telegram"></i>
+                            {% endif %}
+                            {{ status.get_service_display }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            <strong>Status:</strong>
+                            {% if status.is_connected %}
+                                <span class="badge bg-success">Connected</span>
+                            {% else %}
+                                <span class="badge bg-danger">Disconnected</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Last checked:</strong> {{ status.last_checked|date:"Y-m-d H:i:s"|default:"Never" }}</p>
+                        <p><strong>Last success:</strong> {{ status.last_success|date:"Y-m-d H:i:s"|default:"Never" }}</p>
+                        <p class="dtb-err text-danger mb-0"{% if not status.error_message %} style="display:none;"{% endif %}>
+                            <strong>Error:</strong> <span class="dtb-err-msg">{{ status.error_message }}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No connection status recorded yet. Click "Test Connection Now" to check.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_javascript %}
+<script>
+(function () {
+    var btn = document.getElementById('dtb-test-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var sp = document.getElementById('dtb-test-spinner');
+        var csrf = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+        sp.classList.remove('d-none');
+        btn.disabled = true;
+        fetch("{% url 'dtb:admin_test_connection' %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrf
+            }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            document.querySelectorAll('#dtb-status-cards .card').forEach(function (card) {
+                var svc = card.getAttribute('data-service');
+                var res = data[svc];
+                if (!res) return;
+                var badge = card.querySelector('.badge');
+                if (badge) {
+                    badge.className = 'badge ' + (res.ok ? 'bg-success' : 'bg-danger');
+                    badge.textContent = res.ok ? 'Connected' : 'Disconnected';
+                }
+                var err = card.querySelector('.dtb-err');
+                var errMsg = card.querySelector('.dtb-err-msg');
+                if (err && errMsg) {
+                    if (res.ok || !res.message) {
+                        err.style.display = 'none';
+                    } else {
+                        err.style.display = '';
+                        errMsg.textContent = res.message;
+                    }
+                }
+            });
+        })
+        .catch(function () {
+            alert('Test failed.');
+        })
+        .finally(function () {
+            sp.classList.add('d-none');
+            btn.disabled = false;
+        });
+    });
+})();
+</script>
+{% endblock %}

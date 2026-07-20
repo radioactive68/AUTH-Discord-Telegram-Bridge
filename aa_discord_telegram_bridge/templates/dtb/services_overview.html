@@ -1,0 +1,151 @@
+﻿{% extends 'allianceauth/base-bs5.html' %}
+{% load static %}
+
+{% block page_title %}Discord-Telegram Bridge{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Discord-Telegram Bridge</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Telegram Block -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fab fa-telegram"></i> Telegram</h4>
+            </div>
+            <div class="card-body">
+                {% if profile.telegram_username %}
+                    <p><strong>Linked account:</strong> @{{ profile.telegram_username }}</p>
+                    <p>
+                        <strong>Status:</strong>
+                        {% if profile.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </p>
+                    <p>
+                        <strong>Notifications:</strong>
+                        {% if profile.notifications_enabled %}
+                            <span class="badge bg-success">Enabled</span>
+                        {% else %}
+                            <span class="badge bg-warning">Disabled</span>
+                        {% endif %}
+                    </p>
+
+                    {% if bot_link %}
+                    <p class="mb-1">
+                        <small class="text-muted">
+                            Bot: <a href="{{ bot_link }}" target="_blank" rel="noopener">@{{ bot_username }}</a>
+                            — send <code>/start</code> to keep access.
+                        </small>
+                    </p>
+                    {% endif %}
+
+                    <hr>
+
+                    <form method="post" action="{% url 'dtb:toggle_notifications' %}">
+                        {% csrf_token %}
+                        {% if profile.notifications_enabled %}
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-bell-slash"></i> Disable Notifications
+                            </button>
+                        {% else %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-bell"></i> Enable Notifications
+                            </button>
+                        {% endif %}
+                    </form>
+
+                    <form method="post" action="{% url 'dtb:unlink_telegram' %}" class="mt-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Unlink Telegram account?')">
+                            <i class="fas fa-unlink"></i> Unlink Account
+                        </button>
+                    </form>
+                {% else %}
+                    <p>Link your Telegram account to receive pings from Discord channels.</p>
+
+                    {% if bot_link %}
+                    <div class="alert alert-info py-2">
+                        <i class="fab fa-telegram"></i>
+                        <strong>Step 1:</strong> open the bot
+                        <a href="{{ bot_link }}" target="_blank" rel="noopener" class="fw-bold">@{{ bot_username }}</a>
+                        and press <strong>Start</strong>.
+                    </div>
+                    {% endif %}
+
+                    <p>
+                        <small class="text-muted">
+                            {% if bot_link %}Step 2:{% else %}Step 1:{% endif %}
+                            Click "Link Account" below and enter your @username.<br>
+                            {% if bot_link %}Step 3:{% else %}Step 2:{% endif %}
+                            If you already pressed Start, you're done — no code needed. Otherwise the bot sends a code to enter here.
+                        </small>
+                    </p>
+
+                    <form method="post" action="{% url 'dtb:link_telegram' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="id_telegram_username">Telegram Username</label>
+                            <input type="text" name="telegram_username" id="id_telegram_username"
+                                    class="form-control" placeholder="@username or username" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-link"></i> Link Account
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Block -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-info-circle"></i> Information</h4>
+            </div>
+            <div class="card-body">
+                <p>This service forwards messages from configured Discord channels to Telegram groups/topics.</p>
+
+                <h5>How it works:</h5>
+                <ul>
+                    <li>Messages and pings in specific Discord channels are automatically forwarded to Telegram</li>
+                    <li>You can enable/disable notifications at any time</li>
+                    <li>When you leave the alliance, you will be automatically removed from Telegram groups</li>
+                    <li>After linking, you are automatically invited to the alliance Telegram group(s)</li>
+                    <li>To link, just open the bot and press <code>/start</code>, then click "Link Account" — no code needed</li>
+                </ul>
+
+                {% if perms.dtb.manage_dtb_rules %}
+                <hr>
+                <h5>Admin Tools:</h5>
+                <a href="{% url 'dtb:admin_index' %}" class="btn btn-primary btn-sm mb-2">
+                    <i class="fas fa-tachometer-alt"></i> DTB Admin Dashboard
+                </a>
+                <br>
+                <a href="{% url 'dtb:admin_rules' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-cog"></i> Manage Rules
+                </a>
+                <a href="{% url 'dtb:admin_groups' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-users"></i> Manage Groups
+                </a>
+                <a href="{% url 'dtb:forward_history' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-history"></i> History
+                </a>
+                <a href="{% url 'dtb:connection_status' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-plug"></i> Connection Status
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

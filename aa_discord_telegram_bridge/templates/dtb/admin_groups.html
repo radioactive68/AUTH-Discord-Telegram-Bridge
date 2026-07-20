@@ -1,0 +1,79 @@
+﻿{% extends 'allianceauth/base-bs5.html' %}
+
+{% block page_title %}Manage Telegram Groups{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Manage Telegram Groups</h2>
+        <hr>
+        <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary btn-sm mb-3">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Telegram groups are tracked automatically when the bot is added to them.
+            You can also add groups manually below.
+        </div>
+
+        <div class="mb-3 d-flex flex-wrap align-items-center gap-3">
+            <form method="post" action="{% url 'dtb:admin_validate_now' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-user-check"></i> Validate &amp; Kick Now
+                </button>
+            </form>
+            <span class="text-muted">
+                Kicks users who are no longer in the alliance or no longer have a character linked.
+                &nbsp;|&nbsp; also runs automatically every 6 hours.
+            </span>
+        </div>
+
+        <div class="alert alert-secondary small">
+            <i class="fas fa-shield-alt"></i>
+            Membership is enforced for users who linked their Telegram to Auth: those who
+            leave the alliance or lose their linked character are kicked from all tracked groups.
+            When a group uses <strong>join requests</strong>
+            (instead of admin-only invites), the bot auto-approves only authorized members and
+            declines everyone else. Note: Telegram Bot API cannot list existing group members,
+            so people added manually by an admin who never linked Auth cannot be auto-removed.
+        </div>
+
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Chat ID</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Added</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in groups %}
+                <tr>
+                    <td>{{ group.name }}</td>
+                    <td><code>{{ group.telegram_chat_id }}</code></td>
+                    <td>{{ group.get_chat_type_display }}</td>
+                    <td>
+                        {% if group.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ group.added_at|date:"Y-m-d" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">
+                        No Telegram groups tracked yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

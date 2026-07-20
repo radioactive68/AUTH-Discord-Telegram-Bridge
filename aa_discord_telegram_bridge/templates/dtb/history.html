@@ -1,0 +1,72 @@
+﻿{% extends 'allianceauth/base-bs5.html' %}
+
+{% block page_title %}Forward History{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Forward History</h2>
+        <hr>
+        <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary btn-sm mb-3">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Rule</th>
+                    <th>Source</th>
+                    <th>Target</th>
+                    <th>Status</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in history %}
+                <tr>
+                    <td>{{ entry.forwarded_at|date:"Y-m-d H:i:s" }}</td>
+                    <td>{{ entry.rule.name|default:"-" }}</td>
+                    <td>{{ entry.source_channel }}</td>
+                    <td>{{ entry.target_channel }}</td>
+                    <td>
+                        {% if entry.success %}
+                            <span class="badge bg-success">OK</span>
+                        {% else %}
+                            <span class="badge bg-danger" title="{{ entry.error_message }}">FAIL</span>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ entry.message_preview|truncatewords:20 }}</small></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">No forwarding history yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if history.has_other_pages %}
+        <nav>
+            <ul class="pagination">
+                {% if history.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ history.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                {% for num in history.paginator.page_range %}
+                <li class="page-item {% if history.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if history.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ history.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

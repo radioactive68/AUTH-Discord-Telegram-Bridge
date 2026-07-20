@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aa-discord-telegram-bridge"
+version = "1.0.0"
+description = "Alliance Auth plugin: Bridge Discord pings to Telegram channels with membership management"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "GPL-3.0"}
+authors = [
+    {name = "DTB Contributors"},
+]
+keywords = ["allianceauth", "discord", "telegram", "bridge", "forwarding"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Django",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "allianceauth>=3.0",
+    "discord.py>=2.0",
+    "python-telegram-bot>=20.0",
+    "requests>=2.28",
+    "celery>=5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/radioactive68/AUTH-Discord-Telegram-Bridge"
+Source = "https://github.com/radioactive68/AUTH-Discord-Telegram-Bridge"
+Tracker = "https://github.com/radioactive68/AUTH-Discord-Telegram-Bridge/issues"
+
+[tool.setuptools.packages.find]
+include = ["aa_discord_telegram_bridge*"]
+
+[tool.setuptools.package-data]
+"aa_discord_telegram_bridge" = [
+    "templates/**/*",
+    "migrations/**/*",
+    "static/**/*",
+    "templatetags/**/*",
+]
+
+[tool.setuptools.exclude-package-data]
+"aa_discord_telegram_bridge" = ["**/__pycache__/*", "*.pyc", "**/*.pyc"]

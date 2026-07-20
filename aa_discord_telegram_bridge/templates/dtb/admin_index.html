@@ -1,0 +1,98 @@
+{% extends 'allianceauth/base-bs5.html' %}
+
+{% block page_title %}Discord-Telegram Bridge Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Discord-Telegram Bridge <small class="text-muted">v{{ version }}</small></h2>
+        <hr>
+        <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary btn-sm mb-3">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <strong>Discord Forwarder Bot:</strong>
+                        {% if bot_running %}
+                            <span class="badge bg-success">Running</span>
+                        {% else %}
+                            <span class="badge bg-danger">Stopped</span>
+                        {% endif %}
+                        <span class="text-muted">
+                            {% if bot_last_seen is not None %}({{ bot_last_seen }}s ago){% else %}(never){% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <strong>Membership enforcement:</strong>
+                        users who leave the alliance (or unlink their character) are auto-kicked from Telegram groups.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-exchange-alt"></i> Forward Rules</h5>
+                        <p class="text-muted">{{ rules_count }} rule(s) configured</p>
+                        <a href="{% url 'dtb:admin_rules' %}" class="btn btn-primary btn-sm">Manage</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-cog"></i> Settings</h5>
+                        <p class="text-muted">Tokens, alliance, membership</p>
+                        <a href="{% url 'dtb:admin_settings' %}" class="btn btn-primary btn-sm">Open</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-wizard"></i> Setup Wizard</h5>
+                        <p class="text-muted">Guided first-time setup</p>
+                        <a href="{% url 'dtb:admin_setup' %}" class="btn btn-primary btn-sm">Start</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-users"></i> Telegram Groups</h5>
+                        <p class="text-muted">{{ groups_count }} group(s) tracked</p>
+                        <a href="{% url 'dtb:admin_groups' %}" class="btn btn-primary btn-sm">Manage</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-plug"></i> Connection Status</h5>
+                        <p class="text-muted">Discord / Telegram / bot health</p>
+                        <a href="{% url 'dtb:connection_status' %}" class="btn btn-primary btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-history"></i> Forward History</h5>
+                        <p class="text-muted">Recent forwarded messages</p>
+                        <a href="{% url 'dtb:forward_history' %}" class="btn btn-primary btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

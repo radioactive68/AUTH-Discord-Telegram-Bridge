@@ -1,0 +1,229 @@
+﻿{% extends 'allianceauth/base-bs5.html' %}
+
+{% block page_title %}DTB Setup Wizard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Discord-Telegram Bridge — Setup</h2>
+        <hr>
+        <a href="{% url 'dtb:admin_rules' %}" class="btn btn-secondary btn-sm mb-3">
+            <i class="fas fa-arrow-left"></i> Back to Rules
+        </a>
+
+        {# Status overview #}
+        <div class="card mb-4">
+            <div class="card-header"><h5><i class="fas fa-list-check"></i> Status</h5></div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Discord bot token</span>
+                        {% if settings_form.instance.discord_bot_token %}
+                            <span class="badge bg-success">set</span>
+                        {% else %}
+                            <span class="badge bg-danger">missing</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Telegram bot token</span>
+                        {% if settings_form.instance.telegram_bot_token %}
+                            <span class="badge bg-success">set</span>
+                        {% else %}
+                            <span class="badge bg-danger">missing</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Auto-start bot</span>
+                        {% if settings_form.instance.autostart_bot %}
+                            <span class="badge bg-success">enabled</span>
+                        {% else %}
+                            <span class="badge bg-warning">disabled</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Forwarding rules</span>
+                        <span class="badge bg-info">{{ rules_count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Telegram connection</span>
+                        {% if conn_status.telegram.is_connected %}
+                            <span class="badge bg-success">connected</span>
+                        {% elif conn_status.telegram %}
+                            <span class="badge bg-danger">error</span>
+                        {% else %}
+                            <span class="badge bg-secondary">untested</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Discord connection</span>
+                        {% if conn_status.discord.is_connected %}
+                            <span class="badge bg-success">connected</span>
+                        {% elif conn_status.discord %}
+                            <span class="badge bg-danger">error</span>
+                        {% else %}
+                            <span class="badge bg-secondary">untested</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        {# Step 1: tokens #}
+        <div class="card mb-4">
+            <div class="card-header p-0">
+                <button class="btn w-100 text-start btn-light d-flex align-items-center"
+                        type="button" data-bs-toggle="collapse"
+                        data-bs-target="#setupStep1" aria-expanded="false" aria-controls="setupStep1">
+                    <i class="fas fa-key me-2"></i> 1. Bot Tokens
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </button>
+            </div>
+            <div id="setupStep1" class="collapse">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="save_tokens">
+                        {% for field in settings_form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                            {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Tokens
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {# Step 2: test #}
+        <div class="card mb-4">
+            <div class="card-header"><h5><i class="fas fa-plug"></i> 2. Test Connections</h5></div>
+            <div class="card-body">
+                <form method="post" id="dtb-setup-test-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="test">
+                    <button type="button" id="dtb-setup-test-btn" class="btn btn-info">
+                        <i class="fas fa-vial"></i> Test Connections
+                    </button>
+                    <span id="dtb-setup-test-spinner" class="d-none ms-2">
+                        <i class="fas fa-spinner fa-spin"></i> Testing...
+                    </span>
+                </form>
+                <div id="dtb-setup-test-results" class="mt-3">
+                    {% if test_results %}
+                    {% for svc, res in test_results.items %}
+                    <div class="alert alert-{% if res.ok %}success{% else %}danger{% endif %} mb-2">
+                        <strong>{{ svc|title }}:</strong> {{ res.message }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Step 3: rule #}
+        <div class="card mb-4">
+            <div class="card-header p-0">
+                <button class="btn w-100 text-start btn-light d-flex align-items-center"
+                        type="button" data-bs-toggle="collapse"
+                        data-bs-target="#setupStep3" aria-expanded="false" aria-controls="setupStep3">
+                    <i class="fas fa-route me-2"></i> 3. Add Forwarding Rule
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </button>
+            </div>
+            <div id="setupStep3" class="collapse">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_rule">
+                        {% for field in rule_form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                            {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Add Rule
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-muted">
+            Installed version: <strong>{{ current_version }}</strong>
+            {% if latest_version %} | Latest on GitHub: <strong>{{ latest_version }}</strong>{% endif %}
+        </p>
+        {% if update_available %}
+            <div class="alert alert-warning d-flex align-items-center flex-wrap">
+                <i class="fas fa-arrow-up me-2"></i>
+                <span class="me-2">An update is available.</span>
+                <form method="post" action="{% url 'dtb:admin_update' %}" class="d-inline me-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-warning">
+                        <i class="fas fa-download"></i> Update Now
+                    </button>
+                </form>
+                <a href="{% url 'dtb:admin_settings' %}" class="btn btn-sm btn-outline-secondary">
+                    Open Update Page
+                </a>
+            </div>
+        {% else %}
+            <a href="{% url 'dtb:admin_settings' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-cog"></i> Open Settings &amp; Update Page
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_javascript %}
+<script>
+(function () {
+    var btn = document.getElementById('dtb-setup-test-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var form = document.getElementById('dtb-setup-test-form');
+        var spinner = document.getElementById('dtb-setup-test-spinner');
+        var results = document.getElementById('dtb-setup-test-results');
+        var csrf = form.querySelector('input[name=csrfmiddlewaretoken]').value;
+        spinner.classList.remove('d-none');
+        btn.disabled = true;
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrf,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'action=test'
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var html = '';
+            Object.keys(data).forEach(function (svc) {
+                var res = data[svc];
+                var cls = res.ok ? 'success' : 'danger';
+                var name = svc.charAt(0).toUpperCase() + svc.slice(1);
+                html += '<div class="alert alert-' + cls + ' mb-2"><strong>' +
+                    name + ':</strong> ' + res.message + '</div>';
+            });
+            results.innerHTML = html;
+        })
+        .catch(function () {
+            results.innerHTML = '<div class="alert alert-danger mb-2">Test failed.</div>';
+        })
+        .finally(function () {
+            spinner.classList.add('d-none');
+            btn.disabled = false;
+        });
+    });
+})();
+</script>
+{% endblock %}
