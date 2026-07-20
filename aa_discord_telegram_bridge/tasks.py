@@ -59,6 +59,9 @@ def _user_in_alliance(user):
         alliance_id = getattr(__import__('django.conf', fromlist=['settings']).settings, 'DTB_ALLIANCE_ID', None)
     if alliance_id is None:
         return True
+    # Trusted Alliance Auth administrators are always considered authorized
+    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False):
+        return True
     # Check via AA's CharacterOwnership -> EveCharacter.alliance_id
     # related_name='character_ownerships' (newer AA) or 'character_ownership' (older)
     ownerships = None
@@ -83,20 +86,20 @@ def validate_all_telegram_users(self):
     """
     telegram_bot = TelegramBotManager()
 
-    # Get all active Telegram users
-    active_users = TelegramUser.objects.filter(
-        is_active=True,
+    # Process all linked users (with a Telegram chat id) so that users who were
+    # previously deactivated can be re-activated when they return to good standing.
+    linked_users = TelegramUser.objects.filter(
         telegram_chat_id__isnull=False,
     ).exclude(telegram_chat_id='')
 
     kicked_count = 0
     validated_count = 0
 
-    for tg_user in active_users:
+    for tg_user in linked_users:
         try:
             user = tg_user.user
 
-            # Check if user is still active in Django
+            # A deactivated Django user always loses Telegram access
             if not user.is_active:
                 _kick_user_from_all_groups(telegram_bot, tg_user)
                 tg_user.is_active = False
@@ -105,32 +108,40 @@ def validate_all_telegram_users(self):
                 kicked_count += 1
                 continue
 
-            # Check if user has any character ownership
-            has_ownership = (
-                (hasattr(user, 'character_ownerships') and user.character_ownerships.exists()) or
-                (hasattr(user, 'character_ownership'))
-            )
-            if not has_ownership:
-                _kick_user_from_all_groups(telegram_bot, tg_user)
-                tg_user.is_active = False
-                tg_user.notifications_enabled = False
-                tg_user.save()
-                kicked_count += 1
-                continue
+            # Trusted Alliance Auth administrators are always authorized
+            authorized = user.is_superuser or user.is_staff
 
-            # Check alliance membership
-            if not _user_in_alliance(user):
-                logger.info(
-                    'User %s no longer in alliance, kicking from Telegram',
-                    user.username,
+            if not authorized:
+                # Check if user has any character ownership
+                has_ownership = (
+                    (hasattr(user, 'character_ownerships') and user.character_ownerships.exists()) or
+                    (hasattr(user, 'character_ownership'))
                 )
-                _kick_user_from_all_groups(telegram_bot, tg_user)
-                tg_user.is_active = False
-                tg_user.notifications_enabled = False
-                tg_user.save()
-                kicked_count += 1
-                continue
+                if not has_ownership:
+                    _kick_user_from_all_groups(telegram_bot, tg_user)
+                    tg_user.is_active = False
+                    tg_user.notifications_enabled = False
+                    tg_user.save()
+                    kicked_count += 1
+                    continue
 
+                # Check alliance membership
+                if not _user_in_alliance(user):
+                    logger.info(
+                        'User %s no longer in alliance, kicking from Telegram',
+                        user.username,
+                    )
+                    _kick_user_from_all_groups(telegram_bot, tg_user)
+                    tg_user.is_active = False
+                    tg_user.notifications_enabled = False
+                    tg_user.save()
+                    kicked_count += 1
+                    continue
+
+            # User is in good standing: ensure the profile is active.
+            # This also recovers users that were deactivated earlier.
+            if not tg_user.is_active:
+                tg_user.is_active = True
             tg_user.last_validated = timezone.now()
             tg_user.save()
             validated_count += 1

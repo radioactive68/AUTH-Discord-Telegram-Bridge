@@ -42,7 +42,7 @@ def on_character_update(sender, instance, **kwargs):
     kick the user from Telegram groups.
     """
     from .models import DTBSettings, TelegramUser
-    from .tasks import _kick_user_from_all_groups, _user_in_alliance
+    from .tasks import _kick_user_from_all_groups, _user_in_alliance, _invite_to_groups
     from .manager import TelegramBotManager
 
     try:
@@ -57,8 +57,26 @@ def on_character_update(sender, instance, **kwargs):
         user = ownership.user
         tg_profile = TelegramUser.objects.get(user=user)
 
-        if tg_profile.is_active and tg_profile.telegram_chat_id:
-            if not _user_in_alliance(user):
+        # Only act on users that have a linked Telegram account
+        if not tg_profile.telegram_chat_id:
+            return
+
+        in_alliance = _user_in_alliance(user)
+
+        if in_alliance:
+            # User is (back) in the alliance: restore access if it was revoked
+            if not tg_profile.is_active:
+                bot = TelegramBotManager()
+                _invite_to_groups(bot, tg_profile.telegram_user_id)
+                tg_profile.is_active = True
+                tg_profile.save()
+                logger.info(
+                    'Re-activated Telegram for %s: in alliance',
+                    user.username,
+                )
+        else:
+            # User left the alliance: revoke access
+            if tg_profile.is_active:
                 bot = TelegramBotManager()
                 _kick_user_from_all_groups(bot, tg_profile)
                 tg_profile.is_active = False
