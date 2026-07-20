@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 
-DTB_VERSION = '1.0.0'
+DTB_VERSION = '1.0.1'
 
 DEFAULT_GITHUB_REPO = 'radioactive68/AUTH-Discord-Telegram-Bridge'
 
