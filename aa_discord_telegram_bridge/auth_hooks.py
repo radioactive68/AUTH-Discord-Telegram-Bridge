@@ -54,7 +54,7 @@ class DiscordTelegramBridgeService(ServicesHook):
         from django.template.loader import render_to_string
 
         user = request.user
-        profile, _ = TelegramUser.objects.get_or_create(user=user)
+        profile, created = TelegramUser.objects.get_or_create(user=user)
 
         bot_link = None
         bot_username = None

@@ -32,7 +32,7 @@ def _has_dtb_permission(user):
 @login_required
 def services_overview(request):
     """Main user page: show Telegram block with link/unlink controls."""
-    profile, _ = TelegramUser.objects.get_or_create(user=request.user)
+    profile, created = TelegramUser.objects.get_or_create(user=request.user)
 
     bot_link = None
     bot_username = None
@@ -62,7 +62,7 @@ def link_telegram(request):
     request exists and we link automatically — no code needed. Otherwise we
     fall back to the verification-code flow.
     """
-    profile, _ = TelegramUser.objects.get_or_create(user=request.user)
+    profile, created = TelegramUser.objects.get_or_create(user=request.user)
 
     if profile.telegram_chat_id:
         messages.warning(request, _('Telegram account is already linked. Unlink first.'))
@@ -166,7 +166,7 @@ def link_telegram(request):
 @require_POST
 def verify_link(request):
     """Verify the linking code."""
-    profile, _ = TelegramUser.objects.get_or_create(user=request.user)
+    profile, created = TelegramUser.objects.get_or_create(user=request.user)
     code = request.POST.get('code', '').strip().upper()
     expected = request.session.get('dtb_link_code')
     username = request.session.get('dtb_link_username')
@@ -201,7 +201,7 @@ def verify_link(request):
 @require_POST
 def unlink_telegram(request):
     """Unlink Telegram account."""
-    profile, _ = TelegramUser.objects.get_or_create(user=request.user)
+    profile, created = TelegramUser.objects.get_or_create(user=request.user)
     profile.is_active = False
     profile.notifications_enabled = False
     profile.telegram_chat_id = ''
@@ -216,7 +216,7 @@ def unlink_telegram(request):
 @require_POST
 def toggle_notifications(request):
     """Toggle notification on/off."""
-    profile, _ = TelegramUser.objects.get_or_create(user=request.user)
+    profile, created = TelegramUser.objects.get_or_create(user=request.user)
     profile.notifications_enabled = not profile.notifications_enabled
     profile.save()
 
@@ -410,7 +410,7 @@ def admin_test_connection(request):
     if service in ('telegram', 'both'):
         bot = TelegramBotManager()
         is_ok, msg = bot.test_connection()
-        status, _ = ConnectionStatus.objects.update_or_create(
+        status, created = ConnectionStatus.objects.update_or_create(
             service='telegram',
             defaults={
                 'is_connected': is_ok,
@@ -424,7 +424,7 @@ def admin_test_connection(request):
     if service in ('discord', 'both'):
         bot = DiscordBotManager()
         is_ok, msg = bot.test_connection()
-        status, _ = ConnectionStatus.objects.update_or_create(
+        status, created = ConnectionStatus.objects.update_or_create(
             service='discord',
             defaults={
                 'is_connected': is_ok,
