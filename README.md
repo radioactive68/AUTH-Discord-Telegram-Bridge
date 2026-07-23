@@ -15,8 +15,6 @@ membership (kick on alliance leave).
 - **Forward history** — a log of every forwarded message.
 - **Connection check** — test Discord and Telegram bot connectivity.
 - **Admin panel** — manage forwarding rules and groups.
-- **One-click update** — pull the latest code from GitHub and run migrations
-  directly from the admin settings page.
 - **Built-in bot** — the Discord forwarder bot can run as a management command
   or be auto-started inside Alliance Auth (no separate process required).
 - **Setup wizard** — a guided first-time setup page (tokens, connection test,
@@ -215,19 +213,6 @@ Once saved, forwarding works immediately.
 3. Click "Link Account" and follow the instructions.
 4. Toggle notifications on/off.
 
-## Updating
-
-Open the DTB Settings admin page:
-
-- The page shows the **installed version** and the **latest version on GitHub**.
-- If an update is available, a banner appears with an **Update Now** button.
-- Use **Check for updates** to force a fresh check (bypasses CDN cache).
-- Clicking **Update Now** runs `git pull`, migrations and `collectstatic`
-  automatically.
-
-To make a new version available, bump `DTB_VERSION` in
-`aa_discord_telegram_bridge/models.py`, commit and push to the `main` branch.
-
 ## Plugin structure
 
 ```
@@ -247,7 +232,7 @@ aa_discord_telegram_bridge/
 ├── discord_cog.py       # Discord.py cog for forwarding
 ├── telegram_handler.py  # Telegram webhook handling
 ├── permissions.py       # Custom permissions
-├── management/commands/ # dtb_run_bot, dtb_update
+├── management/commands/ # dtb_run_bot
 ├── templatetags/
 │   └── dtb_tags.py
 ├── templates/dtb/
