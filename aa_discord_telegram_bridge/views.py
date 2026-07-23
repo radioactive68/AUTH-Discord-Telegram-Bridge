@@ -358,11 +358,75 @@ def admin_rule_toggle(request, rule_id):
 @permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_groups(request):
     """Manage known Telegram groups."""
-    from .models import DTBSettings
+    from .models import DTBSettings, TelegramGroup
+    from .forms import TelegramGroupForm
     groups = TelegramGroup.objects.all()
-    s = DTBSettings.load()
+    form = TelegramGroupForm()
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+
+        if action == 'add_group':
+            form = TelegramGroupForm(request.POST)
+            if form.is_valid():
+                chat_id = form.cleaned_data['chat_id'].strip()
+                try:
+                    bot = TelegramBotManager()
+                    res = bot.get_chat(chat_id)
+                    if res.get('ok'):
+                        info = res['result']
+                        tg_id = str(info.get('id', chat_id))
+                        name = info.get('title') or info.get('username', chat_id)
+                        chat_type = info.get('type', 'supergroup')
+                        TelegramGroup.objects.get_or_create(
+                            telegram_chat_id=tg_id,
+                            defaults={'name': name, 'chat_type': chat_type},
+                        )
+                        messages.success(request, _('Group "%(name)s" added.') % {'name': name})
+                    else:
+                        messages.error(request, _('Could not find chat: %(desc)s') % {
+                            'desc': res.get('description', 'Unknown error')
+                        })
+                except Exception as e:
+                    messages.error(request, _('Error: %(error)s') % {'error': str(e)})
+                return redirect('dtb:admin_groups')
+
+        elif action == 'scan':
+            added = 0
+            try:
+                bot = TelegramBotManager()
+                res = bot.get_updates(timeout=0)
+                if res.get('ok'):
+                    seen = set()
+                    for update in res.get('result', []):
+                        chat = update.get('message', {}).get('chat') or \
+                               update.get('my_chat_member', {}).get('chat') or \
+                               update.get('chat_join_request', {}).get('chat')
+                        if chat and chat.get('type') in ('group', 'supergroup', 'channel'):
+                            cid = str(chat.get('id', ''))
+                            if cid and cid not in seen:
+                                seen.add(cid)
+                                _, created = TelegramGroup.objects.get_or_create(
+                                    telegram_chat_id=cid,
+                                    defaults={
+                                        'name': chat.get('title') or chat.get('username', cid),
+                                        'chat_type': chat.get('type', 'supergroup'),
+                                    },
+                                )
+                                if created:
+                                    added += 1
+                    messages.success(request, _('Scan complete. %(added)s new group(s) found.') % {'added': added})
+                else:
+                    messages.error(request, _('Scan failed: %(desc)s') % {
+                        'desc': res.get('description', 'Unknown error')
+                    })
+            except Exception as e:
+                messages.error(request, _('Scan error: %(error)s') % {'error': str(e)})
+            return redirect('dtb:admin_groups')
+
     return render(request, 'dtb/admin_groups.html', {
         'groups': groups,
+        'form': form,
     })
 
 

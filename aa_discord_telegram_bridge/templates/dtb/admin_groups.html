@@ -14,11 +14,39 @@
 
         <div class="alert alert-info">
             <i class="fas fa-info-circle"></i>
-            {% blocktranslate %}Telegram groups are tracked automatically when the bot is added to them.
-            You can also add groups manually below.{% endblocktranslate %}
+            {% translate "Add groups manually by Chat ID or scan recent bot activity to discover groups." %}
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">{% translate "Add Group Manually" %}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'dtb:admin_groups' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_group">
+                    <div class="input-group">
+                        {{ form.chat_id }}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-plus"></i> {% translate "Add" %}
+                        </button>
+                    </div>
+                    <small class="text-muted">{% translate "Enter Chat ID (e.g. -1001234567890) or @channel_username" %}</small>
+                </form>
+            </div>
         </div>
 
         <div class="mb-3 d-flex flex-wrap align-items-center gap-3">
+            <form method="post" action="{% url 'dtb:admin_groups' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="scan">
+                <button type="submit" class="btn btn-info">
+                    <i class="fas fa-radar"></i> {% translate "Scan Recent Activity" %}
+                </button>
+            </form>
+            <span class="text-muted">
+                {% translate "Discovers groups from recent bot updates (messages, join requests)." %}
+            </span>
             <form method="post" action="{% url 'dtb:admin_validate_now' %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-warning">
@@ -26,19 +54,14 @@
                 </button>
             </form>
             <span class="text-muted">
-                {% blocktranslate %}Kicks users who are no longer in the alliance or no longer have a character linked.
-                | also runs automatically every 6 hours.{% endblocktranslate %}
+                {% translate "Kicks users who are no longer in the alliance. | Also runs every 6 hours." %}
             </span>
         </div>
 
         <div class="alert alert-secondary small">
             <i class="fas fa-shield-alt"></i>
-            {% blocktranslate %}Membership is enforced for users who linked their Telegram to Auth: those who
-            leave the alliance or lose their linked character are kicked from all tracked groups.
-            When a group uses <strong>join requests</strong>
-            (instead of admin-only invites), the bot auto-approves only authorized members and
-            declines everyone else. Note: Telegram Bot API cannot list existing group members,
-            so people added manually by an admin who never linked Auth cannot be auto-removed.{% endblocktranslate %}
+            {% translate "Membership is enforced for users who linked their Telegram to Auth: those who leave the alliance or lose their linked character are kicked from all tracked groups." %}
+            {% translate "Note: Telegram Bot API cannot list existing group members, so people added manually by an admin who never linked Auth cannot be auto-removed." %}
         </div>
 
         <table class="table table-striped table-hover">
