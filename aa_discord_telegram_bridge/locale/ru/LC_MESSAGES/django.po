@@ -1,0 +1,842 @@
+# Russian translations for aa-discord-telegram-bridge.
+# Copyright (C) 2026
+# This file is distributed under the same license as the aa-discord-telegram-bridge package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: aa-discord-telegram-bridge 1.0.4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-23 23:30+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
+
+msgid ""
+"Auto-start the Discord forwarder bot inside Alliance Auth (no separate "
+"process needed). Requires a restart to take effect."
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:39
+#: вЃЁmodels.pyвЃ©:40
+#: admin_settings.html:4
+msgid "DTB Settings"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:67
+msgid "Supergroup"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:68
+msgid "Group"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:69
+msgid "Channel"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:77
+msgid "Telegram Group"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:78
+#: admin_index.html:72
+msgid "Telegram Groups"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:88
+#: admin_groups.html:48
+msgid "Chat ID"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:89
+msgid "Username/@"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:94
+msgid "Short name for this rule (e.g. \"ops\", \"CTA\")"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:98
+msgid "Discord channel ID to listen to"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:103
+msgid "Human-readable Discord channel name (for display)"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:107
+msgid "Telegram chat ID or @username to forward to"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:118
+msgid ""
+"Comma-separated keywords. If set, only messages containing one of these "
+"words trigger forwarding. Leave empty for all messages."
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:124
+msgid "Higher priority rules are checked first"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:130
+msgid "Forward Rule"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:131
+#: admin_index.html:45
+msgid "Forward Rules"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:160
+msgid "Telegram user chat ID (obtained automatically)"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:165
+msgid "Telegram numeric user ID"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:174
+msgid "Whether the user has enabled Telegram notifications"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:178
+msgid "Master toggle for all notifications"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:184
+msgid "Telegram User"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:185
+msgid "Telegram Users"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:201
+msgid "Telegram Link Request"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:202
+msgid "Telegram Link Requests"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:229
+#: вЃЁmodels.pyвЃ©:230
+#: admin_index.html:90
+#: history.html:4
+#: history.html:9
+msgid "Forward History"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:241
+msgid "Discord Bot"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:242
+msgid "Telegram Bot"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:257
+#: admin_index.html:81
+#: services_overview.html:143
+#: status.html:4
+#: status.html:9
+msgid "Connection Status"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:258
+msgid "Connection Statuses"
+msgstr ""
+
+#: вЃЁmodels.pyвЃ©:284
+#: вЃЁmodels.pyвЃ©:285
+msgid "Bot Status"
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:68
+msgid "Telegram account is already linked. Unlink first."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:109
+#: вЃЁviews.pyвЃ©:196
+#, python-format
+msgid "Telegram account @%(username)s linked successfully!"
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:119
+#, python-format
+msgid "Telegram bot connection failed: %(msg)s"
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:146
+#, python-format
+msgid ""
+"A verification code has been sent to @%(username)s. Enter it below to "
+"complete linking."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:155
+#, python-format
+msgid ""
+"Could not send message to @%(username)s. Make sure you have started a chat "
+"with the bot first, and that the username is correct."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:161
+msgid "Invalid username. Please try again."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:175
+msgid "Linking session expired. Please try again."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:179
+msgid "Invalid code. Please try again."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:224
+msgid "Telegram account unlinked."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:236
+#: вЃЁviews.pyвЃ©:352
+#: admin_setup.html:39
+msgid "enabled"
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:236
+#: вЃЁviews.pyвЃ©:352
+#: admin_setup.html:41
+msgid "disabled"
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:237
+#, python-format
+msgid "Notifications %(state)s."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:300
+msgid "Rule created."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:307
+msgid "Add Forward Rule"
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:321
+msgid "Rule updated."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:328
+#, python-format
+msgid "Edit Rule: %(name)s"
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:340
+#, python-format
+msgid "Rule \"%(name)s\" deleted."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:353
+#, python-format
+msgid "Rule \"%(name)s\" %(state)s."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:379
+#, python-format
+msgid "Validation complete: %(validated)s validated, %(kicked)s kicked."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:385
+msgid "Validation task executed."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:456
+#: вЃЁviews.pyвЃ©:458
+#, python-format
+msgid "%(svc)s: %(msg)s"
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:478
+#: вЃЁviews.pyвЃ©:507
+msgid "Settings saved."
+msgstr ""
+
+#: вЃЁviews.pyвЃ©:513
+msgid "Forwarding rule added."
+msgstr ""
+
+#: admin_groups.html:4
+#: admin_groups.html:9
+msgid "Manage Telegram Groups"
+msgstr ""
+
+#: admin_groups.html:12
+#: admin_index.html:12
+#: admin_rules.html:12
+#: admin_settings.html:12
+#: history.html:12
+#: status.html:12
+msgid "Back"
+msgstr ""
+
+#: admin_groups.html:25
+msgid "Validate & Kick Now"
+msgstr ""
+
+#: admin_groups.html:47
+#: admin_rules.html:24
+msgid "Name"
+msgstr ""
+
+#: admin_groups.html:49
+msgid "Type"
+msgstr ""
+
+#: admin_groups.html:50
+#: admin_rules.html:29
+#: admin_setup.html:17
+#: history.html:22
+msgid "Status"
+msgstr ""
+
+#: admin_groups.html:51
+msgid "Added"
+msgstr ""
+
+#: admin_groups.html:62
+#: services_ctrl.html:13
+#: services_overview.html:28
+msgid "Active"
+msgstr ""
+
+#: admin_groups.html:64
+#: services_ctrl.html:15
+#: services_overview.html:30
+msgid "Inactive"
+msgstr ""
+
+#: admin_groups.html:72
+msgid "No Telegram groups tracked yet."
+msgstr ""
+
+#: admin_index.html:4
+msgid "Discord-Telegram Bridge Admin"
+msgstr ""
+
+#: admin_index.html:19
+msgid "Discord Forwarder Bot:"
+msgstr ""
+
+#: admin_index.html:21
+#: status.html:38
+msgid "Running"
+msgstr ""
+
+#: admin_index.html:23
+#: status.html:40
+msgid "Stopped"
+msgstr ""
+
+#: admin_index.html:26
+msgid "never"
+msgstr ""
+
+#: admin_index.html:34
+msgid "Membership enforcement:"
+msgstr ""
+
+#: admin_index.html:35
+msgid ""
+"users who leave the alliance (or unlink their character) are auto-kicked "
+"from Telegram groups."
+msgstr ""
+
+#: admin_index.html:46
+msgid "rule(s) configured"
+msgstr ""
+
+#: admin_index.html:47
+#: admin_index.html:74
+msgid "Manage"
+msgstr ""
+
+#: admin_index.html:54
+msgid "Settings"
+msgstr ""
+
+#: admin_index.html:55
+msgid "Tokens, alliance, membership"
+msgstr ""
+
+#: admin_index.html:56
+msgid "Open"
+msgstr ""
+
+#: admin_index.html:63
+#: admin_rules.html:15
+#: admin_settings.html:15
+msgid "Setup Wizard"
+msgstr ""
+
+#: admin_index.html:64
+msgid "Guided first-time setup"
+msgstr ""
+
+#: admin_index.html:65
+#: services_ctrl.html:54
+#: services_overview.html:81
+msgid "Start"
+msgstr ""
+
+#: admin_index.html:73
+msgid "group(s) tracked"
+msgstr ""
+
+#: admin_index.html:82
+msgid "Discord / Telegram / bot health"
+msgstr ""
+
+#: admin_index.html:83
+#: admin_index.html:92
+msgid "View"
+msgstr ""
+
+#: admin_index.html:91
+msgid "Recent forwarded messages"
+msgstr ""
+
+#: admin_rules.html:4
+#: admin_rules.html:9
+msgid "Manage Forward Rules"
+msgstr ""
+
+#: admin_rules.html:18
+#: admin_setup.html:153
+msgid "Add Rule"
+msgstr ""
+
+#: admin_rules.html:25
+msgid "Discord Channel"
+msgstr ""
+
+#: admin_rules.html:26
+msgid "Telegram Target"
+msgstr ""
+
+#: admin_rules.html:27
+msgid "Keywords"
+msgstr ""
+
+#: admin_rules.html:28
+msgid "Priority"
+msgstr ""
+
+#: admin_rules.html:30
+msgid "Actions"
+msgstr ""
+
+#: admin_rules.html:43
+msgid "All"
+msgstr ""
+
+#: admin_rules.html:49
+#: services_ctrl.html:21
+#: services_overview.html:36
+msgid "Enabled"
+msgstr ""
+
+#: admin_rules.html:51
+#: services_ctrl.html:23
+#: services_overview.html:38
+msgid "Disabled"
+msgstr ""
+
+#: admin_rules.html:58
+#: services_ctrl.html:31
+msgid "Disable"
+msgstr ""
+
+#: admin_rules.html:58
+#: services_ctrl.html:35
+msgid "Enable"
+msgstr ""
+
+#: admin_rules.html:61
+msgid "Edit"
+msgstr ""
+
+#: admin_rules.html:65
+msgid "Delete"
+msgstr ""
+
+#: admin_rule_form.html:12
+#: admin_setup.html:12
+msgid "Back to Rules"
+msgstr ""
+
+#: admin_rule_form.html:38
+msgid "Save Rule"
+msgstr ""
+
+#: admin_rule_form.html:40
+#: verify_link.html:29
+msgid "Cancel"
+msgstr ""
+
+#: admin_settings.html:9
+msgid "Discord-Telegram Bridge Settings"
+msgstr ""
+
+#: admin_settings.html:18
+#: admin_setup.html:160
+msgid "Installed version:"
+msgstr ""
+
+#: admin_settings.html:22
+msgid "Plugin Configuration"
+msgstr ""
+
+#: admin_settings.html:42
+msgid "Save Settings"
+msgstr ""
+
+#: admin_setup.html:4
+msgid "DTB Setup Wizard"
+msgstr ""
+
+#: admin_setup.html:9
+msgid "Setup"
+msgstr ""
+
+#: admin_setup.html:21
+msgid "Discord bot token"
+msgstr ""
+
+#: admin_setup.html:23
+#: admin_setup.html:31
+msgid "set"
+msgstr ""
+
+#: admin_setup.html:25
+#: admin_setup.html:33
+msgid "missing"
+msgstr ""
+
+#: admin_setup.html:29
+msgid "Telegram bot token"
+msgstr ""
+
+#: admin_setup.html:37
+msgid "Auto-start bot"
+msgstr ""
+
+#: admin_setup.html:45
+msgid "Forwarding rules"
+msgstr ""
+
+#: admin_setup.html:49
+msgid "Telegram connection"
+msgstr ""
+
+#: admin_setup.html:51
+#: admin_setup.html:61
+msgid "connected"
+msgstr ""
+
+#: admin_setup.html:53
+#: admin_setup.html:63
+msgid "error"
+msgstr ""
+
+#: admin_setup.html:55
+#: admin_setup.html:65
+msgid "untested"
+msgstr ""
+
+#: admin_setup.html:59
+msgid "Discord connection"
+msgstr ""
+
+#: admin_setup.html:78
+msgid "1. Bot Tokens"
+msgstr ""
+
+#: admin_setup.html:96
+msgid "Save Tokens"
+msgstr ""
+
+#: admin_setup.html:105
+msgid "2. Test Connections"
+msgstr ""
+
+#: admin_setup.html:111
+msgid "Test Connections"
+msgstr ""
+
+#: admin_setup.html:114
+#: status.html:20
+msgid "Testing..."
+msgstr ""
+
+#: admin_setup.html:135
+msgid "3. Add Forwarding Rule"
+msgstr ""
+
+#: admin_setup.html:162
+msgid "Open Settings"
+msgstr ""
+
+#: history.html:18
+msgid "Time"
+msgstr ""
+
+#: history.html:19
+msgid "Rule"
+msgstr ""
+
+#: history.html:20
+msgid "Source"
+msgstr ""
+
+#: history.html:21
+msgid "Target"
+msgstr ""
+
+#: history.html:23
+msgid "Message"
+msgstr ""
+
+#: history.html:35
+msgid "OK"
+msgstr ""
+
+#: history.html:37
+msgid "FAIL"
+msgstr ""
+
+#: history.html:44
+msgid "No forwarding history yet."
+msgstr ""
+
+#: history.html:55
+msgid "Previous"
+msgstr ""
+
+#: history.html:65
+msgid "Next"
+msgstr ""
+
+#: services_ctrl.html:9
+msgid "Linked as:"
+msgstr ""
+
+#: services_ctrl.html:11
+#: services_overview.html:26
+#: status.html:36
+#: status.html:69
+msgid "Status:"
+msgstr ""
+
+#: services_ctrl.html:19
+#: services_overview.html:34
+msgid "Notifications:"
+msgstr ""
+
+#: services_ctrl.html:43
+msgid "Unlink"
+msgstr ""
+
+#: services_ctrl.html:47
+msgid "Forwards messages from Discord channels to Telegram."
+msgstr ""
+
+#: services_ctrl.html:52
+#: services_overview.html:79
+msgid "Step 1:"
+msgstr ""
+
+#: services_ctrl.html:52
+#: services_overview.html:79
+msgid "open the bot"
+msgstr ""
+
+#: services_ctrl.html:54
+#: services_overview.html:81
+msgid "and press"
+msgstr ""
+
+#: services_ctrl.html:61
+msgid "Step 2:"
+msgstr ""
+
+#: services_ctrl.html:61
+msgid "enter your Telegram username"
+msgstr ""
+
+#: services_ctrl.html:66
+#: services_overview.html:100
+msgid "Link Account"
+msgstr ""
+
+#: services_ctrl.html:73
+msgid "Open DTB"
+msgstr ""
+
+#: services_overview.html:20
+msgid "Telegram"
+msgstr ""
+
+#: services_overview.html:24
+msgid "Linked account:"
+msgstr ""
+
+#: services_overview.html:45
+msgid "Bot:"
+msgstr ""
+
+#: services_overview.html:46
+msgid "manages your access to the alliance Telegram groups."
+msgstr ""
+
+#: services_overview.html:57
+msgid "Disable Notifications"
+msgstr ""
+
+#: services_overview.html:61
+msgid "Enable Notifications"
+msgstr ""
+
+#: services_overview.html:70
+msgid "Unlink Account"
+msgstr ""
+
+#: services_overview.html:74
+msgid "Link your Telegram account to receive pings from Discord channels."
+msgstr ""
+
+#: services_overview.html:112
+msgid "Information"
+msgstr ""
+
+#: services_overview.html:115
+msgid ""
+"This service forwards messages from configured Discord channels to Telegram "
+"groups/topics."
+msgstr ""
+
+#: services_overview.html:117
+msgid "How it works:"
+msgstr ""
+
+#: services_overview.html:119
+msgid ""
+"Messages and pings in specific Discord channels are automatically forwarded "
+"to Telegram"
+msgstr ""
+
+#: services_overview.html:120
+msgid "You can enable/disable notifications at any time"
+msgstr ""
+
+#: services_overview.html:121
+msgid ""
+"When you leave the alliance, you will be automatically removed from Telegram "
+"groups"
+msgstr ""
+
+#: services_overview.html:122
+msgid ""
+"After linking, you are automatically invited to the alliance Telegram "
+"group(s)"
+msgstr ""
+
+#: services_overview.html:128
+msgid "Admin Tools:"
+msgstr ""
+
+#: services_overview.html:130
+msgid "DTB Admin Dashboard"
+msgstr ""
+
+#: services_overview.html:134
+msgid "Manage Rules"
+msgstr ""
+
+#: services_overview.html:137
+msgid "Manage Groups"
+msgstr ""
+
+#: services_overview.html:140
+msgid "History"
+msgstr ""
+
+#: status.html:17
+msgid "Test Connection Now"
+msgstr ""
+
+#: status.html:31
+msgid "Discord Forwarder Bot"
+msgstr ""
+
+#: status.html:44
+msgid "Last heartbeat:"
+msgstr ""
+
+#: status.html:48
+msgid "Never"
+msgstr ""
+
+#: status.html:71
+msgid "Connected"
+msgstr ""
+
+#: status.html:73
+msgid "Disconnected"
+msgstr ""
+
+#: status.html:76
+msgid "Last checked:"
+msgstr ""
+
+#: status.html:77
+msgid "Last success:"
+msgstr ""
+
+#: status.html:79
+msgid "Error:"
+msgstr ""
+
+#: verify_link.html:4
+msgid "Link Telegram Account"
+msgstr ""
+
+#: verify_link.html:11
+msgid "Verify Telegram Link"
+msgstr ""
+
+#: verify_link.html:14
+msgid "A verification code has been sent to"
+msgstr ""
+
+#: verify_link.html:14
+msgid "in Telegram."
+msgstr ""
+
+#: verify_link.html:15
+msgid "Please check your Telegram messages and enter the code below."
+msgstr ""
+
+#: verify_link.html:21
+msgid "Verification Code"
+msgstr ""
+
+#: verify_link.html:27
+msgid "Verify & Link"
+msgstr ""
+
