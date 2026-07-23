@@ -32,7 +32,9 @@ def _has_dtb_permission(user):
 @login_required
 def services_overview(request):
     """Main user page: show Telegram block with link/unlink controls."""
+    from .tasks import _user_in_alliance
     profile, created = TelegramUser.objects.get_or_create(user=request.user)
+    in_alliance = _user_in_alliance(request.user)
 
     bot_link = None
     bot_username = None
@@ -50,6 +52,7 @@ def services_overview(request):
         'profile': profile,
         'bot_username': bot_username,
         'bot_link': bot_link,
+        'in_alliance': in_alliance,
     })
 
 
@@ -62,6 +65,11 @@ def link_telegram(request):
     request exists and we link automatically — no code needed. Otherwise we
     fall back to the verification-code flow.
     """
+    from .tasks import _user_in_alliance
+    if not _user_in_alliance(request.user):
+        messages.error(request, _('You must be a member of the configured alliance to link Telegram.'))
+        return redirect('dtb:services_overview')
+
     profile, created = TelegramUser.objects.get_or_create(user=request.user)
 
     if profile.telegram_chat_id:

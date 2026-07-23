@@ -42,13 +42,9 @@ class DiscordTelegramBridgeService(ServicesHook):
             return False
 
     def show_service_ctrl(self, user):
-        """Show service control for members."""
-        from django.contrib.auth.models import Permission
-        from django.contrib.contenttypes.models import ContentType
-        from .models import TelegramUser
-
-        # Show for any user who can potentially link
-        return True
+        """Show service control only for alliance members."""
+        from .tasks import _user_in_alliance
+        return _user_in_alliance(user)
 
     def render_services_ctrl(self, request):
         from django.template.loader import render_to_string

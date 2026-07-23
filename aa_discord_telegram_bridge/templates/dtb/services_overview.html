@@ -20,7 +20,12 @@
                 <h4><i class="fab fa-telegram"></i> {% translate "Telegram" %}</h4>
             </div>
             <div class="card-body">
-                {% if profile.is_active and profile.telegram_username %}
+                {% if not in_alliance %}
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {% translate "Telegram linking is only available to members of the configured alliance." %}
+                    </div>
+                {% elif profile.is_active and profile.telegram_username %}
                     <p><strong>{% translate "Linked account:" %}</strong> @{{ profile.telegram_username }}</p>
                     <p>
                         <strong>{% translate "Status:" %}</strong>
