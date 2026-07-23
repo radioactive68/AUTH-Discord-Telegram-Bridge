@@ -6,9 +6,8 @@ from django.contrib.auth.models import User
 
 from allianceauth import hooks
 from allianceauth.menu.hooks import MenuItemHook
-from allianceauth.services.hooks import ServicesHook, UrlHook
+from allianceauth.services.hooks import ServicesHook
 
-from . import urls
 from .models import TelegramUser
 
 logger = logging.getLogger(__name__)
@@ -114,8 +113,3 @@ class DTBMenu(MenuItemHook):
 @hooks.register('menu_item_hook')
 def register_menu():
     return DTBMenu()
-
-
-@hooks.register('url_hook')
-def register_url():
-    return UrlHook(urls, 'dtb', r'^dtb/')
