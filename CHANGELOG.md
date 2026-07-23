@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4
+- Fix dashboard crash when DTB URL namespace is not registered: DTBMenu.render() now catches NoReverseMatch gracefully.
+- Add i18n (gettext_lazy) to all models, forms, views, auth_hooks, and templates for translation support.
+- Permission prefix corrected from `dtb.*` to `aa_discord_telegram_bridge.*` (matching Django's auto-label from AppConfig.name).
+
 ## 1.0.3
 - Remove self-update functionality (GitHub update button, check_update endpoint, dtb_update management command).
 - Remove `github_repo` and `version` fields from DTBSettings model.
