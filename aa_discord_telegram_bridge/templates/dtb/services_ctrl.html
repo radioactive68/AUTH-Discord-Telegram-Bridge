@@ -1,35 +1,64 @@
 ﻿{% load dtb_tags %}
-<tr>
-    <td>
-        <i class="fab fa-telegram"></i> {{ service_name }}
-    </td>
-    <td>
+<div class="card m-2" style="min-width: 300px; max-width: 400px;">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fab fa-telegram"></i> Discord-Telegram Bridge</h5>
+    </div>
+    <div class="card-body">
         {% if profile.telegram_username %}
-            @{{ profile.telegram_username }}
-            {% if profile.is_active %}
-                <span class="badge bg-success">Active</span>
-            {% else %}
-                <span class="badge bg-secondary">Inactive</span>
-            {% endif %}
+            <p><strong>Linked as:</strong> @{{ profile.telegram_username }}</p>
+            <p>
+                <strong>Status:</strong>
+                {% if profile.is_active %}
+                    <span class="badge bg-success">Active</span>
+                {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                {% endif %}
+            </p>
+            <p>
+                <strong>Notifications:</strong>
+                {% if profile.notifications_enabled %}
+                    <span class="badge bg-success">Enabled</span>
+                {% else %}
+                    <span class="badge bg-warning">Disabled</span>
+                {% endif %}
+            </p>
+            <hr>
+            <form method="post" action="{% url 'dtb:toggle_notifications' %}">
+                {% csrf_token %}
+                {% if profile.notifications_enabled %}
+                    <button type="submit" class="btn btn-warning btn-sm">
+                        <i class="fas fa-bell-slash"></i> Disable
+                    </button>
+                {% else %}
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="fas fa-bell"></i> Enable
+                    </button>
+                {% endif %}
+            </form>
+            <form method="post" action="{% url 'dtb:unlink_telegram' %}" class="mt-2">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm"
+                        onclick="return confirm('Unlink Telegram account?')">
+                    <i class="fas fa-unlink"></i> Unlink
+                </button>
+            </form>
         {% else %}
-            <span class="text-muted">Not linked</span>
+            <p>Link your Telegram to receive pings from Discord channels.</p>
+            <form method="post" action="{% url 'dtb:link_telegram' %}">
+                {% csrf_token %}
+                <div class="mb-2">
+                    <input type="text" name="telegram_username"
+                            class="form-control form-control-sm" placeholder="@username" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-link"></i> Link Account
+                </button>
+            </form>
         {% endif %}
-    </td>
-    <td>
-        <a href="{% url 'dtb:services_overview' %}" target="_blank">
-            <i class="fas fa-external-link-alt"></i> Open
+    </div>
+    <div class="card-footer text-center">
+        <a href="{% url 'dtb:services_overview' %}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-external-link-alt"></i> Open DTB
         </a>
-    </td>
-    <td>
-        {% if profile.telegram_username %}
-            {% if profile.notifications_enabled %}
-                <a href="{% url 'dtb:toggle_notifications' %}" class="btn btn-warning btn-sm">Disable</a>
-            {% else %}
-                <a href="{% url 'dtb:toggle_notifications' %}" class="btn btn-success btn-sm">Enable</a>
-            {% endif %}
-            <a href="{% url 'dtb:unlink_telegram' %}" class="btn btn-danger btn-sm">Unlink</a>
-        {% else %}
-            <a href="{% url 'dtb:services_overview' %}" class="btn btn-primary btn-sm">Link Account</a>
-        {% endif %}
-    </td>
-</tr>
+    </div>
+</div>
