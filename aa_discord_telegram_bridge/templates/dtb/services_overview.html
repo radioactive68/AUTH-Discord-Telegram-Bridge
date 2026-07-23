@@ -40,14 +40,6 @@
                             <span class="badge bg-secondary">{% translate "Inactive" %}</span>
                         {% endif %}
                     </p>
-                    <p>
-                        <strong>{% translate "Notifications:" %}</strong>
-                        {% if profile.notifications_enabled %}
-                            <span class="badge bg-success">{% translate "Enabled" %}</span>
-                        {% else %}
-                            <span class="badge bg-warning">{% translate "Disabled" %}</span>
-                        {% endif %}
-                    </p>
 
                     {% if bot_link %}
                     <p class="mb-1">
@@ -59,19 +51,6 @@
                     {% endif %}
 
                     <hr>
-
-                    <form method="post" action="{% url 'dtb:toggle_notifications' %}">
-                        {% csrf_token %}
-                        {% if profile.notifications_enabled %}
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-bell-slash"></i> {% translate "Disable Notifications" %}
-                            </button>
-                        {% else %}
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-bell"></i> {% translate "Enable Notifications" %}
-                            </button>
-                        {% endif %}
-                    </form>
 
                     <form method="post" action="{% url 'dtb:unlink_telegram' %}" class="mt-2">
                         {% csrf_token %}

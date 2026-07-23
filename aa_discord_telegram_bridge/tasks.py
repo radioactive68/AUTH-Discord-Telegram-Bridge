@@ -112,7 +112,6 @@ def validate_all_telegram_users(self):
             if not user.is_active:
                 _kick_user_from_all_groups(telegram_bot, tg_user)
                 tg_user.is_active = False
-                tg_user.notifications_enabled = False
                 tg_user.save()
                 kicked_count += 1
                 continue
@@ -129,7 +128,6 @@ def validate_all_telegram_users(self):
                 if not has_ownership:
                     _kick_user_from_all_groups(telegram_bot, tg_user)
                     tg_user.is_active = False
-                    tg_user.notifications_enabled = False
                     tg_user.save()
                     kicked_count += 1
                     continue
@@ -142,7 +140,6 @@ def validate_all_telegram_users(self):
                     )
                     _kick_user_from_all_groups(telegram_bot, tg_user)
                     tg_user.is_active = False
-                    tg_user.notifications_enabled = False
                     tg_user.save()
                     kicked_count += 1
                     continue

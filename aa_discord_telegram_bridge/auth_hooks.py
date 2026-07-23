@@ -78,7 +78,6 @@ class DiscordTelegramBridgeService(ServicesHook):
         try:
             profile = user.telegram_profile
             profile.is_active = False
-            profile.notifications_enabled = False
             profile.save()
             logger.info('Deactivated Telegram for user %s', user.username)
             return True

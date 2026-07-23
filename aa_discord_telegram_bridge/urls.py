@@ -12,7 +12,6 @@ urlpatterns = [
     path('', views.services_overview, name='services_overview'),
     path('link/', views.link_telegram, name='link_telegram'),
     path('unlink/', views.unlink_telegram, name='unlink_telegram'),
-    path('toggle/', views.toggle_notifications, name='toggle_notifications'),
     path('history/', views.forward_history, name='forward_history'),
     path('status/', views.connection_status, name='connection_status'),
 

@@ -173,10 +173,6 @@ class TelegramUser(models.Model):
         default=False,
         help_text=_('Whether the user has enabled Telegram notifications'),
     )
-    notifications_enabled = models.BooleanField(
-        default=True,
-        help_text=_('Master toggle for all notifications'),
-    )
     linked_at = models.DateTimeField(auto_now_add=True)
     last_validated = models.DateTimeField(null=True, blank=True)
 

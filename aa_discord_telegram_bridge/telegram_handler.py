@@ -129,7 +129,6 @@ def _process_linking_code(code, chat_id, user_id, telegram_username):
                         profile.telegram_user_id = user_id
                         profile.telegram_username = telegram_username
                         profile.is_active = True
-                        profile.notifications_enabled = True
                         profile.save()
 
                         # Send confirmation
@@ -234,7 +233,6 @@ def _process_plain_start(user_id, chat_id, username):
     if username:
         profile.telegram_username = username
     profile.is_active = True
-    profile.notifications_enabled = True
     profile.save()
 
     bot = TelegramBotManager()
@@ -295,7 +293,6 @@ def _process_unlink(chat_id, user_id):
             telegram_user_id=user_id,
             telegram_chat_id=chat_id,
         )
-        profile.notifications_enabled = False
         profile.save()
 
         bot = TelegramBotManager()

@@ -111,7 +111,6 @@ def link_telegram(request):
             profile.telegram_chat_id = pending.chat_id
             profile.telegram_username = pending.username or username
             profile.is_active = True
-            profile.notifications_enabled = True
             profile.save()
 
             TelegramLinkRequest.objects.filter(chat_id=pending.chat_id).delete()
@@ -209,7 +208,6 @@ def verify_link(request):
     # In production, the Telegram bot would capture this via /start command
     profile.telegram_username = username
     profile.is_active = True
-    profile.notifications_enabled = True
     profile.save()
 
     # Clean up session
@@ -239,25 +237,11 @@ def unlink_telegram(request):
             logger.exception('DTB: failed to send unlink notification')
 
     profile.is_active = False
-    profile.notifications_enabled = False
     profile.telegram_chat_id = ''
     profile.telegram_user_id = None
     profile.save()
 
     messages.info(request, _('Telegram account unlinked.'))
-    return redirect('dtb:services_overview')
-
-
-@login_required
-@require_POST
-def toggle_notifications(request):
-    """Toggle notification on/off."""
-    profile, created = TelegramUser.objects.get_or_create(user=request.user)
-    profile.notifications_enabled = not profile.notifications_enabled
-    profile.save()
-
-    state = _('enabled') if profile.notifications_enabled else _('disabled')
-    messages.info(request, _('Notifications %(state)s.') % {'state': state})
     return redirect('dtb:services_overview')
 
 

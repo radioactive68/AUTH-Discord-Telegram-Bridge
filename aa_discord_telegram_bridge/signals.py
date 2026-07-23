@@ -24,7 +24,6 @@ def on_user_state_changed(sender, instance, **kwargs):
                 bot = TelegramBotManager()
                 _kick_user_from_all_groups(bot, tg_profile)
                 tg_profile.is_active = False
-                tg_profile.notifications_enabled = False
                 tg_profile.save()
                 logger.info(
                     'Deactivated Telegram for inactive user: %s',
@@ -81,7 +80,6 @@ def on_character_update(sender, instance, **kwargs):
                 bot = TelegramBotManager()
                 _kick_user_from_all_groups(bot, tg_profile)
                 tg_profile.is_active = False
-                tg_profile.notifications_enabled = False
                 tg_profile.save()
                 logger.info(
                     'Kicked %s from Telegram: left alliance',
