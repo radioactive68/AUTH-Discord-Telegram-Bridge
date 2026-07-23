@@ -1,8 +1,8 @@
 # Discord-Telegram Bridge for Alliance Auth
 
-A plugin for [Alliance Auth](https://allianceauth.readthedocs.io/) that forwards
-Discord messages/pings to Telegram groups or channels and manages Telegram
-membership (kick on alliance leave).
+A plugin for [Alliance Auth](https://allianceauth.readthedocs.io/) (5.0+) that
+forwards Discord messages/pings to Telegram groups or channels and manages
+Telegram membership (auto-kick on alliance leave).
 
 ## Features
 
@@ -10,7 +10,7 @@ membership (kick on alliance leave).
   to Telegram based on configurable rules.
 - **Keyword filtering** — only forward messages that contain specific keywords.
 - **Membership management** — automatically kick users from Telegram when they
-  leave the alliance.
+  leave the alliance (or re-invite when they return).
 - **User management** — a Telegram block on the `/services/` page (enable/disable).
 - **Forward history** — a log of every forwarded message.
 - **Connection check** — test Discord and Telegram bot connectivity.
@@ -23,11 +23,11 @@ membership (kick on alliance leave).
 ## Requirements
 
 - Python 3.9+
-- Django 3.2+ (ships with Alliance Auth)
-- Alliance Auth 3.0+
+- Django 4.2+ (ships with Alliance Auth 5.0+)
+- Alliance Auth 5.0+
 - A Discord bot (created in the Discord Developer Portal)
 - A Telegram bot (created via @BotFather)
-- Celery with Redis/RabbitMQ (for background tasks)
+- Celery with Redis/RabbitMQ (for periodic tasks)
 
 ## Installation
 
@@ -44,9 +44,9 @@ pip install aa-discord-telegram-bridge
 pip install git+https://github.com/radioactive68/AUTH-Discord-Telegram-Bridge.git
 ```
 
-### 2. Configure Django settings (`local.py`)
+### 2. Add to INSTALLED_APPS
 
-Add to `INSTALLED_APPS`:
+In `myauth/settings/local.py`:
 
 ```python
 INSTALLED_APPS = [
@@ -55,46 +55,10 @@ INSTALLED_APPS = [
 ]
 ```
 
-Add the following to the end of `local.py`:
-
-```python
-# ── Discord-Telegram Bridge Settings ──────────────────────
-
-# Telegram Bot (create via @BotFather)
-DTB_TELEGRAM_BOT_TOKEN = ''
-
-# Discord Bot (create at https://discord.com/developers/applications)
-DTB_DISCORD_BOT_TOKEN = ''
-DTB_DISCORD_GUILD_ID = ''  # your Discord server ID
-
-# Discord Bot Intents (Message Content Intent is required)
-# Enable in Discord Developer Portal -> Bot -> Privileged Gateway Intents:
-#   - MESSAGE CONTENT INTENT: ✅
-#   - SERVER MEMBERS INTENT:  ✅
-
-# Celery beat schedule (add to the existing one)
-from celery.schedules import crontab
-
-CELERYBEAT_SCHEDULE['dtb.test_connections'] = {
-    'task': 'dtb.tasks.test_connections',
-    'schedule': crontab(minute=0, hour='*/6'),  # every 6 hours
-}
-
-CELERYBEAT_SCHEDULE['dtb.validate_all_telegram_users'] = {
-    'task': 'dtb.tasks.validate_all_telegram_users',
-    'schedule': crontab(minute=30, hour='*/1'),  # every hour
-}
-
-CELERYBEAT_SCHEDULE['dtb.sync_telegram_groups'] = {
-    'task': 'dtb.tasks.sync_telegram_groups',
-    'schedule': crontab(minute=0, hour='*/12'),  # every 12 hours
-}
-```
-
 ### 3. Run migrations
 
 ```bash
-python manage.py migrate dtb
+python manage.py migrate aa_discord_telegram_bridge
 python manage.py collectstatic --noinput
 ```
 
@@ -114,7 +78,7 @@ docker compose restart
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications).
 2. Click "New Application" and give it a name (e.g. "Alliance Auth Bridge").
 3. Open the **Bot** section:
-   - Click "Reset Token" to get the token → copy it into `DTB_DISCORD_BOT_TOKEN`.
+   - Click "Reset Token" to get the token.
    - Enable **Message Content Intent** (Privileged Gateway Intents).
    - Enable **Server Members Intent**.
 4. Open **OAuth2 > URL Generator**:
@@ -130,26 +94,22 @@ docker compose restart
 1. Open Telegram and find [@BotFather](https://t.me/BotFather).
 2. Send `/newbot`.
 3. Follow the instructions: give the bot a name and username.
-4. Copy the received token → paste into `DTB_TELEGRAM_BOT_TOKEN`.
+4. Copy the received token (you'll enter it in the DTB settings form later).
 5. **Important**: disable bot privacy (Bot Settings > Group Privacy > turn off).
 6. Add the bot to the needed Telegram groups as an admin with:
    - Delete messages (for kick on alliance leave)
    - Send messages
 
-### 7. (Optional) Telegram webhook
+### 7. Configure DTB
 
-To handle the `/start` and `/stop` commands in Telegram, configure a webhook:
+Open the DTB Settings page (`/dtb/admin/settings/`) and fill in:
 
-```bash
-curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" \
-  -d "url=https://your-auth-domain.com/dtb/telegram/webhook/"
-```
-
-Or in `local.py`:
-
-```python
-DTB_TELEGRAM_WEBHOOK_URL = 'https://your-auth-domain.com/dtb/telegram/webhook/'
-```
+- **Telegram Bot Token** — from @BotFather.
+- **Discord Bot Token** — from the Discord Developer Portal.
+- **Discord Guild ID** — your Discord server ID.
+- **Alliance ID** (optional) — EVE Alliance ID to enforce membership. Leave
+  empty to disable the membership check.
+- **Auto-start bot** — enable to run the Discord forwarder inside Alliance Auth.
 
 ### 8. Running the Discord forwarder bot
 
@@ -177,8 +137,7 @@ python manage.py dtb_run_bot
 Run this as a supervised service (supervisor / systemd / nssm).
 
 - **To restart:** restart the supervised service (e.g. `supervisorctl restart
-  dtb_bot`), or stop the process and run the command again. On Windows you can
-  use a small `.bat` that kills the `dtb_run_bot` process and starts it anew.
+  dtb_bot`), or stop the process and run the command again.
 
 ## First-time setup (Setup Wizard)
 
@@ -192,12 +151,20 @@ After installation, open the **DTB Setup** page (link in the DTB menu or via
 
 Once saved, forwarding works immediately.
 
+## Permissions
+
+| Permission | Description | Grant to |
+|---|---|---|
+| `dtb.access_dtb` | Shows the DTB block on `/services/` | All alliance members |
+| `dtb.manage_dtb_rules` | Access to admin dashboard, rules, groups, settings | DTB admins (via Groups or States) |
+| `dtb.view_forward_history` | View the forwarding history log | Optionally to directors+ |
+
 ## Usage
 
 ### Administrator
 
 1. Log in to Auth as a superuser or a user with the `manage_dtb_rules` right.
-2. Open the DTB page (menu link or `/services/`).
+2. Open the DTB admin page (`/dtb/admin/`).
 3. Configure **forwarding rules**:
    - Discord channel ID (right click > Copy ID)
    - Telegram chat ID or @username of the channel/group
@@ -218,7 +185,7 @@ Once saved, forwarding works immediately.
 ```
 aa_discord_telegram_bridge/
 ├── __init__.py
-├── apps.py              # AppConfig (auto-start hook)
+├── apps.py              # AppConfig (auto-start, periodic task registration)
 ├── models.py            # Django models
 ├── admin.py             # Django admin registration
 ├── views.py             # View functions
@@ -226,7 +193,7 @@ aa_discord_telegram_bridge/
 ├── forms.py             # Django forms
 ├── auth_hooks.py        # Alliance Auth service hook
 ├── tasks.py             # Celery tasks
-├── signals.py           # Django signals
+├── signals.py           # Django signals (alliance membership check)
 ├── bot_runner.py        # Discord forwarder bot (run_bot / autostart)
 ├── manager.py           # Telegram/Discord API managers
 ├── discord_cog.py       # Discord.py cog for forwarding
@@ -250,13 +217,13 @@ aa_discord_telegram_bridge/
 ### Telegram bot does not send messages
 
 1. Make sure the user started a chat with the bot (pressed Start).
-2. Check the token in settings.
+2. Check the token in DTB Settings.
 3. Make sure the bot is added to the group as an admin.
 
 ### Telegram kick does not work
 
 1. The bot must be a group admin with the "Ban Users" right.
-2. Check that `DTB_TELEGRAM_BOT_TOKEN` is correct.
+2. Check the bot token in DTB Settings.
 3. Check that `telegram_user_id` is saved correctly on link.
 
 ## License
