@@ -3,9 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 
-DTB_VERSION = '1.0.2'
-
-DEFAULT_GITHUB_REPO = 'radioactive68/AUTH-Discord-Telegram-Bridge'
+DTB_VERSION = '1.0.3'
 
 
 class DTBSettings(models.Model):
@@ -30,16 +28,11 @@ class DTBSettings(models.Model):
         max_length=500, blank=True, default='',
         help_text='Telegram webhook URL for receiving updates (for user linking)',
     )
-    github_repo = models.CharField(
-        max_length=300, blank=True, default=DEFAULT_GITHUB_REPO,
-        help_text='GitHub repo for updates, e.g. user/repo',
-    )
     autostart_bot = models.BooleanField(
         default=False,
         help_text='Auto-start the Discord forwarder bot inside Alliance Auth '
                   '(no separate process needed). Requires a restart to take effect.',
     )
-    version = models.CharField(max_length=50, default=DTB_VERSION)
 
     class Meta:
         verbose_name = 'DTB Settings'
@@ -60,9 +53,6 @@ class DTBSettings(models.Model):
     @classmethod
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
-        if not obj.github_repo:
-            obj.github_repo = DEFAULT_GITHUB_REPO
-            obj.save(update_fields=['github_repo'])
         return obj
 
 

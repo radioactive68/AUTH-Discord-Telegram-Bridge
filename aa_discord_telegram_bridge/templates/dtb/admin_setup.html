@@ -156,29 +156,10 @@
             </div>
         </div>
 
-        <p class="text-muted">
-            Installed version: <strong>{{ current_version }}</strong>
-            {% if latest_version %} | Latest on GitHub: <strong>{{ latest_version }}</strong>{% endif %}
-        </p>
-        {% if update_available %}
-            <div class="alert alert-warning d-flex align-items-center flex-wrap">
-                <i class="fas fa-arrow-up me-2"></i>
-                <span class="me-2">An update is available.</span>
-                <form method="post" action="{% url 'dtb:admin_update' %}" class="d-inline me-2">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-warning">
-                        <i class="fas fa-download"></i> Update Now
-                    </button>
-                </form>
-                <a href="{% url 'dtb:admin_settings' %}" class="btn btn-sm btn-outline-secondary">
-                    Open Update Page
-                </a>
-            </div>
-        {% else %}
-            <a href="{% url 'dtb:admin_settings' %}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-cog"></i> Open Settings &amp; Update Page
-            </a>
-        {% endif %}
+        <p class="text-muted">Installed version: <strong>{{ current_version }}</strong></p>
+        <a href="{% url 'dtb:admin_settings' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-cog"></i> Open Settings
+        </a>
     </div>
 </div>
 {% endblock %}

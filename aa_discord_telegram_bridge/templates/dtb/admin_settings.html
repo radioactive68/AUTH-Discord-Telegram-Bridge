@@ -14,6 +14,8 @@
             <i class="fas fa-wizard"></i> Setup Wizard
         </a>
 
+        <p class="text-muted">Installed version: <strong>{{ current_version }}</strong></p>
+
         <div class="card mb-4">
             <div class="card-header">
                 <h5><i class="fas fa-cog"></i> Plugin Configuration</h5>
@@ -41,121 +43,6 @@
                 </form>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-download"></i> Update from GitHub</h5>
-            </div>
-            <div class="card-body">
-                <p>
-                    Installed version: <strong id="dtb-current">{{ current_version }}</strong>
-                    <span id="dtb-latest-wrap">
-                        {% if latest_version %}
-                            &nbsp;|&nbsp; Latest on GitHub: <strong>{{ latest_version }}</strong>
-                        {% endif %}
-                    </span>
-                </p>
-
-                <div id="dtb-status">
-                    {% if update_available %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-arrow-up"></i>
-                        Update available: <strong>{{ latest_version }}</strong>
-                        (you have {{ current_version }}).
-                    </div>
-                    {% elif latest_version %}
-                    <div class="alert alert-success">
-                        <i class="fas fa-shield-check"></i>
-                        Plugin is up to date (v{{ current_version }}).
-                    </div>
-                    {% else %}
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Could not check GitHub. Please try again later.
-                    </div>
-                    {% endif %}
-                </div>
-
-                <p>Pull latest code from GitHub and run migrations.</p>
-                <button type="button" id="dtb-check-btn" class="btn btn-outline-secondary btn-sm mb-2">
-                    <i class="fas fa-rotate"></i> Check for updates
-                </button>
-                <span id="dtb-check-spinner" class="d-none">
-                    <i class="fas fa-spinner fa-spin"></i> Checking...
-                </span>
-                <div id="dtb-notes" class="mt-2">
-                    {% if update_available and changelog_notes %}
-                    <div class="alert alert-light border">
-                        <strong>What's new in {{ latest_version }}:</strong>
-                        <pre class="mb-0" style="white-space: pre-wrap;">{{ changelog_notes }}</pre>
-                    </div>
-                    {% endif %}
-                </div>
-                {% if update_available or not latest_version %}
-                <form method="post" action="{% url 'dtb:admin_update' %}" id="dtb-update-form">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-warning"
-                            onclick="return confirm('Update plugin from GitHub?')">
-                        <i class="fas fa-sync"></i> Update Now
-                    </button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_javascript %}
-<script>
-(function () {
-    var btn = document.getElementById('dtb-check-btn');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-        var spinner = document.getElementById('dtb-check-spinner');
-        var notes = document.getElementById('dtb-notes');
-        spinner.classList.remove('d-none');
-        btn.disabled = true;
-        fetch("{% url 'dtb:admin_check_update' %}", {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                document.getElementById('dtb-current').textContent = data.current_version;
-                var latestWrap = document.getElementById('dtb-latest-wrap');
-                latestWrap.innerHTML = data.latest_version
-                    ? '&nbsp;|&nbsp; Latest on GitHub: <strong>' + data.latest_version + '</strong>'
-                    : '';
-                var status = document.getElementById('dtb-status');
-                if (data.latest_version && data.update_available) {
-                    status.innerHTML = '<div class="alert alert-info"><i class="fas fa-arrow-up"></i> ' +
-                        'Update available: <strong>' + data.latest_version + '</strong> ' +
-                        '(you have ' + data.current_version + ').</div>';
-                } else if (data.latest_version) {
-                    status.innerHTML = '<div class="alert alert-success"><i class="fas fa-shield-check"></i> ' +
-                        'Plugin is up to date (v' + data.current_version + ').</div>';
-                } else {
-                    status.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> ' +
-                        'Could not check GitHub. Please try again later.</div>';
-                }
-                var updateForm = document.getElementById('dtb-update-form');
-                if (updateForm) {
-                    updateForm.style.display = (data.update_available || !data.latest_version) ? 'block' : 'none';
-                }
-                if (data.update_available && data.notes) {
-                    notes.innerHTML = '<div class="alert alert-light border"><strong>What\'s new in ' +
-                        data.latest_version + ':</strong><pre class="mb-0" style="white-space: pre-wrap;">' +
-                        data.notes + '</pre></div>';
-                } else {
-                    notes.innerHTML = '';
-                }
-            })
-            .catch(function () {
-                status.innerHTML = '<div class="alert alert-danger">Check failed.</div>';
-            })
-            .finally(function () {
-                spinner.classList.add('d-none');
-                btn.disabled = false;
-            });
-    });
-})();
-</script>
 {% endblock %}

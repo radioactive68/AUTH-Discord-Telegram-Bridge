@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+- Remove self-update functionality (GitHub update button, check_update endpoint, dtb_update management command).
+- Remove `github_repo` and `version` fields from DTBSettings model.
+- Service block on /services/ visible to all users; admin tools remain permission-gated.
+
 ## 1.0.2
 - Migrate periodic task registration from CELERYBEAT_SCHEDULE hack to django_celery_beat.PeriodicTask (AA 5.x compatible).
 - Service block on /services/ visible to all users; admin tools remain permission-gated.

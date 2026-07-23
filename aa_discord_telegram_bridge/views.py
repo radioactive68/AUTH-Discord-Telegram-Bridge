@@ -1,7 +1,4 @@
 import logging
-import sys
-import re
-import urllib.request
 from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -14,7 +11,7 @@ from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 
 from .models import (
-    DTBSettings, ForwardRule, TelegramUser, ForwardHistory,
+    DTBSettings, DTB_VERSION, ForwardRule, TelegramUser, ForwardHistory,
     ConnectionStatus, TelegramGroup, BotStatus, TelegramLinkRequest,
 )
 from .forms import ForwardRuleForm, TelegramUserLinkForm, DTBSettingsForm
@@ -449,81 +446,6 @@ def admin_test_connection(request):
 
 # ── Settings ─────────────────────────────────────────────────
 
-def _github_file_contents(repo, path, ref='main'):
-    """Fetch a file's text from GitHub via the API (less CDN-cached than raw).
-
-    Returns the decoded text, or '' on any error.
-    """
-    if not repo:
-        return ''
-    api_url = (f'https://api.github.com/repos/{repo}/contents/{path}'
-               f'?ref={ref}')
-    try:
-        req = urllib.request.Request(
-            api_url,
-            headers={'User-Agent': 'dtb-update-check',
-                     'Accept': 'application/vnd.github.v3.raw'},
-        )
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            return resp.read().decode('utf-8', errors='ignore')
-    except Exception:
-        # Fall back to raw.githubusercontent.com
-        try:
-            raw_url = (f'https://raw.githubusercontent.com/{repo}/{ref}/{path}')
-            req = urllib.request.Request(
-                raw_url,
-                headers={'User-Agent': 'dtb-update-check',
-                         'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                return resp.read().decode('utf-8', errors='ignore')
-        except Exception:
-            return ''
-    return ''
-
-
-def get_latest_github_version(repo, nocache=False):
-    """Fetch DTB_VERSION from the plugin's models.py on GitHub main branch.
-
-    Uses the GitHub API (which is not heavily CDN-cached like raw).
-    Returns the version string, or None on any error.
-    """
-    if not repo:
-        return None
-    data = _github_file_contents(repo, 'aa_discord_telegram_bridge/models.py')
-    if data:
-        m = re.search(r"DTB_VERSION\s*=\s*['\"]([^'\"]+)['\"]", data)
-        if m:
-            return m.group(1)
-    return None
-
-
-def parse_version(v):
-    """Convert '1.2.3' to tuple (1, 2, 3) for comparison."""
-    try:
-        return tuple(int(x) for x in str(v).split('.') if x.isdigit())
-    except Exception:
-        return (0,)
-
-
-def get_changelog_notes(repo, version):
-    """Fetch the changelog section for ``version`` from GitHub CHANGELOG.md.
-
-    Returns the section body (without the heading), or empty string.
-    """
-    if not repo or not version:
-        return ''
-    data = _github_file_contents(repo, 'CHANGELOG.md')
-    if not data:
-        return ''
-    pattern = re.compile(
-        r'^##\s+' + re.escape(version) + r'\s*$(.*?)(?=^##\s|\Z)',
-        re.MULTILINE | re.DOTALL)
-    m = pattern.search(data)
-    if m:
-        return m.group(1).strip()
-    return ''
-
-
 @login_required
 @permission_required('dtb.manage_dtb_rules', raise_exception=True)
 def admin_settings(request):
@@ -542,22 +464,9 @@ def admin_settings(request):
     else:
         form = DTBSettingsForm(instance=s)
 
-    latest_version = get_latest_github_version(s.github_repo, nocache=bool(request.GET.get('force')))
-    current_version = s.version or '0.0.0'
-    update_available = bool(
-        latest_version
-        and parse_version(latest_version) > parse_version(current_version)
-    )
-    changelog_notes = ''
-    if update_available and latest_version:
-        changelog_notes = get_changelog_notes(s.github_repo, latest_version)
-
     return render(request, 'dtb/admin_settings.html', {
         'form': form,
-        'current_version': current_version,
-        'latest_version': latest_version,
-        'update_available': update_available,
-        'changelog_notes': changelog_notes,
+        'current_version': DTB_VERSION,
     })
 
 
@@ -608,21 +517,13 @@ def admin_setup(request):
                 return JsonResponse(test_results)
 
     conn_status = {c.service: c for c in ConnectionStatus.objects.all()}
-    latest_version = get_latest_github_version(s.github_repo)
-    current_version = s.version or '0.0.0'
-    update_available = bool(
-        latest_version
-        and parse_version(latest_version) > parse_version(current_version)
-    )
     ctx = {
         'settings_form': settings_form,
         'rule_form': rule_form,
         'test_results': test_results,
         'rules_count': ForwardRule.objects.count(),
         'conn_status': conn_status,
-        'current_version': current_version,
-        'latest_version': latest_version,
-        'update_available': update_available,
+        'current_version': DTB_VERSION,
     }
     return render(request, 'dtb/admin_setup.html', ctx)
 

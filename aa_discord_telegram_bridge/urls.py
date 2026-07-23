@@ -28,6 +28,4 @@ urlpatterns = [
     path('admin/test/', views.admin_test_connection, name='admin_test_connection'),
     path('admin/settings/', views.admin_settings, name='admin_settings'),
     path('admin/setup/', views.admin_setup, name='admin_setup'),
-    path('admin/check_update/', views.admin_check_update, name='admin_check_update'),
-    path('admin/update/', views.admin_update_from_github, name='admin_update'),
 ]

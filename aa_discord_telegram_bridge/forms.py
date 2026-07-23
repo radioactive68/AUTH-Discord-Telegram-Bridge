@@ -14,10 +14,6 @@ class DTBSettingsForm(forms.ModelForm):
             'discord_bot_token': forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'discord_guild_id': forms.TextInput(attrs={'class': 'form-control'}),
             'alliance_id': forms.NumberInput(attrs={'class': 'form-control'}),
-            'github_repo': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'e.g. yourusername/aa_discord_telegram_bridge',
-            }),
         }
         help_texts = {
             'alliance_id': 'Leave empty to disable membership check.',
