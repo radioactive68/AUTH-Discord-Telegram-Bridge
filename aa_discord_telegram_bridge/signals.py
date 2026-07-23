@@ -42,7 +42,8 @@ def on_character_update(sender, instance, **kwargs):
     kick the user from Telegram groups.
     """
     from .models import DTBSettings, TelegramUser
-    from .tasks import _kick_user_from_all_groups, _user_in_alliance, _invite_to_groups
+    from .tasks import _kick_user_from_all_groups, _user_in_alliance
+    from .telegram_handler import _invite_to_groups
     from .manager import TelegramBotManager
 
     try:
