@@ -43,12 +43,23 @@
                 </button>
             </form>
         {% else %}
-            <p>Link your Telegram to receive pings from Discord channels.</p>
+            <p>This service forwards messages from configured Discord channels to Telegram groups/topics.</p>
+
+            {% if bot_link %}
+            <div class="alert alert-info py-2 mb-2">
+                <i class="fab fa-telegram"></i>
+                <strong>Step 1:</strong> open the bot
+                <a href="{{ bot_link }}" target="_blank" rel="noopener" class="fw-bold">@{{ bot_username }}</a>
+                and press <strong>Start</strong>.
+            </div>
+            {% endif %}
+
             <form method="post" action="{% url 'dtb:link_telegram' %}">
                 {% csrf_token %}
                 <div class="mb-2">
-                    <input type="text" name="telegram_username"
-                            class="form-control form-control-sm" placeholder="@username" required>
+                    <label for="id_telegram_username" class="form-label"><strong>Step 2:</strong> enter your Telegram username</label>
+                    <input type="text" name="telegram_username" id="id_telegram_username"
+                            class="form-control form-control-sm" placeholder="@username or username" required>
                 </div>
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-link"></i> Link Account

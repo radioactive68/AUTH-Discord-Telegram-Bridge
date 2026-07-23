@@ -49,16 +49,30 @@ class DiscordTelegramBridgeService(ServicesHook):
         return True
 
     def render_services_ctrl(self, request):
-        from django.shortcuts import render
         from django.template.loader import render_to_string
 
         user = request.user
         profile, _ = TelegramUser.objects.get_or_create(user=user)
 
+        bot_link = None
+        bot_username = None
+        try:
+            from .manager import TelegramBotManager
+            bot = TelegramBotManager()
+            res = bot.get_me()
+            if res.get('ok'):
+                bot_username = res.get('result', {}).get('username')
+                if bot_username:
+                    bot_link = f'https://t.me/{bot_username}'
+        except Exception:
+            pass
+
         return render_to_string(self.service_ctrl_template, {
             'service_name': self.title,
             'profile': profile,
             'user': user,
+            'bot_link': bot_link,
+            'bot_username': bot_username,
         }, request=request)
 
     def delete_user(self, user, notify_user=False):
