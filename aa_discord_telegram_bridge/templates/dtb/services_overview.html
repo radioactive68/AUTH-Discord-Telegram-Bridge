@@ -20,7 +20,7 @@
                 <h4><i class="fab fa-telegram"></i> {% translate "Telegram" %}</h4>
             </div>
             <div class="card-body">
-                {% if profile.telegram_username %}
+                {% if profile.is_active and profile.telegram_username %}
                     <p><strong>{% translate "Linked account:" %}</strong> @{{ profile.telegram_username }}</p>
                     <p>
                         <strong>{% translate "Status:" %}</strong>
