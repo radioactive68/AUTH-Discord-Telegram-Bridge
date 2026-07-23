@@ -8,11 +8,43 @@ from django.views.decorators.http import require_POST
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.translation import override as translation_override, gettext
 
 from .models import TelegramUser, TelegramLinkRequest
 from .manager import TelegramBotManager
 
 logger = logging.getLogger(__name__)
+
+
+def _get_user_locale(telegram_user_id=None):
+    """Get locale for a linked Telegram user from their AA profile language.
+
+    Falls back to English if user is not linked or has no language set.
+    """
+    if telegram_user_id:
+        try:
+            tg_profile = TelegramUser.objects.select_related(
+                'user__profile'
+            ).get(telegram_user_id=telegram_user_id)
+            lang = getattr(tg_profile.user.profile, 'language', None)
+            if lang:
+                return lang
+        except Exception:
+            pass
+    return 'en'
+
+
+def _send_localized(chat_id, telegram_user_id, text_func):
+    """Send a translated message to a Telegram chat.
+
+    text_func must be a callable that returns a translated string when
+    called inside a translation override context.
+    """
+    locale = _get_user_locale(telegram_user_id)
+    with translation_override(locale):
+        text = text_func()
+    bot = TelegramBotManager()
+    bot.send_message(chat_id=chat_id, text=text)
 
 
 def _dispatch_update(data):
@@ -36,11 +68,12 @@ def _dispatch_update(data):
     # Handle /start command
     if text.startswith('/start'):
         parts = text.split()
+        tg_lang = user_info.get('language_code', 'en')
         if len(parts) > 1:
             code = parts[1].upper()
-            _process_linking_code(code, chat_id, user_id, username)
+            _process_linking_code(code, chat_id, user_id, username, tg_lang)
         else:
-            _process_plain_start(user_id, chat_id, username)
+            _process_plain_start(user_id, chat_id, username, tg_lang)
 
     # Handle /stop command
     if text.startswith('/stop'):
@@ -108,7 +141,7 @@ def run_telegram_polling():
             time.sleep(5)
 
 
-def _process_linking_code(code, chat_id, user_id, telegram_username):
+def _process_linking_code(code, chat_id, user_id, telegram_username, tg_lang='en'):
     """Process a linking code from Telegram /start command."""
     from django.contrib.sessions.models import Session
     from django.utils import timezone
@@ -134,10 +167,10 @@ def _process_linking_code(code, chat_id, user_id, telegram_username):
                         # Send confirmation
                         bot = TelegramBotManager()
                         _invite_to_groups(bot, user_id)
-                        bot.send_message(
-                            chat_id=chat_id,
-                            text=(
-                                '✅ Successfully linked!\n\n'
+                        _send_localized(
+                            chat_id, user_id,
+                            lambda: gettext(
+                                'Successfully linked!\n\n'
                                 'You will now receive notifications from Alliance Auth.\n'
                                 'Use /stop to disable notifications.'
                             ),
@@ -184,7 +217,7 @@ def _invite_to_groups(bot, telegram_user_id):
             )
 
 
-def _process_plain_start(user_id, chat_id, username):
+def _process_plain_start(user_id, chat_id, username, tg_lang='en'):
     """Handle a bare /start command (no linking code).
 
     If the chat is already linked, this just re-verifies access.
@@ -205,28 +238,25 @@ def _process_plain_start(user_id, chat_id, username):
         )
         bot = TelegramBotManager()
         if username:
-            bot.send_message(
-                chat_id=chat_id,
-                text=(
-                    "👋 Hello! I've registered this chat.\n\n"
-                    "To finish linking — no code needed:\n"
-                    "1. Open Alliance Auth → Discord-Telegram Bridge\n"
-                    "2. Click \"Link Account\"\n"
-                    "3. Enter your Telegram username exactly: @" + username + "\n"
-                    "4. Click Link — you'll be connected automatically\n\n"
-                    "I'll send a confirmation here once it's done."
-                ),
-            )
+            with translation_override(tg_lang):
+                text = gettext(
+                    'Hello! To link your account:\n'
+                    '1. Open Alliance Auth -> Discord-Telegram Bridge\n'
+                    '2. Click "Link Account"\n'
+                    '3. Enter your Telegram username: @%(username)s\n'
+                    '4. Click Link - you will be connected automatically\n\n'
+                    'I will send a confirmation here once it is done.'
+                ) % {'username': username}
+            bot.send_message(chat_id=chat_id, text=text)
         else:
-            bot.send_message(
-                chat_id=chat_id,
-                text=(
-                    "👋 Hello! To link your account, open Alliance Auth → "
-                    "Discord-Telegram Bridge → Link Account and enter your "
-                    "Telegram username. (You need a Telegram @username set in "
-                    "your profile to link.)"
-                ),
-            )
+            with translation_override(tg_lang):
+                text = gettext(
+                    'Hello! To link your account, open Alliance Auth -> '
+                    'Discord-Telegram Bridge -> Link Account and enter your '
+                    'Telegram username. (You need a Telegram @username set in '
+                    'your profile to link.)'
+                )
+            bot.send_message(chat_id=chat_id, text=text)
         return
 
     profile.telegram_chat_id = str(chat_id)

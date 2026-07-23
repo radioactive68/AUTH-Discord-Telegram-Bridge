@@ -645,3 +645,13 @@ msgstr "La liaison Telegram est uniquement disponible pour les membres de l'alli
 
 msgid "Discord-Telegram Bridge"
 msgstr "Discord-Telegram Bridge"
+
+msgid "Successfully linked!\\n\\nYou will now receive notifications from Alliance Auth.\\nUse /stop to disable notifications."
+msgstr "Liaison réussie !\\n\\nVous recevrez désormais les notifications d'Alliance Auth.\\nUtilisez /stop pour désactiver les notifications."
+
+#, python-format
+msgid "Hello! To link your account:\\n1. Open Alliance Auth -> Discord-Telegram Bridge\\n2. Click \"Link Account\"\\n3. Enter your Telegram username: @%(username)s\\n4. Click Link - you will be connected automatically\\n\\nI will send a confirmation here once it is done."
+msgstr "Bonjour ! Pour lier votre compte :\\n1. Ouvrez Alliance Auth -> Discord-Telegram Bridge\\n2. Cliquez sur \"Link Account\"\\n3. Entrez votre nom d'utilisateur Telegram : @%(username)s\\n4. Cliquez sur Link - vous serez connecté automatiquement\\n\\nJe vous enverrai une confirmation ici une fois terminé."
+
+msgid "Hello! To link your account, open Alliance Auth -> Discord-Telegram Bridge -> Link Account and enter your Telegram username. (You need a Telegram @username set in your profile to link.)"
+msgstr "Bonjour ! Pour lier votre compte, ouvrez Alliance Auth -> Discord-Telegram Bridge -> Link Account et entrez votre nom d'utilisateur Telegram. (Vous devez avoir un @username Telegram défini dans votre profil pour vous lier.)"

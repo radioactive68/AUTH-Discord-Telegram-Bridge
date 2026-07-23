@@ -890,3 +890,12 @@ msgstr "Привязка Telegram доступна только для учас�
 
 msgid "Discord-Telegram Bridge"
 msgstr "Discord-Telegram Bridge"
+
+msgid "Successfully linked!\\n\\nYou will now receive notifications from Alliance Auth.\\nUse /stop to disable notifications."
+msgstr "Успешно привязано!\\n\\nТеперь вы будете получать уведомления от Alliance Auth.\\nИспользуйте /stop для отключения уведомлений."
+
+msgid "Hello! To link your account:\\n1. Open Alliance Auth -> Discord-Telegram Bridge\\n2. Click \"Link Account\"\\n3. Enter your Telegram username: @%(username)s\\n4. Click Link - you will be connected automatically\\n\\nI will send a confirmation here once it is done."
+msgstr "Здравствуйте! Чтобы привязать аккаунт:\\n1. Откройте Alliance Auth -> Discord-Telegram Bridge\\n2. Нажмите \"Link Account\"\\n3. Введите ваш Telegram username: @%(username)s\\n4. Нажмите Link - вы автоматически подключитесь\\n\\nЯ отправлю подтверждение, как только всё будет готово."
+
+msgid "Hello! To link your account, open Alliance Auth -> Discord-Telegram Bridge -> Link Account and enter your Telegram username. (You need a Telegram @username set in your profile to link.)"
+msgstr "Здравствуйте! Чтобы привязать аккаунт, откройте Alliance Auth -> Discord-Telegram Bridge -> Link Account и введите ваш Telegram username. (Для привязки необходимо иметь @username в профиле Telegram.)"

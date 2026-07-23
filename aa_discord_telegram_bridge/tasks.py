@@ -173,16 +173,27 @@ def _kick_user_from_all_groups(telegram_bot, tg_user):
 
     Sends a notification to the user's Telegram chat before kicking.
     """
-    from django.utils.translation import gettext as _
+    from django.utils.translation import gettext, override as translation_override
 
     # Send notification before kicking
     if tg_user.telegram_chat_id:
         try:
+            # Get user locale from their AA profile
+            lang = 'en'
+            try:
+                lang = getattr(tg_user.user.profile, 'language', 'en') or 'en'
+            except Exception:
+                pass
+
+            with translation_override(lang):
+                text = gettext(
+                    'You have been removed from the alliance Telegram groups '
+                    'because you are no longer a member of the alliance. '
+                    'If you return, you will be re-invited automatically.'
+                )
             telegram_bot.send_message(
                 chat_id=tg_user.telegram_chat_id,
-                text=_('You have been removed from the alliance Telegram groups '
-                       'because you are no longer a member of the alliance. '
-                       'If you return, you will be re-invited automatically.'),
+                text=text,
             )
         except Exception:
             pass  # Best effort — user may have blocked the bot

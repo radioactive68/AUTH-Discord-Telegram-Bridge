@@ -882,3 +882,13 @@ msgstr "Telegram 绑定仅对已配置联盟的成员可用。"
 
 msgid "Discord-Telegram Bridge"
 msgstr "Discord-Telegram Bridge"
+
+msgid "Successfully linked!\n\nYou will now receive notifications from Alliance Auth.\nUse /stop to disable notifications."
+msgstr "绑定成功！\n\n您现在将收到来自 Alliance Auth 的通知。\n使用 /stop 停止通知。"
+
+#, python-format
+msgid "Hello! To link your account:\n1. Open Alliance Auth -> Discord-Telegram Bridge\n2. Click \"Link Account\"\n3. Enter your Telegram username: @%(username)s\n4. Click Link - you will be connected automatically\n\nI will send a confirmation here once it is done."
+msgstr "你好！要绑定您的账户：\n1. 打开 Alliance Auth -> Discord-Telegram Bridge\n2. 点击 \"Link Account\"\n3. 输入您的 Telegram 用户名：@%(username)s\n4. 点击 Link - 您将自动连接\n\n完成后我会在此发送确认消息。"
+
+msgid "Hello! To link your account, open Alliance Auth -> Discord-Telegram Bridge -> Link Account and enter your Telegram username. (You need a Telegram @username set in your profile to link.)"
+msgstr "你好！要绑定您的账户，请打开 Alliance Auth -> Discord-Telegram Bridge -> Link Account 并输入您的 Telegram 用户名。（您需要在 Telegram 个人资料中设置 @username 才能绑定。）"
