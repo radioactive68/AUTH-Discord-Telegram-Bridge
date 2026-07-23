@@ -413,7 +413,7 @@ def admin_groups(request):
                             cid = str(chat.get('id', ''))
                             if cid and cid not in seen:
                                 seen.add(cid)
-                                _, created = TelegramGroup.objects.get_or_create(
+                                group_obj, created = TelegramGroup.objects.get_or_create(
                                     telegram_chat_id=cid,
                                     defaults={
                                         'name': chat.get('title') or chat.get('username', cid),
