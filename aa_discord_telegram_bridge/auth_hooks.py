@@ -39,7 +39,7 @@ class DiscordTelegramBridgeService(ServicesHook):
         except TelegramUser.DoesNotExist:
             return False
 
-    def show_service_ctrl(self, user, state):
+    def show_service_ctrl(self, user):
         """Show service control for members."""
         from django.contrib.auth.models import Permission
         from django.contrib.contenttypes.models import ContentType
