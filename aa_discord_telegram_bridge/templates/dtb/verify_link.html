@@ -11,7 +11,7 @@
                 <h4>{% translate "Verify Telegram Link" %}</h4>
             </div>
             <div class="card-body">
-                <p>{% blocktranslate %}A verification code has been sent to <strong>@{{ username }}</strong> in Telegram.{% endblocktranslate %}</p>
+                <p>{% translate "A verification code has been sent to" %} <strong>@{{ username }}</strong> {% translate "in Telegram." %}</p>
                 <p>{% translate "Please check your Telegram messages and enter the code below." %}</p>
 
                 <form method="post" action="{% url 'dtb:link_telegram' %}">

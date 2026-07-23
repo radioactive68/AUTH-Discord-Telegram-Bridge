@@ -42,8 +42,8 @@
                     {% if bot_link %}
                     <p class="mb-1">
                         <small class="text-muted">
-                            {% blocktranslate %}Bot: <a href="{{ bot_link }}" target="_blank" rel="noopener">@{{ bot_username }}</a>
-                            — manages your access to the alliance Telegram groups.{% endblocktranslate %}
+                            {% translate "Bot:" %} <a href="{{ bot_link }}" target="_blank" rel="noopener">@{{ bot_username }}</a>
+                            — {% translate "manages your access to the alliance Telegram groups." %}
                         </small>
                     </p>
                     {% endif %}

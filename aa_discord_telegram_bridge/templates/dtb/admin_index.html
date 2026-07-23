@@ -43,7 +43,7 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <h5><i class="fas fa-exchange-alt"></i> {% translate "Forward Rules" %}</h5>
-                        <p class="text-muted">{% blocktranslate count counter=rules_count %}{{ rules_count }} rule(s) configured{% endblocktranslate %}</p>
+                        <p class="text-muted">{{ rules_count }} {% translate "rule(s) configured" %}</p>
                         <a href="{% url 'dtb:admin_rules' %}" class="btn btn-primary btn-sm">{% translate "Manage" %}</a>
                     </div>
                 </div>
@@ -70,7 +70,7 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <h5><i class="fas fa-users"></i> {% translate "Telegram Groups" %}</h5>
-                        <p class="text-muted">{% blocktranslate count counter=groups_count %}{{ groups_count }} group(s) tracked{% endblocktranslate %}</p>
+                        <p class="text-muted">{{ groups_count }} {% translate "group(s) tracked" %}</p>
                         <a href="{% url 'dtb:admin_groups' %}" class="btn btn-primary btn-sm">{% translate "Manage" %}</a>
                     </div>
                 </div>

@@ -62,7 +62,7 @@
                         <form method="post" action="{% url 'dtb:admin_rule_delete' rule.id %}" style="display:inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-sm btn-danger"
-                                    onclick="return confirm('{% blocktranslate %}Delete rule {{ rule.name }}?{% endblocktranslate %}')">{% translate "Delete" %}</button>
+                                    onclick="return confirm('{% translate "Delete rule" %} {{ rule.name }}?')">{% translate "Delete" %}</button>
                         </form>
                     </td>
                 </tr>
