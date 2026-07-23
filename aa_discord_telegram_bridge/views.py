@@ -202,6 +202,19 @@ def verify_link(request):
 def unlink_telegram(request):
     """Unlink Telegram account."""
     profile, created = TelegramUser.objects.get_or_create(user=request.user)
+    chat_id = profile.telegram_chat_id
+
+    if chat_id:
+        try:
+            bot = TelegramBotManager()
+            bot.send_message(
+                chat_id,
+                '❌ Your Telegram account has been unlinked from Alliance Auth.\n'
+                'You will no longer receive forwarded Discord messages.',
+            )
+        except Exception:
+            logger.exception('DTB: failed to send unlink notification')
+
     profile.is_active = False
     profile.notifications_enabled = False
     profile.telegram_chat_id = ''
