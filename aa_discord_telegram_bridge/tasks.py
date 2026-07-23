@@ -169,7 +169,24 @@ def validate_all_telegram_users(self):
 
 
 def _kick_user_from_all_groups(telegram_bot, tg_user):
-    """Kick a user from all known Telegram groups."""
+    """Kick a user from all known Telegram groups.
+
+    Sends a notification to the user's Telegram chat before kicking.
+    """
+    from django.utils.translation import gettext as _
+
+    # Send notification before kicking
+    if tg_user.telegram_chat_id:
+        try:
+            telegram_bot.send_message(
+                chat_id=tg_user.telegram_chat_id,
+                text=_('You have been removed from the alliance Telegram groups '
+                       'because you are no longer a member of the alliance. '
+                       'If you return, you will be re-invited automatically.'),
+            )
+        except Exception:
+            pass  # Best effort — user may have blocked the bot
+
     groups = TelegramGroup.objects.filter(is_active=True)
     for group in groups:
         try:

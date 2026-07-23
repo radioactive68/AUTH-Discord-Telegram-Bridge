@@ -1,4 +1,4 @@
-# Russian translations for aa-discord-telegram-bridge.
+# Chinese (Simplified) translations for aa-discord-telegram-bridge.
 # Copyright (C) 2026
 # This file is distributed under the same license as the aa-discord-telegram-bridge package.
 #
@@ -9,46 +9,45 @@ msgstr ""
 "POT-Creation-Date: 2026-07-23 23:30+0300\n"
 "PO-Revision-Date: 2026-07-24 00:00+0000\n"
 "Last-Translator: \n"
-"Language-Team: Russian\n"
-"Language: ru\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_Hans\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 msgid ""
 "Auto-start the Discord forwarder bot inside Alliance Auth (no separate "
 "process needed). Requires a restart to take effect."
 msgstr ""
-"Автозапуск Discord-бота пересылки внутри Alliance Auth (отдельный процесс "
-"не требуется). Требуется перезапуск для применения."
+"在 Alliance Auth 中自动启动 Discord 转发 Bot（无需单独进程）。需要重启才能生效。"
 
 #: вЃЁmodels.pyвЃ©:39
 #: вЃЁmodels.pyвЃ©:40
 #: admin_settings.html:4
 msgid "DTB Settings"
-msgstr "Настройки DTB"
+msgstr "DTB 设置"
 
 #: вЃЁmodels.pyвЃ©:67
 msgid "Supergroup"
-msgstr "Супергруппа"
+msgstr "超级群组"
 
 #: вЃЁmodels.pyвЃ©:68
 msgid "Group"
-msgstr "Группа"
+msgstr "群组"
 
 #: вЃЁmodels.pyвЃ©:69
 msgid "Channel"
-msgstr "Канал"
+msgstr "频道"
 
 #: вЃЁmodels.pyвЃ©:77
 msgid "Telegram Group"
-msgstr "Группа Telegram"
+msgstr "Telegram 群组"
 
 #: вЃЁmodels.pyвЃ©:78
 #: admin_index.html:72
 msgid "Telegram Groups"
-msgstr "Группы Telegram"
+msgstr "Telegram 群组"
 
 #: вЃЁmodels.pyвЃ©:88
 #: admin_groups.html:48
@@ -57,77 +56,75 @@ msgstr "Chat ID"
 
 #: вЃЁmodels.pyвЃ©:89
 msgid "Username/@"
-msgstr "Имя пользователя/@"
+msgstr "username/@"
 
 #: вЃЁmodels.pyвЃ©:94
 msgid "Short name for this rule (e.g. \"ops\", \"CTA\")"
-msgstr "Краткое название для этого правила (напр. \"ops\", \"CTA\")"
+msgstr "此规则的简短名称（例如 \"ops\"、\"CTA\"）"
 
 #: вЃЁmodels.pyвЃ©:98
 msgid "Discord channel ID to listen to"
-msgstr "ID канала Discord для отслеживания"
+msgstr "要监听的 Discord 频道 ID"
 
 #: вЃЁmodels.pyвЃ©:103
 msgid "Human-readable Discord channel name (for display)"
-msgstr "Читаемое название канала Discord (для отображения)"
+msgstr "易读的 Discord 频道名称（用于显示）"
 
 #: вЃЁmodels.pyвЃ©:107
 msgid "Telegram chat ID or @username to forward to"
-msgstr "Chat ID или @username в Telegram для пересылки"
+msgstr "要转发到的 Telegram chat ID 或 @username"
 
 #: вЃЁmodels.pyвЃ©:118
 msgid ""
 "Comma-separated keywords. If set, only messages containing one of these "
 "words trigger forwarding. Leave empty for all messages."
 msgstr ""
-"Ключевые слова через запятую. Если указаны, пересылка будет выполняться "
-"только для сообщений, содержащих одно из этих слов. Оставьте пустым для "
-"пересылки всех сообщений."
+"以逗号分隔的关键词。如果设置了，则仅包含这些词语的消息会触发转发。留空则转发所有消息。"
 
 #: вЃЁmodels.pyвЃ©:124
 msgid "Higher priority rules are checked first"
-msgstr "Правила с более высоким приоритетом проверяются первыми"
+msgstr "优先级较高的规则会先被检查"
 
 #: вЃЁmodels.pyвЃ©:130
 msgid "Forward Rule"
-msgstr "Правило пересылки"
+msgstr "转发规则"
 
 #: вЃЁmodels.pyвЃ©:131
 #: admin_index.html:45
 msgid "Forward Rules"
-msgstr "Правила пересылки"
+msgstr "转发规则"
 
 #: вЃЁmodels.pyвЃ©:160
 msgid "Telegram user chat ID (obtained automatically)"
-msgstr "Chat ID пользователя Telegram (получается автоматически)"
+msgstr "Telegram 用户 chat ID（自动获取）"
 
 #: вЃЁmodels.pyвЃ©:165
 msgid "Telegram numeric user ID"
-msgstr "Числовой ID пользователя Telegram"
+msgstr "Telegram 数字用户 ID"
 
 #: вЃЁmodels.pyвЃ©:174
 msgid "Whether the user has enabled Telegram notifications"
-msgstr "Включены ли у пользователя уведомления Telegram"
+msgstr "用户是否已启用 Telegram 通知"
 
 #: вЃЁmodels.pyвЃ©:178
 msgid "Master toggle for all notifications"
-msgstr "Главный переключатель для всех уведомлений"
+msgstr "所有通知的总开关"
 
 #: вЃЁmodels.pyвЃ©:184
 msgid "Telegram User"
-msgstr "Пользователь Telegram"
+msgstr "Telegram 用户"
 
 #: вЃЁmodels.pyвЃ©:185
 msgid "Telegram Users"
-msgstr "Пользователи Telegram"
+msgstr "Telegram 用户"
 
 #: вЃЁmodels.pyвЃ©:201
 msgid "Telegram Link Request"
-msgstr "Запрос привязки Telegram"
+msgstr "Telegram 绑定请求"
 
 #: вЃЁmodels.pyвЃ©:202
 msgid "Telegram Link Requests"
-msgstr "Запросы привязки Telegram"
+msgstr "Telegram 绑定请求"
 
 #: вЃЁmodels.pyвЃ©:229
 #: вЃЁmodels.pyвЃ©:230
@@ -135,7 +132,7 @@ msgstr "Запросы привязки Telegram"
 #: history.html:4
 #: history.html:9
 msgid "Forward History"
-msgstr "История пересылок"
+msgstr "转发历史"
 
 #: вЃЁmodels.pyвЃ©:241
 msgid "Discord Bot"
@@ -151,31 +148,31 @@ msgstr "Telegram Bot"
 #: status.html:4
 #: status.html:9
 msgid "Connection Status"
-msgstr "Статус соединения"
+msgstr "连接状态"
 
 #: вЃЁmodels.pyвЃ©:258
 msgid "Connection Statuses"
-msgstr "Статусы соединений"
+msgstr "连接状态"
 
 #: вЃЁmodels.pyвЃ©:284
 #: вЃЁmodels.pyвЃ©:285
 msgid "Bot Status"
-msgstr "Статус бота"
+msgstr "Bot 状态"
 
 #: вЃЁviews.pyвЃ©:68
 msgid "Telegram account is already linked. Unlink first."
-msgstr "Аккаунт Telegram уже привязан. Сначала отвяжите его."
+msgstr "Telegram 账户已绑定。请先解除绑定。"
 
 #: вЃЁviews.pyвЃ©:109
 #: вЃЁviews.pyвЃ©:196
 #, python-format
 msgid "Telegram account @%(username)s linked successfully!"
-msgstr "Аккаунт Telegram @%(username)s успешно привязан!"
+msgstr "Telegram 账户 @%(username)s 绑定成功！"
 
 #: вЃЁviews.pyвЃ©:119
 #, python-format
 msgid "Telegram bot connection failed: %(msg)s"
-msgstr "Ошибка подключения Telegram Bot: %(msg)s"
+msgstr "Telegram Bot 连接失败：%(msg)s"
 
 #: вЃЁviews.pyвЃ©:146
 #, python-format
@@ -183,8 +180,7 @@ msgid ""
 "A verification code has been sent to @%(username)s. Enter it below to "
 "complete linking."
 msgstr ""
-"Код подтверждения отправлен @%(username)s. Введите его ниже для "
-"завершения привязки."
+"验证码已发送至 @%(username)s。请在下方输入验证码以完成绑定。"
 
 #: вЃЁviews.pyвЃ©:155
 #, python-format
@@ -192,97 +188,96 @@ msgid ""
 "Could not send message to @%(username)s. Make sure you have started a chat "
 "with the bot first, and that the username is correct."
 msgstr ""
-"Не удалось отправить сообщение @%(username)s. Убедитесь, что вы начали "
-"диалог с ботом и имя пользователя указано верно."
+"无法向 @%(username)s 发送消息。请确保您已先与 Bot 开始对话，并且 username 正确。"
 
 #: вЃЁviews.pyвЃ©:161
 msgid "Invalid username. Please try again."
-msgstr "Неверное имя пользователя. Пожалуйста, попробуйте снова."
+msgstr "无效的 username。请重试。"
 
 #: вЃЁviews.pyвЃ©:175
 msgid "Linking session expired. Please try again."
-msgstr "Сеанс привязки истёк. Пожалуйста, попробуйте снова."
+msgstr "绑定会话已过期。请重试。"
 
 #: вЃЁviews.pyвЃ©:179
 msgid "Invalid code. Please try again."
-msgstr "Неверный код. Пожалуйста, попробуйте снова."
+msgstr "无效的验证码。请重试。"
 
 #: вЃЁviews.pyвЃ©:224
 msgid "Telegram account unlinked."
-msgstr "Аккаунт Telegram отвязан."
+msgstr "Telegram 账户已解除绑定。"
 
 #: вЃЁviews.pyвЃ©:236
 #: вЃЁviews.pyвЃ©:352
 #: admin_setup.html:39
 msgid "enabled"
-msgstr "включены"
+msgstr "已启用"
 
 #: вЃЁviews.pyвЃ©:236
 #: вЃЁviews.pyвЃ©:352
 #: admin_setup.html:41
 msgid "disabled"
-msgstr "отключены"
+msgstr "已禁用"
 
 #: вЃЁviews.pyвЃ©:237
 #, python-format
 msgid "Notifications %(state)s."
-msgstr "Уведомления %(state)s."
+msgstr "通知已%(state)s。"
 
 #: вЃЁviews.pyвЃ©:300
 msgid "Rule created."
-msgstr "Правило создано."
+msgstr "规则已创建。"
 
 #: вЃЁviews.pyвЃ©:307
 msgid "Add Forward Rule"
-msgstr "Добавить правило пересылки"
+msgstr "添加转发规则"
 
 #: вЃЁviews.pyвЃ©:321
 msgid "Rule updated."
-msgstr "Правило обновлено."
+msgstr "规则已更新。"
 
 #: вЃЁviews.pyвЃ©:328
 #, python-format
 msgid "Edit Rule: %(name)s"
-msgstr "Редактировать правило: %(name)s"
+msgstr "编辑规则：%(name)s"
 
 #: вЃЁviews.pyвЃ©:340
 #, python-format
 msgid "Rule \"%(name)s\" deleted."
-msgstr "Правило \"%(name)s\" удалено."
+msgstr "规则 \"%(name)s\" 已删除。"
 
 #: вЃЁviews.pyвЃ©:353
 #, python-format
 msgid "Rule \"%(name)s\" %(state)s."
-msgstr "Правило \"%(name)s\" %(state)s."
+msgstr "规则 \"%(name)s\" 已%(state)s。"
 
 #: вЃЁviews.pyвЃ©:379
 #, python-format
 msgid "Validation complete: %(validated)s validated, %(kicked)s kicked."
-msgstr "Проверка завершена: %(validated)s проверено, %(kicked)s удалено."
+msgstr "验证完成：%(validated)s 人已验证，%(kicked)s 人已移除。"
 
 #: вЃЁviews.pyвЃ©:385
 msgid "Validation task executed."
-msgstr "Задача проверки выполнена."
+msgstr "验证任务已执行。"
 
 #: вЃЁviews.pyвЃ©:456
 #: вЃЁviews.pyвЃ©:458
 #, python-format
 msgid "%(svc)s: %(msg)s"
-msgstr "%(svc)s: %(msg)s"
+msgstr "%(svc)s：%(msg)s"
 
 #: вЃЁviews.pyвЃ©:478
 #: вЃЁviews.pyвЃ©:507
 msgid "Settings saved."
-msgstr "Настройки сохранены."
+msgstr "设置已保存。"
 
 #: вЃЁviews.pyвЃ©:513
 msgid "Forwarding rule added."
-msgstr "Правило пересылки добавлено."
+msgstr "转发规则已添加。"
 
 #: admin_groups.html:4
 #: admin_groups.html:9
 msgid "Manage Telegram Groups"
-msgstr "Управление группами Telegram"
+msgstr "管理 Telegram 群组"
 
 #: admin_groups.html:12
 #: admin_index.html:12
@@ -291,412 +286,411 @@ msgstr "Управление группами Telegram"
 #: history.html:12
 #: status.html:12
 msgid "Back"
-msgstr "Назад"
+msgstr "返回"
 
 #: admin_groups.html:25
 msgid "Validate & Kick Now"
-msgstr "Проверить и удалить сейчас"
+msgstr "立即验证并移除"
 
 #: admin_groups.html:47
 #: admin_rules.html:24
 msgid "Name"
-msgstr "Название"
+msgstr "名称"
 
 #: admin_groups.html:49
 msgid "Type"
-msgstr "Тип"
+msgstr "类型"
 
 #: admin_groups.html:50
 #: admin_rules.html:29
 #: admin_setup.html:17
 #: history.html:22
 msgid "Status"
-msgstr "Статус"
+msgstr "状态"
 
 #: admin_groups.html:51
 msgid "Added"
-msgstr "Добавлено"
+msgstr "添加时间"
 
 #: admin_groups.html:62
 #: services_ctrl.html:13
 #: services_overview.html:28
 msgid "Active"
-msgstr "Активно"
+msgstr "活跃"
 
 #: admin_groups.html:64
 #: services_ctrl.html:15
 #: services_overview.html:30
 msgid "Inactive"
-msgstr "Неактивно"
+msgstr "未活跃"
 
 #: admin_groups.html:72
 msgid "No Telegram groups tracked yet."
-msgstr "Группы Telegram пока не отслеживаются."
+msgstr "尚未跟踪任何 Telegram 群组。"
 
 #: admin_index.html:4
 msgid "Discord-Telegram Bridge Admin"
-msgstr "Администрирование Discord-Telegram Bridge"
+msgstr "Discord-Telegram Bridge 管理"
 
 #: admin_index.html:19
 msgid "Discord Forwarder Bot:"
-msgstr "Discord Bot пересылки:"
+msgstr "Discord 转发 Bot："
 
 #: admin_index.html:21
 #: status.html:38
 msgid "Running"
-msgstr "Запущен"
+msgstr "运行中"
 
 #: admin_index.html:23
 #: status.html:40
 msgid "Stopped"
-msgstr "Остановлен"
+msgstr "已停止"
 
 #: admin_index.html:26
 msgid "never"
-msgstr "никогда"
+msgstr "从未"
 
 #: admin_index.html:34
 msgid "Membership enforcement:"
-msgstr "Проверка участия:"
+msgstr "成员资格强制执行："
 
 #: admin_index.html:35
 msgid ""
 "users who leave the alliance (or unlink their character) are auto-kicked "
 "from Telegram groups."
 msgstr ""
-"пользователи, покинувшие альянс (или отвязавшие своего персонажа), "
-"автоматически удаляются из групп Telegram."
+"离开联盟（或解除角色绑定）的用户将自动从 Telegram 群组中移除。"
 
 #: admin_index.html:46
 msgid "rule(s) configured"
-msgstr "правил настроено"
+msgstr "条规则已配置"
 
 #: admin_index.html:47
 #: admin_index.html:74
 msgid "Manage"
-msgstr "Управление"
+msgstr "管理"
 
 #: admin_index.html:54
 msgid "Settings"
-msgstr "Настройки"
+msgstr "设置"
 
 #: admin_index.html:55
 msgid "Tokens, alliance, membership"
-msgstr "Токены, альянс, участие"
+msgstr "Token、联盟、成员资格"
 
 #: admin_index.html:56
 msgid "Open"
-msgstr "Открыть"
+msgstr "打开"
 
 #: admin_index.html:63
 #: admin_rules.html:15
 #: admin_settings.html:15
 msgid "Setup Wizard"
-msgstr "Мастер настройки"
+msgstr "设置向导"
 
 #: admin_index.html:64
 msgid "Guided first-time setup"
-msgstr "Пошаговая первичная настройка"
+msgstr "引导式首次设置"
 
 #: admin_index.html:65
 #: services_ctrl.html:54
 #: services_overview.html:81
 msgid "Start"
-msgstr "Начать"
+msgstr "开始"
 
 #: admin_index.html:73
 msgid "group(s) tracked"
-msgstr "групп отслеживается"
+msgstr "个群组正在跟踪"
 
 #: admin_index.html:82
 msgid "Discord / Telegram / bot health"
-msgstr "Discord / Telegram / состояние бота"
+msgstr "Discord / Telegram / Bot 运行状况"
 
 #: admin_index.html:83
 #: admin_index.html:92
 msgid "View"
-msgstr "Просмотр"
+msgstr "查看"
 
 #: admin_index.html:91
 msgid "Recent forwarded messages"
-msgstr "Последние пересланные сообщения"
+msgstr "最近转发的消息"
 
 #: admin_rules.html:4
 #: admin_rules.html:9
 msgid "Manage Forward Rules"
-msgstr "Управление правилами пересылки"
+msgstr "管理转发规则"
 
 #: admin_rules.html:18
 #: admin_setup.html:153
 msgid "Add Rule"
-msgstr "Добавить правило"
+msgstr "添加规则"
 
 #: admin_rules.html:25
 msgid "Discord Channel"
-msgstr "Канал Discord"
+msgstr "Discord 频道"
 
 #: admin_rules.html:26
 msgid "Telegram Target"
-msgstr "Цель в Telegram"
+msgstr "Telegram 目标"
 
 #: admin_rules.html:27
 msgid "Keywords"
-msgstr "Ключевые слова"
+msgstr "关键词"
 
 #: admin_rules.html:28
 msgid "Priority"
-msgstr "Приоритет"
+msgstr "优先级"
 
 #: admin_rules.html:30
 msgid "Actions"
-msgstr "Действия"
+msgstr "操作"
 
 #: admin_rules.html:43
 msgid "All"
-msgstr "Все"
+msgstr "全部"
 
 #: admin_rules.html:49
 #: services_ctrl.html:21
 #: services_overview.html:36
 msgid "Enabled"
-msgstr "Включено"
+msgstr "已启用"
 
 #: admin_rules.html:51
 #: services_ctrl.html:23
 #: services_overview.html:38
 msgid "Disabled"
-msgstr "Отключено"
+msgstr "已禁用"
 
 #: admin_rules.html:58
 #: services_ctrl.html:31
 msgid "Disable"
-msgstr "Отключить"
+msgstr "禁用"
 
 #: admin_rules.html:58
 #: services_ctrl.html:35
 msgid "Enable"
-msgstr "Включить"
+msgstr "启用"
 
 #: admin_rules.html:61
 msgid "Edit"
-msgstr "Редактировать"
+msgstr "编辑"
 
 #: admin_rules.html:65
 msgid "Delete"
-msgstr "Удалить"
+msgstr "删除"
 
 #: admin_rule_form.html:12
 #: admin_setup.html:12
 msgid "Back to Rules"
-msgstr "Назад к правилам"
+msgstr "返回规则列表"
 
 #: admin_rule_form.html:38
 msgid "Save Rule"
-msgstr "Сохранить правило"
+msgstr "保存规则"
 
 #: admin_rule_form.html:40
 #: verify_link.html:29
 msgid "Cancel"
-msgstr "Отмена"
+msgstr "取消"
 
 #: admin_settings.html:9
 msgid "Discord-Telegram Bridge Settings"
-msgstr "Настройки Discord-Telegram Bridge"
+msgstr "Discord-Telegram Bridge 设置"
 
 #: admin_settings.html:18
 #: admin_setup.html:160
 msgid "Installed version:"
-msgstr "Установленная версия:"
+msgstr "已安装版本："
 
 #: admin_settings.html:22
 msgid "Plugin Configuration"
-msgstr "Конфигурация плагина"
+msgstr "插件配置"
 
 #: admin_settings.html:42
 msgid "Save Settings"
-msgstr "Сохранить настройки"
+msgstr "保存设置"
 
 #: admin_setup.html:4
 msgid "DTB Setup Wizard"
-msgstr "Мастер настройки DTB"
+msgstr "DTB 设置向导"
 
 #: admin_setup.html:9
 msgid "Setup"
-msgstr "Настройка"
+msgstr "设置"
 
 #: admin_setup.html:21
 msgid "Discord bot token"
-msgstr "Токен Discord Bot"
+msgstr "Discord Bot token"
 
 #: admin_setup.html:23
 #: admin_setup.html:31
 msgid "set"
-msgstr "установлен"
+msgstr "已设置"
 
 #: admin_setup.html:25
 #: admin_setup.html:33
 msgid "missing"
-msgstr "отсутствует"
+msgstr "未设置"
 
 #: admin_setup.html:29
 msgid "Telegram bot token"
-msgstr "Токен Telegram Bot"
+msgstr "Telegram Bot token"
 
 #: admin_setup.html:37
 msgid "Auto-start bot"
-msgstr "Автозапуск бота"
+msgstr "自动启动 Bot"
 
 #: admin_setup.html:45
 msgid "Forwarding rules"
-msgstr "Правила пересылки"
+msgstr "转发规则"
 
 #: admin_setup.html:49
 msgid "Telegram connection"
-msgstr "Соединение Telegram"
+msgstr "Telegram 连接"
 
 #: admin_setup.html:51
 #: admin_setup.html:61
 msgid "connected"
-msgstr "подключено"
+msgstr "已连接"
 
 #: admin_setup.html:53
 #: admin_setup.html:63
 msgid "error"
-msgstr "ошибка"
+msgstr "错误"
 
 #: admin_setup.html:55
 #: admin_setup.html:65
 msgid "untested"
-msgstr "не проверено"
+msgstr "未测试"
 
 #: admin_setup.html:59
 msgid "Discord connection"
-msgstr "Соединение Discord"
+msgstr "Discord 连接"
 
 #: admin_setup.html:78
 msgid "1. Bot Tokens"
-msgstr "1. Токены ботов"
+msgstr "1. Bot Token"
 
 #: admin_setup.html:96
 msgid "Save Tokens"
-msgstr "Сохранить токены"
+msgstr "保存 Token"
 
 #: admin_setup.html:105
 msgid "2. Test Connections"
-msgstr "2. Проверка соединений"
+msgstr "2. 测试连接"
 
 #: admin_setup.html:111
 msgid "Test Connections"
-msgstr "Проверить соединения"
+msgstr "测试连接"
 
 #: admin_setup.html:114
 #: status.html:20
 msgid "Testing..."
-msgstr "Проверка..."
+msgstr "测试中..."
 
 #: admin_setup.html:135
 msgid "3. Add Forwarding Rule"
-msgstr "3. Добавить правило пересылки"
+msgstr "3. 添加转发规则"
 
 #: admin_setup.html:162
 msgid "Open Settings"
-msgstr "Открыть настройки"
+msgstr "打开设置"
 
 #: history.html:18
 msgid "Time"
-msgstr "Время"
+msgstr "时间"
 
 #: history.html:19
 msgid "Rule"
-msgstr "Правило"
+msgstr "规则"
 
 #: history.html:20
 msgid "Source"
-msgstr "Источник"
+msgstr "来源"
 
 #: history.html:21
 msgid "Target"
-msgstr "Цель"
+msgstr "目标"
 
 #: history.html:23
 msgid "Message"
-msgstr "Сообщение"
+msgstr "消息"
 
 #: history.html:35
 msgid "OK"
-msgstr "OK"
+msgstr "成功"
 
 #: history.html:37
 msgid "FAIL"
-msgstr "ОШИБКА"
+msgstr "失败"
 
 #: history.html:44
 msgid "No forwarding history yet."
-msgstr "История пересылок пока отсутствует."
+msgstr "暂无转发历史。"
 
 #: history.html:55
 msgid "Previous"
-msgstr "Назад"
+msgstr "上一页"
 
 #: history.html:65
 msgid "Next"
-msgstr "Далее"
+msgstr "下一页"
 
 #: services_ctrl.html:9
 msgid "Linked as:"
-msgstr "Привязан как:"
+msgstr "绑定身份："
 
 #: services_ctrl.html:11
 #: services_overview.html:26
 #: status.html:36
 #: status.html:69
 msgid "Status:"
-msgstr "Статус:"
+msgstr "状态："
 
 #: services_ctrl.html:19
 #: services_overview.html:34
 msgid "Notifications:"
-msgstr "Уведомления:"
+msgstr "通知："
 
 #: services_ctrl.html:43
 msgid "Unlink"
-msgstr "Отвязать"
+msgstr "解除绑定"
 
 #: services_ctrl.html:47
 msgid "Forwards messages from Discord channels to Telegram."
-msgstr "Пересылает сообщения из каналов Discord в Telegram."
+msgstr "将 Discord 频道的消息转发至 Telegram。"
 
 #: services_ctrl.html:52
 #: services_overview.html:79
 msgid "Step 1:"
-msgstr "Шаг 1:"
+msgstr "第一步："
 
 #: services_ctrl.html:52
 #: services_overview.html:79
 msgid "open the bot"
-msgstr "откройте бота"
+msgstr "打开 Bot"
 
 #: services_ctrl.html:54
 #: services_overview.html:81
 msgid "and press"
-msgstr "и нажмите"
+msgstr "然后点击"
 
 #: services_ctrl.html:61
 msgid "Step 2:"
-msgstr "Шаг 2:"
+msgstr "第二步："
 
 #: services_ctrl.html:61
 msgid "enter your Telegram username"
-msgstr "введите ваше имя пользователя в Telegram"
+msgstr "输入您的 Telegram username"
 
 #: services_ctrl.html:66
 #: services_overview.html:100
 msgid "Link Account"
-msgstr "Привязать аккаунт"
+msgstr "绑定账户"
 
 #: services_ctrl.html:73
 msgid "Open DTB"
-msgstr "Открыть DTB"
+msgstr "打开 DTB"
 
 #: services_overview.html:20
 msgid "Telegram"
@@ -704,189 +698,187 @@ msgstr "Telegram"
 
 #: services_overview.html:24
 msgid "Linked account:"
-msgstr "Привязанный аккаунт:"
+msgstr "已绑定账户："
 
 #: services_overview.html:45
 msgid "Bot:"
-msgstr "Бот:"
+msgstr "Bot："
 
 #: services_overview.html:46
 msgid "manages your access to the alliance Telegram groups."
-msgstr "управляет вашим доступом к группам Telegram альянса."
+msgstr "管理您对联盟 Telegram 群组的访问权限。"
 
 #: services_overview.html:57
 msgid "Disable Notifications"
-msgstr "Отключить уведомления"
+msgstr "关闭通知"
 
 #: services_overview.html:61
 msgid "Enable Notifications"
-msgstr "Включить уведомления"
+msgstr "开启通知"
 
 #: services_overview.html:70
 msgid "Unlink Account"
-msgstr "Отвязать аккаунт"
+msgstr "解除账户绑定"
 
 #: services_overview.html:74
 msgid "Link your Telegram account to receive pings from Discord channels."
-msgstr "Привяжите аккаунт Telegram для получения уведомлений из каналов Discord."
+msgstr "绑定您的 Telegram 账户以接收来自 Discord 频道的消息提醒。"
 
 #: services_overview.html:112
 msgid "Information"
-msgstr "Информация"
+msgstr "信息"
 
 #: services_overview.html:115
 msgid ""
 "This service forwards messages from configured Discord channels to Telegram "
 "groups/topics."
 msgstr ""
-"Эта служба пересылает сообщения из настроенных каналов Discord в "
-"группы/топики Telegram."
+"此服务将已配置的 Discord 频道消息转发至 Telegram 群组/话题。"
 
 #: services_overview.html:117
 msgid "How it works:"
-msgstr "Как это работает:"
+msgstr "工作原理："
 
 #: services_overview.html:119
 msgid ""
 "Messages and pings in specific Discord channels are automatically forwarded "
 "to Telegram"
 msgstr ""
-"Сообщения и уведомления в определённых каналах Discord автоматически "
-"пересылаются в Telegram"
+"特定 Discord 频道中的消息和提醒会自动转发至 Telegram"
 
 #: services_overview.html:120
 msgid "You can enable/disable notifications at any time"
-msgstr "Вы можете включать/отключать уведомления в любой момент"
+msgstr "您可以随时启用/禁用通知"
 
 #: services_overview.html:121
 msgid ""
 "When you leave the alliance, you will be automatically removed from Telegram "
 "groups"
 msgstr ""
-"При выходе из альянса вы будете автоматически удалены из групп Telegram"
+"当您离开联盟时，您将自动从 Telegram 群组中移除"
 
 #: services_overview.html:122
 msgid ""
-"After linking, you are automatically invited to the alliance Telegram "
+"After linking, you are automatically invited to the联盟 Telegram "
 "group(s)"
 msgstr ""
-"После привязки вы автоматически приглашаетесь в группу(ы) Telegram альянса"
+"绑定后，您将自动被邀请加入联盟的 Telegram 群组"
 
 #: services_overview.html:128
 msgid "Admin Tools:"
-msgstr "Инструменты администратора:"
+msgstr "管理工具："
 
 #: services_overview.html:130
 msgid "DTB Admin Dashboard"
-msgstr "Панель администратора DTB"
+msgstr "DTB 管理面板"
 
 #: services_overview.html:134
 msgid "Manage Rules"
-msgstr "Управление правилами"
+msgstr "管理规则"
 
 #: services_overview.html:137
 msgid "Manage Groups"
-msgstr "Управление группами"
+msgstr "管理群组"
 
 #: services_overview.html:140
 msgid "History"
-msgstr "История"
+msgstr "历史"
 
 #: status.html:17
 msgid "Test Connection Now"
-msgstr "Проверить соединение сейчас"
+msgstr "立即测试连接"
 
 #: status.html:31
 msgid "Discord Forwarder Bot"
-msgstr "Discord Bot пересылки"
+msgstr "Discord 转发 Bot"
 
 #: status.html:44
 msgid "Last heartbeat:"
-msgstr "Последний heartbeat:"
+msgstr "最后心跳："
 
 #: status.html:48
 msgid "Never"
-msgstr "Никогда"
+msgstr "从未"
 
 #: status.html:71
 msgid "Connected"
-msgstr "Подключено"
+msgstr "已连接"
 
 #: status.html:73
 msgid "Disconnected"
-msgstr "Отключено"
+msgstr "已断开"
 
 #: status.html:76
 msgid "Last checked:"
-msgstr "Последняя проверка:"
+msgstr "最后检查："
 
 #: status.html:77
 msgid "Last success:"
-msgstr "Последний успех:"
+msgstr "最后成功："
 
 #: status.html:79
 msgid "Error:"
-msgstr "Ошибка:"
+msgstr "错误："
 
 #: verify_link.html:4
 msgid "Link Telegram Account"
-msgstr "Привязать аккаунт Telegram"
+msgstr "绑定 Telegram 账户"
 
 #: verify_link.html:11
 msgid "Verify Telegram Link"
-msgstr "Подтверждение привязки Telegram"
+msgstr "验证 Telegram 绑定"
 
 #: verify_link.html:14
 msgid "A verification code has been sent to"
-msgstr "Код подтверждения отправлен"
+msgstr "验证码已发送至"
 
 #: verify_link.html:14
 msgid "in Telegram."
-msgstr "в Telegram."
+msgstr "的 Telegram。"
 
 #: verify_link.html:15
 msgid "Please check your Telegram messages and enter the code below."
-msgstr "Проверьте сообщения в Telegram и введите код ниже."
+msgstr "请检查您的 Telegram 消息并在下方输入验证码。"
 
 #: verify_link.html:21
 msgid "Verification Code"
-msgstr "Код подтверждения"
+msgstr "验证码"
 
 #: verify_link.html:27
 msgid "Verify & Link"
-msgstr "Подтвердить и привязать"
+msgstr "验证并绑定"
 
 msgid ""
 "You have been removed from the alliance Telegram groups "
 "because you are no longer a member of the alliance. "
 "If you return, you will be re-invited automatically."
 msgstr ""
-"Вы были удалены из Telegram-групп альянса, так как больше не являетесь его "
-"участником. При возвращении вы будете автоматически приглашены обратно."
+"您已被从联盟 Telegram 群组中移除，因为您不再是联盟成员。"
+"如果您返回，将自动重新邀请您加入。"
 
 msgid "DTB is not configured. Admin must set alliance_id."
-msgstr "DTB не настроен. Администратор должен указать ID альянса."
+msgstr "DTB 未配置。管理员必须设置联盟 ID。"
 
 msgid "You must be a member of the configured alliance to link Telegram."
-msgstr "Для привязки Telegram необходимо быть участником настроенного альянса."
+msgstr "您必须是已配置联盟的成员才能绑定 Telegram。"
 
 msgid "DTB is not configured. Admin must set alliance_id in Settings."
-msgstr "DTB не настроен. Администратор должен указать ID альянса в настройках."
+msgstr "DTB 未配置。管理员必须在设置中配置联盟 ID。"
 
 msgid "Alliance ID is not set. Telegram linking is disabled for all users."
-msgstr "ID альянса не указан. Привязка Telegram отключена для всех пользователей."
+msgstr "联盟 ID 未设置。Telegram 绑定已对所有用户禁用。"
 
 msgid "Set Alliance ID"
-msgstr "Указать ID альянса"
+msgstr "设置联盟 ID"
 
 msgid "Not configured!"
-msgstr "Не настроено!"
+msgstr "未配置！"
 
 msgid "DTB Admins"
-msgstr "Администраторы DTB"
+msgstr "DTB 管理员"
 
 msgid "Telegram linking is only available to members of the configured alliance."
-msgstr "Привязка Telegram доступна только для участников настроенного альянса."
+msgstr "Telegram 绑定仅对已配置联盟的成员可用。"
 
 msgid "Discord-Telegram Bridge"
 msgstr "Discord-Telegram Bridge"

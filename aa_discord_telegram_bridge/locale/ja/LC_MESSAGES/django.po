@@ -1,0 +1,642 @@
+# Japanese translations for aa-discord-telegram-bridge.
+# Copyright (C) 2026
+# This file is distributed under the same license as the aa-discord-telegram-bridge package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: aa-discord-telegram-bridge 1.0.4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-23 23:30+0300\n"
+"PO-Revision-Date: 2026-07-24 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid ""
+"Auto-start the Discord forwarder bot inside Alliance Auth (no separate "
+"process needed). Requires a restart to take effect."
+msgstr ""
+"Alliance Auth内でDiscord転送ボットを自動起動します（別プロセスは不要）。"
+"適用には再起動が必要です。"
+
+msgid "DTB Settings"
+msgstr "DTB設定"
+
+msgid "Supergroup"
+msgstr "スーパーグループ"
+
+msgid "Group"
+msgstr "グループ"
+
+msgid "Channel"
+msgstr "チャンネル"
+
+msgid "Telegram Group"
+msgstr "Telegramグループ"
+
+msgid "Telegram Groups"
+msgstr "Telegramグループ"
+
+msgid "Chat ID"
+msgstr "Chat ID"
+
+msgid "Username/@"
+msgstr "username/@"
+
+msgid "Short name for this rule (e.g. \"ops\", \"CTA\")"
+msgstr "このルールの短い名前（例：\"ops\"、\"CTA\"）"
+
+msgid "Discord channel ID to listen to"
+msgstr "監視するDiscordチャンネルID"
+
+msgid "Human-readable Discord channel name (for display)"
+msgstr "人間が読めるDiscordチャンネル名（表示用）"
+
+msgid "Telegram chat ID or @username to forward to"
+msgstr "転送先のTelegram Chat IDまたは@username"
+
+msgid ""
+"Comma-separated keywords. If set, only messages containing one of these "
+"words trigger forwarding. Leave empty for all messages."
+msgstr ""
+"カンマ区切りのキーワード。設定した場合、これらの単語を含むメッセージのみが"
+"転送をトリガーします。すべてのメッセージを転送する場合は空のままにしてください。"
+
+msgid "Higher priority rules are checked first"
+msgstr "優先度の高いルールが先に確認されます"
+
+msgid "Forward Rule"
+msgstr "転送ルール"
+
+msgid "Forward Rules"
+msgstr "転送ルール"
+
+msgid "Telegram user chat ID (obtained automatically)"
+msgstr "TelegramユーザーのChat ID（自動取得）"
+
+msgid "Telegram numeric user ID"
+msgstr "Telegramの数値ユーザーID"
+
+msgid "Whether the user has enabled Telegram notifications"
+msgstr "ユーザーがTelegram通知を有効にしているかどうか"
+
+msgid "Master toggle for all notifications"
+msgstr "すべての通知のマスタースイッチ"
+
+msgid "Telegram User"
+msgstr "Telegramユーザー"
+
+msgid "Telegram Users"
+msgstr "Telegramユーザー"
+
+msgid "Telegram Link Request"
+msgstr "Telegramリンクリクエスト"
+
+msgid "Telegram Link Requests"
+msgstr "Telegramリンクリクエスト"
+
+msgid "Forward History"
+msgstr "転送履歴"
+
+msgid "Discord Bot"
+msgstr "Discord Bot"
+
+msgid "Telegram Bot"
+msgstr "Telegram Bot"
+
+msgid "Connection Status"
+msgstr "接続状態"
+
+msgid "Connection Statuses"
+msgstr "接続状態"
+
+msgid "Bot Status"
+msgstr "Bot状態"
+
+msgid "Telegram account is already linked. Unlink first."
+msgstr "Telegramアカウントは既にリンクされています。まずリンクを解除してください。"
+
+#, python-format
+msgid "Telegram account @%(username)s linked successfully!"
+msgstr "Telegramアカウント @%(username)s のリンクが完了しました！"
+
+#, python-format
+msgid "Telegram bot connection failed: %(msg)s"
+msgstr "Telegram Botの接続に失敗しました: %(msg)s"
+
+#, python-format
+msgid ""
+"A verification code has been sent to @%(username)s. Enter it below to "
+"complete linking."
+msgstr ""
+"@%(username)s に確認コードが送信されました。リンクを完了するには"
+"以下にコードを入力してください。"
+
+#, python-format
+msgid ""
+"Could not send message to @%(username)s. Make sure you have started a chat "
+"with the bot first, and that the username is correct."
+msgstr ""
+"@%(username)s にメッセージを送信できませんでした。まずBotとのチャットを"
+"開始していること、usernameが正しいことを確認してください。"
+
+msgid "Invalid username. Please try again."
+msgstr "無効なusernameです。もう一度お試しください。"
+
+msgid "Linking session expired. Please try again."
+msgstr "リンクセッションが期限切れです。もう一度お試しください。"
+
+msgid "Invalid code. Please try again."
+msgstr "無効なコードです。もう一度お試しください。"
+
+msgid "Telegram account unlinked."
+msgstr "Telegramアカウントのリンクを解除しました。"
+
+msgid "enabled"
+msgstr "有効"
+
+msgid "disabled"
+msgstr "無効"
+
+#, python-format
+msgid "Notifications %(state)s."
+msgstr "通知は%(state)s。"
+
+msgid "Rule created."
+msgstr "ルールを作成しました。"
+
+msgid "Add Forward Rule"
+msgstr "転送ルールを追加"
+
+msgid "Rule updated."
+msgstr "ルールを更新しました。"
+
+#, python-format
+msgid "Edit Rule: %(name)s"
+msgstr "ルールを編集: %(name)s"
+
+#, python-format
+msgid "Rule \"%(name)s\" deleted."
+msgstr "ルール「%(name)s」を削除しました。"
+
+#, python-format
+msgid "Rule \"%(name)s\" %(state)s."
+msgstr "ルール「%(name)s」は%(state)s。"
+
+#, python-format
+msgid "Validation complete: %(validated)s validated, %(kicked)s kicked."
+msgstr "検証完了: %(validated)s件検証済み、%(kicked)s件キック済み。"
+
+msgid "Validation task executed."
+msgstr "検証タスクを実行しました。"
+
+#, python-format
+msgid "%(svc)s: %(msg)s"
+msgstr "%(svc)s: %(msg)s"
+
+msgid "Settings saved."
+msgstr "設定を保存しました。"
+
+msgid "Forwarding rule added."
+msgstr "転送ルールを追加しました。"
+
+msgid "Manage Telegram Groups"
+msgstr "Telegramグループを管理"
+
+msgid "Back"
+msgstr "戻る"
+
+msgid "Validate & Kick Now"
+msgstr "検証してキック"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Type"
+msgstr "タイプ"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "Added"
+msgstr "追加日"
+
+msgid "Active"
+msgstr "有効"
+
+msgid "Inactive"
+msgstr "無効"
+
+msgid "No Telegram groups tracked yet."
+msgstr "まだTelegramグループが追跡されていません。"
+
+msgid "Discord-Telegram Bridge Admin"
+msgstr "Discord-Telegram Bridge管理"
+
+msgid "Discord Forwarder Bot:"
+msgstr "Discord転送Bot:"
+
+msgid "Running"
+msgstr "稼働中"
+
+msgid "Stopped"
+msgstr "停止中"
+
+msgid "never"
+msgstr "なし"
+
+msgid "Membership enforcement:"
+msgstr "メンバーシップ強制:"
+
+msgid ""
+"users who leave the alliance (or unlink their character) are auto-kicked "
+"from Telegram groups."
+msgstr ""
+"アライアンスを離れたユーザー（またはキャラクターのリンクを解除したユーザー）は"
+"Telegramグループから自動的にキックされます。"
+
+msgid "rule(s) configured"
+msgstr "ルール設定済み"
+
+msgid "Manage"
+msgstr "管理"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "Tokens, alliance, membership"
+msgstr "トークン、アライアンス、メンバーシップ"
+
+msgid "Open"
+msgstr "開く"
+
+msgid "Setup Wizard"
+msgstr "セットアップウィザード"
+
+msgid "Guided first-time setup"
+msgstr "初めてのセットアップガイド"
+
+msgid "Start"
+msgstr "開始"
+
+msgid "group(s) tracked"
+msgstr "グループ追跡中"
+
+msgid "Discord / Telegram / bot health"
+msgstr "Discord / Telegram / Bot状態"
+
+msgid "View"
+msgstr "表示"
+
+msgid "Recent forwarded messages"
+msgstr "最近の転送メッセージ"
+
+msgid "Manage Forward Rules"
+msgstr "転送ルールを管理"
+
+msgid "Add Rule"
+msgstr "ルールを追加"
+
+msgid "Discord Channel"
+msgstr "Discordチャンネル"
+
+msgid "Telegram Target"
+msgstr "Telegram転送先"
+
+msgid "Keywords"
+msgstr "キーワード"
+
+msgid "Priority"
+msgstr "優先度"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "All"
+msgstr "すべて"
+
+msgid "Enabled"
+msgstr "有効"
+
+msgid "Disabled"
+msgstr "無効"
+
+msgid "Disable"
+msgstr "無効にする"
+
+msgid "Enable"
+msgstr "有効にする"
+
+msgid "Edit"
+msgstr "編集"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Back to Rules"
+msgstr "ルール一覧に戻る"
+
+msgid "Save Rule"
+msgstr "ルールを保存"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Discord-Telegram Bridge Settings"
+msgstr "Discord-Telegram Bridge設定"
+
+msgid "Installed version:"
+msgstr "インストール済みバージョン:"
+
+msgid "Plugin Configuration"
+msgstr "プラグイン設定"
+
+msgid "Save Settings"
+msgstr "設定を保存"
+
+msgid "DTB Setup Wizard"
+msgstr "DTBセットアップウィザード"
+
+msgid "Setup"
+msgstr "セットアップ"
+
+msgid "Discord bot token"
+msgstr "Discord Botトークン"
+
+msgid "set"
+msgstr "設定済み"
+
+msgid "missing"
+msgstr "未設定"
+
+msgid "Telegram bot token"
+msgstr "Telegram Botトークン"
+
+msgid "Auto-start bot"
+msgstr "Botを自動起動"
+
+msgid "Forwarding rules"
+msgstr "転送ルール"
+
+msgid "Telegram connection"
+msgstr "Telegram接続"
+
+msgid "connected"
+msgstr "接続済み"
+
+msgid "error"
+msgstr "エラー"
+
+msgid "untested"
+msgstr "未テスト"
+
+msgid "Discord connection"
+msgstr "Discord接続"
+
+msgid "1. Bot Tokens"
+msgstr "1. Botトークン"
+
+msgid "Save Tokens"
+msgstr "トークンを保存"
+
+msgid "2. Test Connections"
+msgstr "2. 接続テスト"
+
+msgid "Test Connections"
+msgstr "接続をテスト"
+
+msgid "Testing..."
+msgstr "テスト中..."
+
+msgid "3. Add Forwarding Rule"
+msgstr "3. 転送ルールを追加"
+
+msgid "Open Settings"
+msgstr "設定を開く"
+
+msgid "Time"
+msgstr "時刻"
+
+msgid "Rule"
+msgstr "ルール"
+
+msgid "Source"
+msgstr "送信元"
+
+msgid "Target"
+msgstr "転送先"
+
+msgid "Message"
+msgstr "メッセージ"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "FAIL"
+msgstr "失敗"
+
+msgid "No forwarding history yet."
+msgstr "まだ転送履歴がありません。"
+
+msgid "Previous"
+msgstr "前へ"
+
+msgid "Next"
+msgstr "次へ"
+
+msgid "Linked as:"
+msgstr "リンク先:"
+
+msgid "Status:"
+msgstr "状態:"
+
+msgid "Notifications:"
+msgstr "通知:"
+
+msgid "Unlink"
+msgstr "リンク解除"
+
+msgid "Forwards messages from Discord channels to Telegram."
+msgstr "DiscordチャンネルからのメッセージをTelegramに転送します。"
+
+msgid "Step 1:"
+msgstr "ステップ1:"
+
+msgid "open the bot"
+msgstr "Botを開く"
+
+msgid "and press"
+msgstr "押してください"
+
+msgid "Step 2:"
+msgstr "ステップ2:"
+
+msgid "enter your Telegram username"
+msgstr "Telegramのusernameを入力"
+
+msgid "Link Account"
+msgstr "アカウントをリンク"
+
+msgid "Open DTB"
+msgstr "DTBを開く"
+
+msgid "Telegram"
+msgstr "Telegram"
+
+msgid "Linked account:"
+msgstr "リンク済みアカウント:"
+
+msgid "Bot:"
+msgstr "Bot:"
+
+msgid "manages your access to the alliance Telegram groups."
+msgstr "アライアンスのTelegramグループへのアクセスを管理します。"
+
+msgid "Disable Notifications"
+msgstr "通知を無効にする"
+
+msgid "Enable Notifications"
+msgstr "通知を有効にする"
+
+msgid "Unlink Account"
+msgstr "アカウントのリンクを解除"
+
+msgid "Link your Telegram account to receive pings from Discord channels."
+msgstr "Discordチャンネルからのピン通知を受信するにはTelegramアカウントをリンクしてください。"
+
+msgid "Information"
+msgstr "情報"
+
+msgid ""
+"This service forwards messages from configured Discord channels to Telegram "
+"groups/topics."
+msgstr ""
+"このサービスは設定されたDiscordチャンネルからのメッセージをTelegramの"
+"グループ/トピックに転送します。"
+
+msgid "How it works:"
+msgstr "仕組み:"
+
+msgid ""
+"Messages and pings in specific Discord channels are automatically forwarded "
+"to Telegram"
+msgstr ""
+"特定のDiscordチャンネルのメッセージとピン通知は自動的にTelegramに"
+"転送されます"
+
+msgid "You can enable/disable notifications at any time"
+msgstr "通知の有効/無効はいつでも切り替えられます"
+
+msgid ""
+"When you leave the alliance, you will be automatically removed from Telegram "
+"groups"
+msgstr ""
+"アライアンスを離れると、Telegramグループから自動的に削除されます"
+
+msgid ""
+"After linking, you are automatically invited to the alliance Telegram "
+"group(s)"
+msgstr ""
+"リンク後、アライアンスのTelegramグループに自動的に招待されます"
+
+msgid "Admin Tools:"
+msgstr "管理ツール:"
+
+msgid "DTB Admin Dashboard"
+msgstr "DTB管理ダッシュボード"
+
+msgid "Manage Rules"
+msgstr "ルールを管理"
+
+msgid "Manage Groups"
+msgstr "グループを管理"
+
+msgid "History"
+msgstr "履歴"
+
+msgid "Test Connection Now"
+msgstr "接続をテスト"
+
+msgid "Discord Forwarder Bot"
+msgstr "Discord転送Bot"
+
+msgid "Last heartbeat:"
+msgstr "最終ハートビート:"
+
+msgid "Never"
+msgstr "なし"
+
+msgid "Connected"
+msgstr "接続済み"
+
+msgid "Disconnected"
+msgstr "切断"
+
+msgid "Last checked:"
+msgstr "最終確認:"
+
+msgid "Last success:"
+msgstr "最終成功:"
+
+msgid "Error:"
+msgstr "エラー:"
+
+msgid "Link Telegram Account"
+msgstr "Telegramアカウントをリンク"
+
+msgid "Verify Telegram Link"
+msgstr "Telegramリンクを確認"
+
+msgid "A verification code has been sent to"
+msgstr "確認コードが送信されました"
+
+msgid "in Telegram."
+msgstr "Telegramに。"
+
+msgid "Please check your Telegram messages and enter the code below."
+msgstr "Telegramのメッセージを確認し、以下のコードを入力してください。"
+
+msgid "Verification Code"
+msgstr "確認コード"
+
+msgid "Verify & Link"
+msgstr "確認してリンク"
+
+msgid ""
+"You have been removed from the alliance Telegram groups "
+"because you are no longer a member of the alliance. "
+"If you return, you will be re-invited automatically."
+msgstr ""
+"アライアンスのメンバーでなくなったため、Telegramグループから削除されました。"
+"復帰すると自動的に再招待されます。"
+
+msgid "DTB is not configured. Admin must set alliance_id."
+msgstr "DTBが設定されていません。管理者がalliance_idを設定する必要があります。"
+
+msgid "You must be a member of the configured alliance to link Telegram."
+msgstr "Telegramをリンクするには、設定されたアライアンスのメンバーである必要があります。"
+
+msgid "DTB is not configured. Admin must set alliance_id in Settings."
+msgstr "DTBが設定されていません。管理者が設定でalliance_idを設定する必要があります。"
+
+msgid "Alliance ID is not set. Telegram linking is disabled for all users."
+msgstr "アライアンスIDが設定されていません。すべてのユーザーのTelegramリンクが無効です。"
+
+msgid "Set Alliance ID"
+msgstr "アライアンスIDを設定"
+
+msgid "Not configured!"
+msgstr "未設定！"
+
+msgid "DTB Admins"
+msgstr "DTB管理者"
+
+msgid "Telegram linking is only available to members of the configured alliance."
+msgstr "Telegramリンクは設定されたアライアンスのメンバーのみ利用可能です。"
+
+msgid "Discord-Telegram Bridge"
+msgstr "Discord-Telegram Bridge"

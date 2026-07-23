@@ -1,0 +1,891 @@
+# Korean translations for aa-discord-telegram-bridge.
+# Copyright (C) 2026
+# This file is distributed under the same license as the aa-discord-telegram-bridge package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: aa-discord-telegram-bridge 1.0.4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-23 23:30+0300\n"
+"PO-Revision-Date: 2026-07-24 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid ""
+"Auto-start the Discord forwarder bot inside Alliance Auth (no separate "
+"process needed). Requires a restart to take effect."
+msgstr ""
+"Alliance Auth 내에서 Discord 포워더 Bot을 자동으로 시작합니다 (별도의 프로세스가 "
+"필요하지 않습니다). 적용하려면 재시작이 필요합니다."
+
+#: models.py:39
+#: models.py:40
+#: admin_settings.html:4
+msgid "DTB Settings"
+msgstr "DTB 설정"
+
+#: models.py:67
+msgid "Supergroup"
+msgstr "수퍼그룹"
+
+#: models.py:68
+msgid "Group"
+msgstr "그룹"
+
+#: models.py:69
+msgid "Channel"
+msgstr "채널"
+
+#: models.py:77
+msgid "Telegram Group"
+msgstr "Telegram 그룹"
+
+#: models.py:78
+#: admin_index.html:72
+msgid "Telegram Groups"
+msgstr "Telegram 그룹"
+
+#: models.py:88
+#: admin_groups.html:48
+msgid "Chat ID"
+msgstr "Chat ID"
+
+#: models.py:89
+msgid "Username/@"
+msgstr "username/@"
+
+#: models.py:94
+msgid "Short name for this rule (e.g. \"ops\", \"CTA\")"
+msgstr "이 규칙의 짧은 이름 (예: \"ops\", \"CTA\")"
+
+#: models.py:98
+msgid "Discord channel ID to listen to"
+msgstr "수신할 Discord 채널 ID"
+
+#: models.py:103
+msgid "Human-readable Discord channel name (for display)"
+msgstr "사람이 읽을 수 있는 Discord 채널 이름 (표시용)"
+
+#: models.py:107
+msgid "Telegram chat ID or @username to forward to"
+msgstr "전달할 Telegram Chat ID 또는 @username"
+
+#: models.py:118
+msgid ""
+"Comma-separated keywords. If set, only messages containing one of these "
+"words trigger forwarding. Leave empty for all messages."
+msgstr ""
+"쉼표로 구분된 키워드. 설정하면 이러한 단어를 포함한 메시지만 전달됩니다. "
+"모든 메시지를 전달하려면 비워두세요."
+
+#: models.py:124
+msgid "Higher priority rules are checked first"
+msgstr "더 높은 우선순위의 규칙이 먼저 확인됩니다"
+
+#: models.py:130
+msgid "Forward Rule"
+msgstr "전달 규칙"
+
+#: models.py:131
+#: admin_index.html:45
+msgid "Forward Rules"
+msgstr "전달 규칙"
+
+#: models.py:160
+msgid "Telegram user chat ID (obtained automatically)"
+msgstr "Telegram 사용자 Chat ID (자동으로 획득됨)"
+
+#: models.py:165
+msgid "Telegram numeric user ID"
+msgstr "Telegram 숫자 사용자 ID"
+
+#: models.py:174
+msgid "Whether the user has enabled Telegram notifications"
+msgstr "사용자가 Telegram 알림을 활성화했는지 여부"
+
+#: models.py:178
+msgid "Master toggle for all notifications"
+msgstr "모든 알림의 마스터 토글"
+
+#: models.py:184
+msgid "Telegram User"
+msgstr "Telegram 사용자"
+
+#: models.py:185
+msgid "Telegram Users"
+msgstr "Telegram 사용자"
+
+#: models.py:201
+msgid "Telegram Link Request"
+msgstr "Telegram 연결 요청"
+
+#: models.py:202
+msgid "Telegram Link Requests"
+msgstr "Telegram 연결 요청"
+
+#: models.py:229
+#: models.py:230
+#: admin_index.html:90
+#: history.html:4
+#: history.html:9
+msgid "Forward History"
+msgstr "전달 기록"
+
+#: models.py:241
+msgid "Discord Bot"
+msgstr "Discord Bot"
+
+#: models.py:242
+msgid "Telegram Bot"
+msgstr "Telegram Bot"
+
+#: models.py:257
+#: admin_index.html:81
+#: services_overview.html:143
+#: status.html:4
+#: status.html:9
+msgid "Connection Status"
+msgstr "연결 상태"
+
+#: models.py:258
+msgid "Connection Statuses"
+msgstr "연결 상태"
+
+#: models.py:284
+#: models.py:285
+msgid "Bot Status"
+msgstr "Bot 상태"
+
+#: views.py:68
+msgid "Telegram account is already linked. Unlink first."
+msgstr "Telegram 계정이 이미 연결되어 있습니다. 먼저 연결을 해제하세요."
+
+#: views.py:109
+#: views.py:196
+#, python-format
+msgid "Telegram account @%(username)s linked successfully!"
+msgstr "Telegram 계정 @%(username)s이(가) 성공적으로 연결되었습니다!"
+
+#: views.py:119
+#, python-format
+msgid "Telegram bot connection failed: %(msg)s"
+msgstr "Telegram Bot 연결 실패: %(msg)s"
+
+#: views.py:146
+#, python-format
+msgid ""
+"A verification code has been sent to @%(username)s. Enter it below to "
+"complete linking."
+msgstr ""
+"@%(username)s에게 인증 코드가 전송되었습니다. 연결을 완료하려면 "
+"아래에 입력하세요."
+
+#: views.py:155
+#, python-format
+msgid ""
+"Could not send message to @%(username)s. Make sure you have started a chat "
+"with the bot first, and that the username is correct."
+msgstr ""
+"@%(username)s에게 메시지를 보낼 수 없습니다. Bot과의 채팅을 먼저 시작했는지, "
+"username이 올바른지 확인하세요."
+
+#: views.py:161
+msgid "Invalid username. Please try again."
+msgstr "잘못된 username입니다. 다시 시도하세요."
+
+#: views.py:175
+msgid "Linking session expired. Please try again."
+msgstr "연결 세션이 만료되었습니다. 다시 시도하세요."
+
+#: views.py:179
+msgid "Invalid code. Please try again."
+msgstr "잘못된 코드입니다. 다시 시도하세요."
+
+#: views.py:224
+msgid "Telegram account unlinked."
+msgstr "Telegram 계정 연결이 해제되었습니다."
+
+#: views.py:236
+#: views.py:352
+#: admin_setup.html:39
+msgid "enabled"
+msgstr "활성화됨"
+
+#: views.py:236
+#: views.py:352
+#: admin_setup.html:41
+msgid "disabled"
+msgstr "비활성화됨"
+
+#: views.py:237
+#, python-format
+msgid "Notifications %(state)s."
+msgstr "알림 %(state)s."
+
+#: views.py:300
+msgid "Rule created."
+msgstr "규칙이 생성되었습니다."
+
+#: views.py:307
+msgid "Add Forward Rule"
+msgstr "전달 규칙 추가"
+
+#: views.py:321
+msgid "Rule updated."
+msgstr "규칙이 업데이트되었습니다."
+
+#: views.py:328
+#, python-format
+msgid "Edit Rule: %(name)s"
+msgstr "규칙 편집: %(name)s"
+
+#: views.py:340
+#, python-format
+msgid "Rule \"%(name)s\" deleted."
+msgstr "규칙 \"%(name)s\"(이)가 삭제되었습니다."
+
+#: views.py:353
+#, python-format
+msgid "Rule \"%(name)s\" %(state)s."
+msgstr "규칙 \"%(name)s\" %(state)s."
+
+#: views.py:379
+#, python-format
+msgid "Validation complete: %(validated)s validated, %(kicked)s kicked."
+msgstr "검증 완료: %(validated)s명 검증됨, %(kicked)s명 추방됨."
+
+#: views.py:385
+msgid "Validation task executed."
+msgstr "검증 작업이 실행되었습니다."
+
+#: views.py:456
+#: views.py:458
+#, python-format
+msgid "%(svc)s: %(msg)s"
+msgstr "%(svc)s: %(msg)s"
+
+#: views.py:478
+#: views.py:507
+msgid "Settings saved."
+msgstr "설정이 저장되었습니다."
+
+#: views.py:513
+msgid "Forwarding rule added."
+msgstr "전달 규칙이 추가되었습니다."
+
+#: admin_groups.html:4
+#: admin_groups.html:9
+msgid "Manage Telegram Groups"
+msgstr "Telegram 그룹 관리"
+
+#: admin_groups.html:12
+#: admin_index.html:12
+#: admin_rules.html:12
+#: admin_settings.html:12
+#: history.html:12
+#: status.html:12
+msgid "Back"
+msgstr "뒤로"
+
+#: admin_groups.html:25
+msgid "Validate & Kick Now"
+msgstr "지금 검증 및 추방"
+
+#: admin_groups.html:47
+#: admin_rules.html:24
+msgid "Name"
+msgstr "이름"
+
+#: admin_groups.html:49
+msgid "Type"
+msgstr "유형"
+
+#: admin_groups.html:50
+#: admin_rules.html:29
+#: admin_setup.html:17
+#: history.html:22
+msgid "Status"
+msgstr "상태"
+
+#: admin_groups.html:51
+msgid "Added"
+msgstr "추가됨"
+
+#: admin_groups.html:62
+#: services_ctrl.html:13
+#: services_overview.html:28
+msgid "Active"
+msgstr "활성"
+
+#: admin_groups.html:64
+#: services_ctrl.html:15
+#: services_overview.html:30
+msgid "Inactive"
+msgstr "비활성"
+
+#: admin_groups.html:72
+msgid "No Telegram groups tracked yet."
+msgstr "추적 중인 Telegram 그룹이 아직 없습니다."
+
+#: admin_index.html:4
+msgid "Discord-Telegram Bridge Admin"
+msgstr "Discord-Telegram Bridge 관리"
+
+#: admin_index.html:19
+msgid "Discord Forwarder Bot:"
+msgstr "Discord 포워더 Bot:"
+
+#: admin_index.html:21
+#: status.html:38
+msgid "Running"
+msgstr "실행 중"
+
+#: admin_index.html:23
+#: status.html:40
+msgid "Stopped"
+msgstr "중지됨"
+
+#: admin_index.html:26
+msgid "never"
+msgstr "없음"
+
+#: admin_index.html:34
+msgid "Membership enforcement:"
+msgstr "멤버십 강제 검증:"
+
+#: admin_index.html:35
+msgid ""
+"users who leave the alliance (or unlink their character) are auto-kicked "
+"from Telegram groups."
+msgstr ""
+"얼라이언스를 떠나거나(또는 캐릭터 연결을 해제한) 사용자는 Telegram 그룹에서 "
+"자동으로 추방됩니다."
+
+#: admin_index.html:46
+msgid "rule(s) configured"
+msgstr "규칙 구성됨"
+
+#: admin_index.html:47
+#: admin_index.html:74
+msgid "Manage"
+msgstr "관리"
+
+#: admin_index.html:54
+msgid "Settings"
+msgstr "설정"
+
+#: admin_index.html:55
+msgid "Tokens, alliance, membership"
+msgstr "토큰, 얼라이언스, 멤버십"
+
+#: admin_index.html:56
+msgid "Open"
+msgstr "열기"
+
+#: admin_index.html:63
+#: admin_rules.html:15
+#: admin_settings.html:15
+msgid "Setup Wizard"
+msgstr "설정 마법사"
+
+#: admin_index.html:64
+msgid "Guided first-time setup"
+msgstr "단계별 초기 설정"
+
+#: admin_index.html:65
+#: services_ctrl.html:54
+#: services_overview.html:81
+msgid "Start"
+msgstr "시작"
+
+#: admin_index.html:73
+msgid "group(s) tracked"
+msgstr "그룹 추적 중"
+
+#: admin_index.html:82
+msgid "Discord / Telegram / bot health"
+msgstr "Discord / Telegram / Bot 상태"
+
+#: admin_index.html:83
+#: admin_index.html:92
+msgid "View"
+msgstr "보기"
+
+#: admin_index.html:91
+msgid "Recent forwarded messages"
+msgstr "최근 전달된 메시지"
+
+#: admin_rules.html:4
+#: admin_rules.html:9
+msgid "Manage Forward Rules"
+msgstr "전달 규칙 관리"
+
+#: admin_rules.html:18
+#: admin_setup.html:153
+msgid "Add Rule"
+msgstr "규칙 추가"
+
+#: admin_rules.html:25
+msgid "Discord Channel"
+msgstr "Discord 채널"
+
+#: admin_rules.html:26
+msgid "Telegram Target"
+msgstr "Telegram 대상"
+
+#: admin_rules.html:27
+msgid "Keywords"
+msgstr "키워드"
+
+#: admin_rules.html:28
+msgid "Priority"
+msgstr "우선순위"
+
+#: admin_rules.html:30
+msgid "Actions"
+msgstr "작업"
+
+#: admin_rules.html:43
+msgid "All"
+msgstr "전체"
+
+#: admin_rules.html:49
+#: services_ctrl.html:21
+#: services_overview.html:36
+msgid "Enabled"
+msgstr "활성화됨"
+
+#: admin_rules.html:51
+#: services_ctrl.html:23
+#: services_overview.html:38
+msgid "Disabled"
+msgstr "비활성화됨"
+
+#: admin_rules.html:58
+#: services_ctrl.html:31
+msgid "Disable"
+msgstr "비활성화"
+
+#: admin_rules.html:58
+#: services_ctrl.html:35
+msgid "Enable"
+msgstr "활성화"
+
+#: admin_rules.html:61
+msgid "Edit"
+msgstr "편집"
+
+#: admin_rules.html:65
+msgid "Delete"
+msgstr "삭제"
+
+#: admin_rule_form.html:12
+#: admin_setup.html:12
+msgid "Back to Rules"
+msgstr "규칙으로 돌아가기"
+
+#: admin_rule_form.html:38
+msgid "Save Rule"
+msgstr "규칙 저장"
+
+#: admin_rule_form.html:40
+#: verify_link.html:29
+msgid "Cancel"
+msgstr "취소"
+
+#: admin_settings.html:9
+msgid "Discord-Telegram Bridge Settings"
+msgstr "Discord-Telegram Bridge 설정"
+
+#: admin_settings.html:18
+#: admin_setup.html:160
+msgid "Installed version:"
+msgstr "설치된 버전:"
+
+#: admin_settings.html:22
+msgid "Plugin Configuration"
+msgstr "플러그인 구성"
+
+#: admin_settings.html:42
+msgid "Save Settings"
+msgstr "설정 저장"
+
+#: admin_setup.html:4
+msgid "DTB Setup Wizard"
+msgstr "DTB 설정 마법사"
+
+#: admin_setup.html:9
+msgid "Setup"
+msgstr "설정"
+
+#: admin_setup.html:21
+msgid "Discord bot token"
+msgstr "Discord Bot 토큰"
+
+#: admin_setup.html:23
+#: admin_setup.html:31
+msgid "set"
+msgstr "설정됨"
+
+#: admin_setup.html:25
+#: admin_setup.html:33
+msgid "missing"
+msgstr "누락됨"
+
+#: admin_setup.html:29
+msgid "Telegram bot token"
+msgstr "Telegram Bot 토큰"
+
+#: admin_setup.html:37
+msgid "Auto-start bot"
+msgstr "Bot 자동 시작"
+
+#: admin_setup.html:45
+msgid "Forwarding rules"
+msgstr "전달 규칙"
+
+#: admin_setup.html:49
+msgid "Telegram connection"
+msgstr "Telegram 연결"
+
+#: admin_setup.html:51
+#: admin_setup.html:61
+msgid "connected"
+msgstr "연결됨"
+
+#: admin_setup.html:53
+#: admin_setup.html:63
+msgid "error"
+msgstr "오류"
+
+#: admin_setup.html:55
+#: admin_setup.html:65
+msgid "untested"
+msgstr "미테스트"
+
+#: admin_setup.html:59
+msgid "Discord connection"
+msgstr "Discord 연결"
+
+#: admin_setup.html:78
+msgid "1. Bot Tokens"
+msgstr "1. Bot 토큰"
+
+#: admin_setup.html:96
+msgid "Save Tokens"
+msgstr "토큰 저장"
+
+#: admin_setup.html:105
+msgid "2. Test Connections"
+msgstr "2. 연결 테스트"
+
+#: admin_setup.html:111
+msgid "Test Connections"
+msgstr "연결 테스트"
+
+#: admin_setup.html:114
+#: status.html:20
+msgid "Testing..."
+msgstr "테스트 중..."
+
+#: admin_setup.html:135
+msgid "3. Add Forwarding Rule"
+msgstr "3. 전달 규칙 추가"
+
+#: admin_setup.html:162
+msgid "Open Settings"
+msgstr "설정 열기"
+
+#: history.html:18
+msgid "Time"
+msgstr "시간"
+
+#: history.html:19
+msgid "Rule"
+msgstr "규칙"
+
+#: history.html:20
+msgid "Source"
+msgstr "출처"
+
+#: history.html:21
+msgid "Target"
+msgstr "대상"
+
+#: history.html:23
+msgid "Message"
+msgstr "메시지"
+
+#: history.html:35
+msgid "OK"
+msgstr "성공"
+
+#: history.html:37
+msgid "FAIL"
+msgstr "실패"
+
+#: history.html:44
+msgid "No forwarding history yet."
+msgstr "전달 기록이 아직 없습니다."
+
+#: history.html:55
+msgid "Previous"
+msgstr "이전"
+
+#: history.html:65
+msgid "Next"
+msgstr "다음"
+
+#: services_ctrl.html:9
+msgid "Linked as:"
+msgstr "연결됨:"
+
+#: services_ctrl.html:11
+#: services_overview.html:26
+#: status.html:36
+#: status.html:69
+msgid "Status:"
+msgstr "상태:"
+
+#: services_ctrl.html:19
+#: services_overview.html:34
+msgid "Notifications:"
+msgstr "알림:"
+
+#: services_ctrl.html:43
+msgid "Unlink"
+msgstr "연결 해제"
+
+#: services_ctrl.html:47
+msgid "Forwards messages from Discord channels to Telegram."
+msgstr "Discord 채널의 메시지를 Telegram으로 전달합니다."
+
+#: services_ctrl.html:52
+#: services_overview.html:79
+msgid "Step 1:"
+msgstr "1단계:"
+
+#: services_ctrl.html:52
+#: services_overview.html:79
+msgid "open the bot"
+msgstr "Bot을 열고"
+
+#: services_ctrl.html:54
+#: services_overview.html:81
+msgid "and press"
+msgstr "버튼을"
+
+#: services_ctrl.html:61
+msgid "Step 2:"
+msgstr "2단계:"
+
+#: services_ctrl.html:61
+msgid "enter your Telegram username"
+msgstr "Telegram username을 입력하세요"
+
+#: services_ctrl.html:66
+#: services_overview.html:100
+msgid "Link Account"
+msgstr "계정 연결"
+
+#: services_ctrl.html:73
+msgid "Open DTB"
+msgstr "DTB 열기"
+
+#: services_overview.html:20
+msgid "Telegram"
+msgstr "Telegram"
+
+#: services_overview.html:24
+msgid "Linked account:"
+msgstr "연결된 계정:"
+
+#: services_overview.html:45
+msgid "Bot:"
+msgstr "Bot:"
+
+#: services_overview.html:46
+msgid "manages your access to the alliance Telegram groups."
+msgstr "얼라이언스 Telegram 그룹에 대한 접근을 관리합니다."
+
+#: services_overview.html:57
+msgid "Disable Notifications"
+msgstr "알림 비활성화"
+
+#: services_overview.html:61
+msgid "Enable Notifications"
+msgstr "알림 활성화"
+
+#: services_overview.html:70
+msgid "Unlink Account"
+msgstr "계정 연결 해제"
+
+#: services_overview.html:74
+msgid "Link your Telegram account to receive pings from Discord channels."
+msgstr "Discord 채널의 알림을 받으려면 Telegram 계정을 연결하세요."
+
+#: services_overview.html:112
+msgid "Information"
+msgstr "정보"
+
+#: services_overview.html:115
+msgid ""
+"This service forwards messages from configured Discord channels to Telegram "
+"groups/topics."
+msgstr ""
+"이 서비스는 구성된 Discord 채널의 메시지를 Telegram 그룹/토픽으로 "
+"전달합니다."
+
+#: services_overview.html:117
+msgid "How it works:"
+msgstr "작동 방식:"
+
+#: services_overview.html:119
+msgid ""
+"Messages and pings in specific Discord channels are automatically forwarded "
+"to Telegram"
+msgstr ""
+"특정 Discord 채널의 메시지와 알림이 Telegram으로 자동 전달됩니다"
+
+#: services_overview.html:120
+msgid "You can enable/disable notifications at any time"
+msgstr "언제든지 알림을 활성화/비활성화할 수 있습니다"
+
+#: services_overview.html:121
+msgid ""
+"When you leave the alliance, you will be automatically removed from Telegram "
+"groups"
+msgstr ""
+"얼라이언스를 떠나면 Telegram 그룹에서 자동으로 제거됩니다"
+
+#: services_overview.html:122
+msgid ""
+"After linking, you are automatically invited to the alliance Telegram "
+"group(s)"
+msgstr ""
+"연결 후 얼라이언스 Telegram 그룹에 자동으로 초대됩니다"
+
+#: services_overview.html:128
+msgid "Admin Tools:"
+msgstr "관리 도구:"
+
+#: services_overview.html:130
+msgid "DTB Admin Dashboard"
+msgstr "DTB 관리 대시보드"
+
+#: services_overview.html:134
+msgid "Manage Rules"
+msgstr "규칙 관리"
+
+#: services_overview.html:137
+msgid "Manage Groups"
+msgstr "그룹 관리"
+
+#: services_overview.html:140
+msgid "History"
+msgstr "기록"
+
+#: status.html:17
+msgid "Test Connection Now"
+msgstr "지금 연결 테스트"
+
+#: status.html:31
+msgid "Discord Forwarder Bot"
+msgstr "Discord 포워더 Bot"
+
+#: status.html:44
+msgid "Last heartbeat:"
+msgstr "마지막 heartbeat:"
+
+#: status.html:48
+msgid "Never"
+msgstr "없음"
+
+#: status.html:71
+msgid "Connected"
+msgstr "연결됨"
+
+#: status.html:73
+msgid "Disconnected"
+msgstr "연결 끊김"
+
+#: status.html:76
+msgid "Last checked:"
+msgstr "마지막 확인:"
+
+#: status.html:77
+msgid "Last success:"
+msgstr "마지막 성공:"
+
+#: status.html:79
+msgid "Error:"
+msgstr "오류:"
+
+#: verify_link.html:4
+msgid "Link Telegram Account"
+msgstr "Telegram 계정 연결"
+
+#: verify_link.html:11
+msgid "Verify Telegram Link"
+msgstr "Telegram 연결 확인"
+
+#: verify_link.html:14
+msgid "A verification code has been sent to"
+msgstr "인증 코드가 전송되었습니다"
+
+#: verify_link.html:14
+msgid "in Telegram."
+msgstr "Telegram에서."
+
+#: verify_link.html:15
+msgid "Please check your Telegram messages and enter the code below."
+msgstr "Telegram 메시지를 확인하고 아래에 코드를 입력하세요."
+
+#: verify_link.html:21
+msgid "Verification Code"
+msgstr "인증 코드"
+
+#: verify_link.html:27
+msgid "Verify & Link"
+msgstr "확인 및 연결"
+
+msgid ""
+"You have been removed from the alliance Telegram groups "
+"because you are no longer a member of the alliance. "
+"If you return, you will be re-invited automatically."
+msgstr ""
+"얼라이언스 멤버가 아니기 때문에 얼라이언스 Telegram 그룹에서 "
+"제거되었습니다. "
+"복귀하면 자동으로 다시 초대됩니다."
+
+msgid "DTB is not configured. Admin must set alliance_id."
+msgstr "DTB가 구성되지 않았습니다. 관리자가 alliance_id를 설정해야 합니다."
+
+msgid "You must be a member of the configured alliance to link Telegram."
+msgstr "Telegram을 연결하려면 구성된 얼라이언스의 멤버여야 합니다."
+
+msgid "DTB is not configured. Admin must set alliance_id in Settings."
+msgstr "DTB가 구성되지 않았습니다. 관리자가 설정에서 alliance_id를 설정해야 합니다."
+
+msgid "Alliance ID is not set. Telegram linking is disabled for all users."
+msgstr "얼라이언스 ID가 설정되지 않았습니다. 모든 사용자의 Telegram 연결이 비활성화됩니다."
+
+msgid "Set Alliance ID"
+msgstr "얼라이언스 ID 설정"
+
+msgid "Not configured!"
+msgstr "구성되지 않음!"
+
+msgid "DTB Admins"
+msgstr "DTB 관리자"
+
+msgid "Telegram linking is only available to members of the configured alliance."
+msgstr "Telegram 연결은 구성된 얼라이언스의 멤버만 사용할 수 있습니다."
+
+msgid "Discord-Telegram Bridge"
+msgstr "Discord-Telegram Bridge"

@@ -1,0 +1,647 @@
+# French translations for aa-discord-telegram-bridge.
+# Copyright (C) 2026
+# This file is distributed under the same license as the aa-discord-telegram-bridge package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: aa-discord-telegram-bridge 1.0.4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-23 23:30+0300\n"
+"PO-Revision-Date: 2026-07-24 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid ""
+"Auto-start the Discord forwarder bot inside Alliance Auth (no separate "
+"process needed). Requires a restart to take effect."
+msgstr ""
+"Démarrer automatiquement le bot de transfert Discord dans Alliance Auth "
+"(aucun processus séparé nécessaire). Un redémarrage est nécessaire pour "
+"appliquer les changements."
+
+msgid "DTB Settings"
+msgstr "Paramètres DTB"
+
+msgid "Supergroup"
+msgstr "Super-groupe"
+
+msgid "Group"
+msgstr "Groupe"
+
+msgid "Channel"
+msgstr "Canal"
+
+msgid "Telegram Group"
+msgstr "Groupe Telegram"
+
+msgid "Telegram Groups"
+msgstr "Groupes Telegram"
+
+msgid "Chat ID"
+msgstr "Chat ID"
+
+msgid "Username/@"
+msgstr "Nom d'utilisateur/@"
+
+msgid "Short name for this rule (e.g. \"ops\", \"CTA\")"
+msgstr "Nom abrégé pour cette règle (par ex. \"ops\", \"CTA\")"
+
+msgid "Discord channel ID to listen to"
+msgstr "ID du canal Discord à écouter"
+
+msgid "Human-readable Discord channel name (for display)"
+msgstr "Nom lisible du canal Discord (pour l'affichage)"
+
+msgid "Telegram chat ID or @username to forward to"
+msgstr "Chat ID ou @username Telegram vers lequel transférer"
+
+msgid ""
+"Comma-separated keywords. If set, only messages containing one of these "
+"words trigger forwarding. Leave empty for all messages."
+msgstr ""
+"Mots-clés séparés par des virgules. Si définis, seuls les messages "
+"contenant l'un de ces mots déclenchent le transfert. Laissez vide pour "
+"tous les messages."
+
+msgid "Higher priority rules are checked first"
+msgstr "Les règles de priorité plus élevée sont vérifiées en premier"
+
+msgid "Forward Rule"
+msgstr "Règle de transfert"
+
+msgid "Forward Rules"
+msgstr "Règles de transfert"
+
+msgid "Telegram user chat ID (obtained automatically)"
+msgstr "Chat ID utilisateur Telegram (obtenu automatiquement)"
+
+msgid "Telegram numeric user ID"
+msgstr "ID numérique utilisateur Telegram"
+
+msgid "Whether the user has enabled Telegram notifications"
+msgstr "Si l'utilisateur a activé les notifications Telegram"
+
+msgid "Master toggle for all notifications"
+msgstr "Commutateur principal pour toutes les notifications"
+
+msgid "Telegram User"
+msgstr "Utilisateur Telegram"
+
+msgid "Telegram Users"
+msgstr "Utilisateurs Telegram"
+
+msgid "Telegram Link Request"
+msgstr "Demande de liaison Telegram"
+
+msgid "Telegram Link Requests"
+msgstr "Demandes de liaison Telegram"
+
+msgid "Forward History"
+msgstr "Historique des transferts"
+
+msgid "Discord Bot"
+msgstr "Discord Bot"
+
+msgid "Telegram Bot"
+msgstr "Telegram Bot"
+
+msgid "Connection Status"
+msgstr "État de la connexion"
+
+msgid "Connection Statuses"
+msgstr "États de connexion"
+
+msgid "Bot Status"
+msgstr "État du bot"
+
+msgid "Telegram account is already linked. Unlink first."
+msgstr "Le compte Telegram est déjà lié. Déliez-le d'abord."
+
+#, python-format
+msgid "Telegram account @%(username)s linked successfully!"
+msgstr "Le compte Telegram @%(username)s a été lié avec succès !"
+
+#, python-format
+msgid "Telegram bot connection failed: %(msg)s"
+msgstr "Échec de la connexion au Telegram Bot : %(msg)s"
+
+#, python-format
+msgid ""
+"A verification code has been sent to @%(username)s. Enter it below to "
+"complete linking."
+msgstr ""
+"Un code de vérification a été envoyé à @%(username)s. Saisissez-le ci-dessous "
+"pour finaliser la liaison."
+
+#, python-format
+msgid ""
+"Could not send message to @%(username)s. Make sure you have started a chat "
+"with the bot first, and that the username is correct."
+msgstr ""
+"Impossible d'envoyer le message à @%(username)s. Assurez-vous d'avoir "
+"démarré une conversation avec le bot et que le nom d'utilisateur est correct."
+
+msgid "Invalid username. Please try again."
+msgstr "Nom d'utilisateur invalide. Veuillez réessayer."
+
+msgid "Linking session expired. Please try again."
+msgstr "La session de liaison a expiré. Veuillez réessayer."
+
+msgid "Invalid code. Please try again."
+msgstr "Code invalide. Veuillez réessayer."
+
+msgid "Telegram account unlinked."
+msgstr "Le compte Telegram a été délié."
+
+msgid "enabled"
+msgstr "activées"
+
+msgid "disabled"
+msgstr "désactivées"
+
+#, python-format
+msgid "Notifications %(state)s."
+msgstr "Notifications %(state)s."
+
+msgid "Rule created."
+msgstr "Règle créée."
+
+msgid "Add Forward Rule"
+msgstr "Ajouter une règle de transfert"
+
+msgid "Rule updated."
+msgstr "Règle mise à jour."
+
+#, python-format
+msgid "Edit Rule: %(name)s"
+msgstr "Modifier la règle : %(name)s"
+
+#, python-format
+msgid "Rule \"%(name)s\" deleted."
+msgstr "Règle \"%(name)s\" supprimée."
+
+#, python-format
+msgid "Rule \"%(name)s\" %(state)s."
+msgstr "Règle \"%(name)s\" %(state)s."
+
+#, python-format
+msgid "Validation complete: %(validated)s validated, %(kicked)s kicked."
+msgstr "Validation terminée : %(validated)s validés, %(kicked)s expulsés."
+
+msgid "Validation task executed."
+msgstr "Tâche de validation exécutée."
+
+#, python-format
+msgid "%(svc)s: %(msg)s"
+msgstr "%(svc)s : %(msg)s"
+
+msgid "Settings saved."
+msgstr "Paramètres enregistrés."
+
+msgid "Forwarding rule added."
+msgstr "Règle de transfert ajoutée."
+
+msgid "Manage Telegram Groups"
+msgstr "Gérer les groupes Telegram"
+
+msgid "Back"
+msgstr "Retour"
+
+msgid "Validate & Kick Now"
+msgstr "Valider et expulser maintenant"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Status"
+msgstr "État"
+
+msgid "Added"
+msgstr "Ajouté"
+
+msgid "Active"
+msgstr "Actif"
+
+msgid "Inactive"
+msgstr "Inactif"
+
+msgid "No Telegram groups tracked yet."
+msgstr "Aucun groupe Telegram suivi pour le moment."
+
+msgid "Discord-Telegram Bridge Admin"
+msgstr "Administration Discord-Telegram Bridge"
+
+msgid "Discord Forwarder Bot:"
+msgstr "Bot de transfert Discord :"
+
+msgid "Running"
+msgstr "En cours d'exécution"
+
+msgid "Stopped"
+msgstr "Arrêté"
+
+msgid "never"
+msgstr "jamais"
+
+msgid "Membership enforcement:"
+msgstr "Application de l'adhésion :"
+
+msgid ""
+"users who leave the alliance (or unlink their character) are auto-kicked "
+"from Telegram groups."
+msgstr ""
+"les utilisateurs qui quittent l'alliance (ou délient leur personnage) sont "
+"automatiquement expulsés des groupes Telegram."
+
+msgid "rule(s) configured"
+msgstr "règle(s) configurée(s)"
+
+msgid "Manage"
+msgstr "Gérer"
+
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Tokens, alliance, membership"
+msgstr "Jetons, alliance, adhésion"
+
+msgid "Open"
+msgstr "Ouvrir"
+
+msgid "Setup Wizard"
+msgstr "Assistant de configuration"
+
+msgid "Guided first-time setup"
+msgstr "Configuration initiale guidée"
+
+msgid "Start"
+msgstr "Démarrer"
+
+msgid "group(s) tracked"
+msgstr "groupe(s) suivi(s)"
+
+msgid "Discord / Telegram / bot health"
+msgstr "Discord / Telegram / état du bot"
+
+msgid "View"
+msgstr "Voir"
+
+msgid "Recent forwarded messages"
+msgstr "Messages transférés récents"
+
+msgid "Manage Forward Rules"
+msgstr "Gérer les règles de transfert"
+
+msgid "Add Rule"
+msgstr "Ajouter une règle"
+
+msgid "Discord Channel"
+msgstr "Canal Discord"
+
+msgid "Telegram Target"
+msgstr "Cible Telegram"
+
+msgid "Keywords"
+msgstr "Mots-clés"
+
+msgid "Priority"
+msgstr "Priorité"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "All"
+msgstr "Toutes"
+
+msgid "Enabled"
+msgstr "Activé"
+
+msgid "Disabled"
+msgstr "Désactivé"
+
+msgid "Disable"
+msgstr "Désactiver"
+
+msgid "Enable"
+msgstr "Activer"
+
+msgid "Edit"
+msgstr "Modifier"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Back to Rules"
+msgstr "Retour aux règles"
+
+msgid "Save Rule"
+msgstr "Enregistrer la règle"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Discord-Telegram Bridge Settings"
+msgstr "Paramètres Discord-Telegram Bridge"
+
+msgid "Installed version:"
+msgstr "Version installée :"
+
+msgid "Plugin Configuration"
+msgstr "Configuration du plugin"
+
+msgid "Save Settings"
+msgstr "Enregistrer les paramètres"
+
+msgid "DTB Setup Wizard"
+msgstr "Assistant de configuration DTB"
+
+msgid "Setup"
+msgstr "Configuration"
+
+msgid "Discord bot token"
+msgstr "Jeton du Discord Bot"
+
+msgid "set"
+msgstr "défini"
+
+msgid "missing"
+msgstr "manquant"
+
+msgid "Telegram bot token"
+msgstr "Jeton du Telegram Bot"
+
+msgid "Auto-start bot"
+msgstr "Démarrage automatique du bot"
+
+msgid "Forwarding rules"
+msgstr "Règles de transfert"
+
+msgid "Telegram connection"
+msgstr "Connexion Telegram"
+
+msgid "connected"
+msgstr "connecté"
+
+msgid "error"
+msgstr "erreur"
+
+msgid "untested"
+msgstr "non testé"
+
+msgid "Discord connection"
+msgstr "Connexion Discord"
+
+msgid "1. Bot Tokens"
+msgstr "1. Jetons des bots"
+
+msgid "Save Tokens"
+msgstr "Enregistrer les jetons"
+
+msgid "2. Test Connections"
+msgstr "2. Tester les connexions"
+
+msgid "Test Connections"
+msgstr "Tester les connexions"
+
+msgid "Testing..."
+msgstr "Test en cours..."
+
+msgid "3. Add Forwarding Rule"
+msgstr "3. Ajouter une règle de transfert"
+
+msgid "Open Settings"
+msgstr "Ouvrir les paramètres"
+
+msgid "Time"
+msgstr "Heure"
+
+msgid "Rule"
+msgstr "Règle"
+
+msgid "Source"
+msgstr "Source"
+
+msgid "Target"
+msgstr "Cible"
+
+msgid "Message"
+msgstr "Message"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "FAIL"
+msgstr "ÉCHEC"
+
+msgid "No forwarding history yet."
+msgstr "Aucun historique de transfert pour le moment."
+
+msgid "Previous"
+msgstr "Précédent"
+
+msgid "Next"
+msgstr "Suivant"
+
+msgid "Linked as:"
+msgstr "Lié en tant que :"
+
+msgid "Status:"
+msgstr "État :"
+
+msgid "Notifications:"
+msgstr "Notifications :"
+
+msgid "Unlink"
+msgstr "Délier"
+
+msgid "Forwards messages from Discord channels to Telegram."
+msgstr "Transfère les messages des canaux Discord vers Telegram."
+
+msgid "Step 1:"
+msgstr "Étape 1 :"
+
+msgid "open the bot"
+msgstr "ouvrez le bot"
+
+msgid "and press"
+msgstr "et appuyez sur"
+
+msgid "Step 2:"
+msgstr "Étape 2 :"
+
+msgid "enter your Telegram username"
+msgstr "saisissez votre nom d'utilisateur Telegram"
+
+msgid "Link Account"
+msgstr "Lier le compte"
+
+msgid "Open DTB"
+msgstr "Ouvrir DTB"
+
+msgid "Telegram"
+msgstr "Telegram"
+
+msgid "Linked account:"
+msgstr "Compte lié :"
+
+msgid "Bot:"
+msgstr "Bot :"
+
+msgid "manages your access to the alliance Telegram groups."
+msgstr "gère votre accès aux groupes Telegram de l'alliance."
+
+msgid "Disable Notifications"
+msgstr "Désactiver les notifications"
+
+msgid "Enable Notifications"
+msgstr "Activer les notifications"
+
+msgid "Unlink Account"
+msgstr "Délier le compte"
+
+msgid "Link your Telegram account to receive pings from Discord channels."
+msgstr "Liez votre compte Telegram pour recevoir les notifications des canaux Discord."
+
+msgid "Information"
+msgstr "Information"
+
+msgid ""
+"This service forwards messages from configured Discord channels to Telegram "
+"groups/topics."
+msgstr ""
+"Ce service transfère les messages des canaux Discord configurés vers les "
+"groupes/sujets Telegram."
+
+msgid "How it works:"
+msgstr "Comment ça marche :"
+
+msgid ""
+"Messages and pings in specific Discord channels are automatically forwarded "
+"to Telegram"
+msgstr ""
+"Les messages et notifications dans les canaux Discord spécifiques sont "
+"automatiquement transférés vers Telegram"
+
+msgid "You can enable/disable notifications at any time"
+msgstr "Vous pouvez activer/désactiver les notifications à tout moment"
+
+msgid ""
+"When you leave the alliance, you will be automatically removed from Telegram "
+"groups"
+msgstr ""
+"Si vous quittez l'alliance, vous serez automatiquement retiré des groupes "
+"Telegram"
+
+msgid ""
+"After linking, you are automatically invited to the alliance Telegram "
+"group(s)"
+msgstr ""
+"Après la liaison, vous êtes automatiquement invité aux groupe(s) Telegram "
+"de l'alliance"
+
+msgid "Admin Tools:"
+msgstr "Outils d'administration :"
+
+msgid "DTB Admin Dashboard"
+msgstr "Tableau de bord d'administration DTB"
+
+msgid "Manage Rules"
+msgstr "Gérer les règles"
+
+msgid "Manage Groups"
+msgstr "Gérer les groupes"
+
+msgid "History"
+msgstr "Historique"
+
+msgid "Test Connection Now"
+msgstr "Tester la connexion maintenant"
+
+msgid "Discord Forwarder Bot"
+msgstr "Bot de transfert Discord"
+
+msgid "Last heartbeat:"
+msgstr "Dernier heartbeat :"
+
+msgid "Never"
+msgstr "Jamais"
+
+msgid "Connected"
+msgstr "Connecté"
+
+msgid "Disconnected"
+msgstr "Déconnecté"
+
+msgid "Last checked:"
+msgstr "Dernière vérification :"
+
+msgid "Last success:"
+msgstr "Dernier succès :"
+
+msgid "Error:"
+msgstr "Erreur :"
+
+msgid "Link Telegram Account"
+msgstr "Lier le compte Telegram"
+
+msgid "Verify Telegram Link"
+msgstr "Vérifier la liaison Telegram"
+
+msgid "A verification code has been sent to"
+msgstr "Un code de vérification a été envoyé à"
+
+msgid "in Telegram."
+msgstr "dans Telegram."
+
+msgid "Please check your Telegram messages and enter the code below."
+msgstr "Veuillez vérifier vos messages Telegram et saisir le code ci-dessous."
+
+msgid "Verification Code"
+msgstr "Code de vérification"
+
+msgid "Verify & Link"
+msgstr "Vérifier et lier"
+
+msgid ""
+"You have been removed from the alliance Telegram groups "
+"because you are no longer a member of the alliance. "
+"If you return, you will be re-invited automatically."
+msgstr ""
+"Vous avez été retiré des groupes Telegram de l'alliance car vous n'êtes "
+"plus membre de l'alliance. Si vous revenez, vous serez automatiquement "
+"réinvité."
+
+msgid "DTB is not configured. Admin must set alliance_id."
+msgstr "DTB n'est pas configuré. L'administrateur doit définir l'alliance_id."
+
+msgid "You must be a member of the configured alliance to link Telegram."
+msgstr "Vous devez être membre de l'alliance configurée pour lier Telegram."
+
+msgid "DTB is not configured. Admin must set alliance_id in Settings."
+msgstr "DTB n'est pas configuré. L'administrateur doit définir l'alliance_id dans les paramètres."
+
+msgid "Alliance ID is not set. Telegram linking is disabled for all users."
+msgstr "L'ID de l'alliance n'est pas défini. La liaison Telegram est désactivée pour tous les utilisateurs."
+
+msgid "Set Alliance ID"
+msgstr "Définir l'ID de l'alliance"
+
+msgid "Not configured!"
+msgstr "Non configuré !"
+
+msgid "DTB Admins"
+msgstr "Administrateurs DTB"
+
+msgid "Telegram linking is only available to members of the configured alliance."
+msgstr "La liaison Telegram est uniquement disponible pour les membres de l'alliance configurée."
+
+msgid "Discord-Telegram Bridge"
+msgstr "Discord-Telegram Bridge"
