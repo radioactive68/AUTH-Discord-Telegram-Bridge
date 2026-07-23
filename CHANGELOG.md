@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+- Migrate periodic task registration from CELERYBEAT_SCHEDULE hack to django_celery_beat.PeriodicTask (AA 5.x compatible).
+- Service block on /services/ visible to all users; admin tools remain permission-gated.
+
 ## 1.0.1
 - Fix `is_active` getting stuck `False` and never recovering after a user leaves/returns to the alliance.
 - `_user_in_alliance` now treats Alliance Auth staff/superusers as authorized.

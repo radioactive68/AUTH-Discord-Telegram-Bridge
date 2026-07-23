@@ -14,14 +14,22 @@ class DtbConfig(AppConfig):
 
     def _register_periodic_tasks(self):
         try:
-            from django.conf import settings
-            from celery.schedules import crontab
-            schedule = getattr(settings, 'CELERYBEAT_SCHEDULE', None)
-            if schedule is not None:
-                schedule.setdefault('dtb_validate_telegram_users', {
+            from django_celery_beat.models import PeriodicTask, CrontabSchedule
+
+            schedule, _ = CrontabSchedule.objects.get_or_create(
+                minute='15',
+                hour='*/6',
+                day_of_week='*',
+                day_of_month='*',
+                month_of_year='*',
+            )
+            PeriodicTask.objects.get_or_create(
+                name='dtb_validate_telegram_users',
+                defaults={
                     'task': 'aa_discord_telegram_bridge.tasks.validate_all_telegram_users',
-                    'schedule': crontab(hour='*/6', minute=15),
-                })
+                    'crontab': schedule,
+                    'enabled': True,
+                },
+            )
         except Exception:
-            # Celery may not be configured in all environments; ignore.
             pass

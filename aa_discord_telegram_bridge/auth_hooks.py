@@ -24,7 +24,7 @@ class DiscordTelegramBridgeService(ServicesHook):
         ServicesHook.__init__(self)
         self.name = 'Discord-Telegram Bridge'
         self.service_ctrl_template = 'dtb/services_ctrl.html'
-        self.access_perm = 'dtb.access_dtb'
+        self.access_perm = None  # visible to all users on /services/
 
     @property
     def title(self):
