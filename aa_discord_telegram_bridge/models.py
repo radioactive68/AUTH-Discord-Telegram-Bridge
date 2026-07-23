@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 DTB_VERSION = '1.0.3'
@@ -10,33 +11,33 @@ class DTBSettings(models.Model):
     """Singleton model for plugin settings (managed via admin page)."""
     telegram_bot_token = models.CharField(
         max_length=255, blank=True, default='',
-        help_text='Telegram Bot API token',
+        help_text=_('Telegram Bot API token'),
     )
     discord_bot_token = models.CharField(
         max_length=255, blank=True, default='',
-        help_text='Discord Bot token',
+        help_text=_('Discord Bot token'),
     )
     discord_guild_id = models.CharField(
         max_length=100, blank=True, default='',
-        help_text='Discord Guild (Server) ID',
+        help_text=_('Discord Guild (Server) ID'),
     )
     alliance_id = models.PositiveIntegerField(
         null=True, blank=True,
-        help_text='EVE Alliance ID to enforce membership. Leave empty to disable.',
+        help_text=_('EVE Alliance ID to enforce membership. Leave empty to disable.'),
     )
     telegram_webhook_url = models.CharField(
         max_length=500, blank=True, default='',
-        help_text='Telegram webhook URL for receiving updates (for user linking)',
+        help_text=_('Telegram webhook URL for receiving updates (for user linking)'),
     )
     autostart_bot = models.BooleanField(
         default=False,
-        help_text='Auto-start the Discord forwarder bot inside Alliance Auth '
-                  '(no separate process needed). Requires a restart to take effect.',
+        help_text=_('Auto-start the Discord forwarder bot inside Alliance Auth '
+                  '(no separate process needed). Requires a restart to take effect.'),
     )
 
     class Meta:
-        verbose_name = 'DTB Settings'
-        verbose_name_plural = 'DTB Settings'
+        verbose_name = _('DTB Settings')
+        verbose_name_plural = _('DTB Settings')
         permissions = (
             ('access_dtb', 'Can access Discord-Telegram Bridge'),
             ('manage_dtb_rules', 'Can manage DTB rules and settings'),
@@ -63,9 +64,9 @@ class TelegramGroup(models.Model):
     chat_type = models.CharField(
         max_length=20,
         choices=[
-            ('supergroup', 'Supergroup'),
-            ('group', 'Group'),
-            ('channel', 'Channel'),
+            ('supergroup', _('Supergroup')),
+            ('group', _('Group')),
+            ('channel', _('Channel')),
         ],
         default='supergroup',
     )
@@ -73,8 +74,8 @@ class TelegramGroup(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Telegram Group'
-        verbose_name_plural = 'Telegram Groups'
+        verbose_name = _('Telegram Group')
+        verbose_name_plural = _('Telegram Groups')
         ordering = ['name']
 
     def __str__(self):
@@ -84,26 +85,26 @@ class TelegramGroup(models.Model):
 class ForwardRule(models.Model):
     """Rule for forwarding Discord messages to Telegram."""
     TARGET_TYPE_CHOICES = [
-        ('chat_id', 'Chat ID'),
-        ('username', 'Username/@'),
+        ('chat_id', _('Chat ID')),
+        ('username', _('Username/@')),
     ]
 
     name = models.CharField(
         max_length=100,
-        help_text='Short name for this rule (e.g. "ops", "CTA")',
+        help_text=_('Short name for this rule (e.g. "ops", "CTA")'),
     )
     discord_channel_id = models.CharField(
         max_length=100,
-        help_text='Discord channel ID to listen to',
+        help_text=_('Discord channel ID to listen to'),
     )
     discord_channel_name = models.CharField(
         max_length=255,
         blank=True,
-        help_text='Human-readable Discord channel name (for display)',
+        help_text=_('Human-readable Discord channel name (for display)'),
     )
     telegram_target = models.CharField(
         max_length=255,
-        help_text='Telegram chat ID or @username to forward to',
+        help_text=_('Telegram chat ID or @username to forward to'),
     )
     telegram_target_type = models.CharField(
         max_length=20,
@@ -114,20 +115,20 @@ class ForwardRule(models.Model):
         max_length=500,
         blank=True,
         default='',
-        help_text='Comma-separated keywords. If set, only messages containing '
-                  'one of these words trigger forwarding. Leave empty for all messages.',
+        help_text=_('Comma-separated keywords. If set, only messages containing '
+                  'one of these words trigger forwarding. Leave empty for all messages.'),
     )
     is_enabled = models.BooleanField(default=True)
     priority = models.IntegerField(
         default=0,
-        help_text='Higher priority rules are checked first',
+        help_text=_('Higher priority rules are checked first'),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'Forward Rule'
-        verbose_name_plural = 'Forward Rules'
+        verbose_name = _('Forward Rule')
+        verbose_name_plural = _('Forward Rules')
         ordering = ['-priority', 'name']
 
     def __str__(self):
@@ -156,12 +157,12 @@ class TelegramUser(models.Model):
         max_length=100,
         blank=True,
         default='',
-        help_text='Telegram user chat ID (obtained automatically)',
+        help_text=_('Telegram user chat ID (obtained automatically)'),
     )
     telegram_user_id = models.BigIntegerField(
         null=True,
         blank=True,
-        help_text='Telegram numeric user ID',
+        help_text=_('Telegram numeric user ID'),
     )
     telegram_username = models.CharField(
         max_length=100,
@@ -170,18 +171,18 @@ class TelegramUser(models.Model):
     )
     is_active = models.BooleanField(
         default=False,
-        help_text='Whether the user has enabled Telegram notifications',
+        help_text=_('Whether the user has enabled Telegram notifications'),
     )
     notifications_enabled = models.BooleanField(
         default=True,
-        help_text='Master toggle for all notifications',
+        help_text=_('Master toggle for all notifications'),
     )
     linked_at = models.DateTimeField(auto_now_add=True)
     last_validated = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Telegram User'
-        verbose_name_plural = 'Telegram Users'
+        verbose_name = _('Telegram User')
+        verbose_name_plural = _('Telegram Users')
 
     def __str__(self):
         return f'{self.user.username} -> @{self.telegram_username or "not linked"}'
@@ -197,8 +198,8 @@ class TelegramLinkRequest(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        verbose_name = 'Telegram Link Request'
-        verbose_name_plural = 'Telegram Link Requests'
+        verbose_name = _('Telegram Link Request')
+        verbose_name_plural = _('Telegram Link Requests')
 
     def __str__(self):
         return f'LinkRequest {self.chat_id} (@{self.username})'
@@ -225,8 +226,8 @@ class ForwardHistory(models.Model):
     error_message = models.TextField(blank=True, default='')
 
     class Meta:
-        verbose_name = 'Forward History'
-        verbose_name_plural = 'Forward History'
+        verbose_name = _('Forward History')
+        verbose_name_plural = _('Forward History')
         ordering = ['-forwarded_at']
 
     def __str__(self):
@@ -237,8 +238,8 @@ class ForwardHistory(models.Model):
 class ConnectionStatus(models.Model):
     """Track connection status of Discord and Telegram bots."""
     SERVICE_CHOICES = [
-        ('discord', 'Discord Bot'),
-        ('telegram', 'Telegram Bot'),
+        ('discord', _('Discord Bot')),
+        ('telegram', _('Telegram Bot')),
     ]
 
     service = models.CharField(
@@ -253,8 +254,8 @@ class ConnectionStatus(models.Model):
     details = models.JSONField(default=dict, blank=True)
 
     class Meta:
-        verbose_name = 'Connection Status'
-        verbose_name_plural = 'Connection Statuses'
+        verbose_name = _('Connection Status')
+        verbose_name_plural = _('Connection Statuses')
 
     def __str__(self):
         status = 'Connected' if self.is_connected else 'Disconnected'
@@ -280,8 +281,8 @@ class BotStatus(models.Model):
     pid = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Bot Status'
-        verbose_name_plural = 'Bot Status'
+        verbose_name = _('Bot Status')
+        verbose_name_plural = _('Bot Status')
 
     def __str__(self):
         return f'Bot heartbeat: {self.last_heartbeat}'

@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from allianceauth import hooks
 from allianceauth.menu.hooks import MenuItemHook
 from allianceauth.services.hooks import ServicesHook
+from django.utils.translation import gettext_lazy as _
 
 from .models import TelegramUser
 
@@ -23,13 +24,13 @@ class DiscordTelegramBridgeService(ServicesHook):
 
     def __init__(self):
         ServicesHook.__init__(self)
-        self.name = 'Discord-Telegram Bridge'
+        self.name = _('Discord-Telegram Bridge')
         self.service_ctrl_template = 'dtb/services_ctrl.html'
-        self.access_perm = None  # visible to all users on /services/
+        self.access_perm = None
 
     @property
     def title(self):
-        return 'Discord-Telegram Bridge'
+        return _('Discord-Telegram Bridge')
 
     def service_active_for_user(self, user):
         """Check if service is active for user."""

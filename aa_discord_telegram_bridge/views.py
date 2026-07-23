@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
+from django.utils.translation import gettext_lazy as _
 
 from .models import (
     DTBSettings, DTB_VERSION, ForwardRule, TelegramUser, ForwardHistory,
@@ -64,7 +65,7 @@ def link_telegram(request):
     profile, _ = TelegramUser.objects.get_or_create(user=request.user)
 
     if profile.telegram_chat_id:
-        messages.warning(request, 'Telegram account is already linked. Unlink first.')
+        messages.warning(request, _('Telegram account is already linked. Unlink first.'))
         return redirect('dtb:services_overview')
 
     form = TelegramUserLinkForm(request.POST)
@@ -105,7 +106,7 @@ def link_telegram(request):
 
             messages.success(
                 request,
-                f'Telegram account @{profile.telegram_username} linked successfully!'
+                _('Telegram account @%(username)s linked successfully!') % {'username': profile.telegram_username}
             )
             return redirect('dtb:services_overview')
 
@@ -115,7 +116,7 @@ def link_telegram(request):
         is_ok, msg = bot.test_connection()
 
         if not is_ok:
-            messages.error(request, f'Telegram bot connection failed: {msg}')
+            messages.error(request, _('Telegram bot connection failed: %(msg)s') % {'msg': msg})
             return redirect('dtb:services_overview')
 
         # Generate a linking code
@@ -142,8 +143,8 @@ def link_telegram(request):
         if result.get('ok'):
             messages.info(
                 request,
-                f'A verification code has been sent to @{username}. '
-                'Enter it below to complete linking.'
+                _('A verification code has been sent to @%(username)s. '
+                'Enter it below to complete linking.') % {'username': username}
             )
             return render(request, 'dtb/verify_link.html', {
                 'username': username,
@@ -151,13 +152,13 @@ def link_telegram(request):
         else:
             messages.error(
                 request,
-                f'Could not send message to @{username}. '
+                _('Could not send message to @%(username)s. '
                 'Make sure you have started a chat with the bot first, '
-                'and that the username is correct.'
+                'and that the username is correct.') % {'username': username}
             )
             return redirect('dtb:services_overview')
 
-    messages.error(request, 'Invalid username. Please try again.')
+    messages.error(request, _('Invalid username. Please try again.'))
     return redirect('dtb:services_overview')
 
 
@@ -171,11 +172,11 @@ def verify_link(request):
     username = request.session.get('dtb_link_username')
 
     if not expected or not username:
-        messages.error(request, 'Linking session expired. Please try again.')
+        messages.error(request, _('Linking session expired. Please try again.'))
         return redirect('dtb:services_overview')
 
     if code != expected:
-        messages.error(request, 'Invalid code. Please try again.')
+        messages.error(request, _('Invalid code. Please try again.'))
         return render(request, 'dtb/verify_link.html', {
             'username': username,
         })
@@ -192,7 +193,7 @@ def verify_link(request):
     for key in ['dtb_link_code', 'dtb_link_username', 'dtb_link_time']:
         request.session.pop(key, None)
 
-    messages.success(request, f'Telegram account @{username} linked successfully!')
+    messages.success(request, _('Telegram account @%(username)s linked successfully!') % {'username': username})
     return redirect('dtb:services_overview')
 
 
@@ -207,7 +208,7 @@ def unlink_telegram(request):
     profile.telegram_user_id = None
     profile.save()
 
-    messages.info(request, 'Telegram account unlinked.')
+    messages.info(request, _('Telegram account unlinked.'))
     return redirect('dtb:services_overview')
 
 
@@ -219,8 +220,8 @@ def toggle_notifications(request):
     profile.notifications_enabled = not profile.notifications_enabled
     profile.save()
 
-    state = 'enabled' if profile.notifications_enabled else 'disabled'
-    messages.info(request, f'Notifications {state}.')
+    state = _('enabled') if profile.notifications_enabled else _('disabled')
+    messages.info(request, _('Notifications %(state)s.') % {'state': state})
     return redirect('dtb:services_overview')
 
 
@@ -283,14 +284,14 @@ def admin_rule_add(request):
         form = ForwardRuleForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Rule created.')
+            messages.success(request, _('Rule created.'))
             return redirect('dtb:admin_rules')
     else:
         form = ForwardRuleForm()
 
     return render(request, 'dtb/admin_rule_form.html', {
         'form': form,
-        'title': 'Add Forward Rule',
+        'title': _('Add Forward Rule'),
     })
 
 
@@ -304,14 +305,14 @@ def admin_rule_edit(request, rule_id):
         form = ForwardRuleForm(request.POST, instance=rule)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Rule updated.')
+            messages.success(request, _('Rule updated.'))
             return redirect('dtb:admin_rules')
     else:
         form = ForwardRuleForm(instance=rule)
 
     return render(request, 'dtb/admin_rule_form.html', {
         'form': form,
-        'title': f'Edit Rule: {rule.name}',
+        'title': _('Edit Rule: %(name)s') % {'name': rule.name},
     })
 
 
@@ -323,7 +324,7 @@ def admin_rule_delete(request, rule_id):
     rule = get_object_or_404(ForwardRule, pk=rule_id)
     name = rule.name
     rule.delete()
-    messages.success(request, f'Rule "{name}" deleted.')
+    messages.success(request, _('Rule "%(name)s" deleted.') % {'name': name})
     return redirect('dtb:admin_rules')
 
 
@@ -335,8 +336,8 @@ def admin_rule_toggle(request, rule_id):
     rule = get_object_or_404(ForwardRule, pk=rule_id)
     rule.is_enabled = not rule.is_enabled
     rule.save()
-    state = 'enabled' if rule.is_enabled else 'disabled'
-    messages.info(request, f'Rule "{rule.name}" {state}.')
+    state = _('enabled') if rule.is_enabled else _('disabled')
+    messages.info(request, _('Rule "%(name)s" %(state)s.') % {'name': rule.name, 'state': state})
     return redirect('dtb:admin_rules')
 
 
@@ -362,11 +363,13 @@ def admin_validate_now(request):
     if isinstance(info, dict):
         messages.success(
             request,
-            f"Validation complete: {info.get('validated', 0)} validated, "
-            f"{info.get('kicked', 0)} kicked.",
+            _('Validation complete: %(validated)s validated, %(kicked)s kicked.') % {
+                'validated': info.get('validated', 0),
+                'kicked': info.get('kicked', 0),
+            },
         )
     else:
-        messages.success(request, 'Validation task executed.')
+        messages.success(request, _('Validation task executed.'))
     return redirect('dtb:admin_groups')
 
 
@@ -437,9 +440,9 @@ def admin_test_connection(request):
 
     for svc, res in results.items():
         if res['ok']:
-            messages.success(request, f'{svc.title()}: {res["message"]}')
+            messages.success(request, _('%(svc)s: %(msg)s') % {'svc': svc.title(), 'msg': res["message"]})
         else:
-            messages.error(request, f'{svc.title()}: {res["message"]}')
+            messages.error(request, _('%(svc)s: %(msg)s') % {'svc': svc.title(), 'msg': res["message"]})
 
     return redirect('dtb:connection_status')
 
@@ -459,7 +462,7 @@ def admin_settings(request):
             if form.instance.autostart_bot:
                 from .bot_runner import maybe_start_bot
                 maybe_start_bot()
-            messages.success(request, 'Settings saved.')
+            messages.success(request, _('Settings saved.'))
             return redirect('dtb:admin_settings')
     else:
         form = DTBSettingsForm(instance=s)
@@ -488,13 +491,13 @@ def admin_setup(request):
             settings_form = DTBSettingsForm(request.POST, instance=s)
             if settings_form.is_valid():
                 settings_form.save()
-                messages.success(request, 'Settings saved.')
+                messages.success(request, _('Settings saved.'))
                 return redirect('dtb:admin_setup')
         elif action == 'add_rule':
             rule_form = ForwardRuleForm(request.POST)
             if rule_form.is_valid():
                 rule_form.save()
-                messages.success(request, 'Forwarding rule added.')
+                messages.success(request, _('Forwarding rule added.'))
                 return redirect('dtb:admin_setup')
         elif action == 'test':
             from .manager import TelegramBotManager, DiscordBotManager
@@ -526,3 +529,4 @@ def admin_setup(request):
         'current_version': DTB_VERSION,
     }
     return render(request, 'dtb/admin_setup.html', ctx)
+

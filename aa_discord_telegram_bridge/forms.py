@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import DTBSettings, ForwardRule, TelegramUser
 
 
@@ -16,7 +17,7 @@ class DTBSettingsForm(forms.ModelForm):
             'alliance_id': forms.NumberInput(attrs={'class': 'form-control'}),
         }
         help_texts = {
-            'alliance_id': 'Leave empty to disable membership check.',
+            'alliance_id': _('Leave empty to disable membership check.'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -27,10 +28,10 @@ class DTBSettingsForm(forms.ModelForm):
                 self._original_tokens[name] = getattr(self.instance, name, '') or ''
             if getattr(self.instance, name, ''):
                 self.fields[name].widget.attrs['placeholder'] = (
-                    'Already set (hidden for security) - leave blank to keep'
+                    _('Already set (hidden for security) - leave blank to keep')
                 )
                 self.fields[name].help_text = (
-                    'Token is saved. Leave blank to keep the current value.'
+                    _('Token is saved. Leave blank to keep the current value.')
                 )
 
     def save(self, commit=True):
@@ -60,7 +61,7 @@ class ForwardRuleForm(forms.ModelForm):
             'telegram_target': forms.TextInput(attrs={'class': 'form-control'}),
             'keyword_filter': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'e.g. ops,cta,roum (comma-separated)',
+                'placeholder': _('e.g. ops,cta,roum (comma-separated)'),
             }),
         }
 
@@ -70,9 +71,9 @@ class TelegramUserLinkForm(forms.Form):
         max_length=100,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '@username or username',
+            'placeholder': _('@username or username'),
         }),
-        label='Telegram Username',
+        label=_('Telegram Username'),
     )
 
 
@@ -81,7 +82,7 @@ class TelegramGroupForm(forms.Form):
         max_length=100,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'e.g. @channel_name or -100xxxxxxxxxx',
+            'placeholder': _('e.g. @channel_name or -100xxxxxxxxxx'),
         }),
-        label='Telegram Chat ID or @username',
+        label=_('Telegram Chat ID or @username'),
     )
