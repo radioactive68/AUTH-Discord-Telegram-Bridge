@@ -387,7 +387,7 @@ def admin_index(request):
         bot_last_seen = int((now - bot_status.last_heartbeat).total_seconds())
 
     ctx = {
-        'version': s.version,
+        'version': DTB_VERSION,
         'bot_running': bot_running,
         'bot_last_seen': bot_last_seen,
         'rules_count': ForwardRule.objects.count(),
@@ -526,105 +526,3 @@ def admin_setup(request):
         'current_version': DTB_VERSION,
     }
     return render(request, 'dtb/admin_setup.html', ctx)
-
-
-@login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
-def admin_check_update(request):
-    """AJAX endpoint: check GitHub for a newer version and return JSON.
-
-    Does not reload the page, so the UI stays in place.
-    """
-    from django.http import JsonResponse
-
-    s = DTBSettings.load()
-    latest_version = get_latest_github_version(s.github_repo, nocache=True)
-    current_version = s.version or '0.0.0'
-    update_available = bool(
-        latest_version
-        and parse_version(latest_version) > parse_version(current_version)
-    )
-    notes = ''
-    if update_available and latest_version:
-        notes = get_changelog_notes(s.github_repo, latest_version)
-    return JsonResponse({
-        'current_version': current_version,
-        'latest_version': latest_version,
-        'update_available': update_available,
-        'notes': notes,
-    })
-
-
-@login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
-@require_POST
-def admin_update_from_github(request):
-    """Pull latest from GitHub and run migrations."""
-    import subprocess
-    import os
-    from django.conf import settings as django_settings
-
-    s = DTBSettings.load()
-    repo = s.github_repo
-    if not repo:
-        messages.error(request, 'GitHub repo not configured in settings.')
-        return redirect('dtb:admin_settings')
-
-    plugin_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    import sys
-    search_dir = plugin_dir
-    for i in range(6):
-        if os.path.isdir(os.path.join(search_dir, '.git')):
-            plugin_dir = search_dir
-            break
-        search_dir = os.path.dirname(search_dir)
-
-    results = []
-
-    try:
-        r = subprocess.run(
-            ['git', 'pull', 'origin', 'main'],
-            cwd=plugin_dir, capture_output=True, text=True, timeout=60,
-        )
-        output = r.stdout + r.stderr
-        if r.returncode == 0 and ('Already up to date' in output or 'changed' in output.lower()):
-            results.append(f'Git pull OK: {output.strip()[:200]}')
-        elif r.returncode != 0:
-            results.append(f'Git pull failed: {output.strip()[:300]}')
-            messages.error(request, f'Update failed.\n{output[:500]}')
-            return redirect('dtb:admin_settings')
-        else:
-            results.append(f'Git pull: {output.strip()[:200]}')
-
-        r2 = subprocess.run(
-            [sys.executable,
-             os.path.join(django_settings.BASE_DIR, 'manage.py'),
-             'migrate', 'aa_discord_telegram_bridge', '--no-input'],
-            cwd=django_settings.BASE_DIR,
-            capture_output=True, text=True, timeout=120,
-        )
-        if r2.returncode == 0:
-            results.append(f'Migrate OK: {r2.stdout.strip()[:200]}')
-        else:
-            results.append(f'Migrate error: {r2.stderr.strip()[:300]}')
-
-        r3 = subprocess.run(
-            [sys.executable,
-             os.path.join(django_settings.BASE_DIR, 'manage.py'),
-             'collectstatic', '--noinput'],
-            cwd=django_settings.BASE_DIR,
-            capture_output=True, text=True, timeout=60,
-        )
-        results.append(f'Collectstatic: {"OK" if r3.returncode == 0 else "error"}')
-
-        from .models import DTB_VERSION
-        s.version = DTB_VERSION
-        s.save()
-
-        messages.success(request, 'Update complete.\n' + '\n'.join(results))
-    except subprocess.TimeoutExpired:
-        messages.error(request, 'Update timed out.')
-    except Exception as e:
-        messages.error(request, f'Update error: {e}')
-
-    return redirect('dtb:admin_settings')
