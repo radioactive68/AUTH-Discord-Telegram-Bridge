@@ -119,7 +119,7 @@ class DTBMenu(MenuItemHook):
         )
 
     def render(self, request):
-        if request.user.has_perm('dtb.manage_dtb_rules'):
+        if request.user.has_perm('aa_discord_telegram_bridge.manage_dtb_rules'):
             return MenuItemHook.render(self, request)
         return ''
 

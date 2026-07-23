@@ -10,6 +10,6 @@ def create_dtb_permissions():
 
 
 # Permission constants
-PERM_ACCESS_DTB = 'dtb.access_dtb'
-PERM_MANAGE_RULES = 'dtb.manage_dtb_rules'
-PERM_VIEW_HISTORY = 'dtb.view_forward_history'
+PERM_ACCESS_DTB = 'aa_discord_telegram_bridge.access_dtb'
+PERM_MANAGE_RULES = 'aa_discord_telegram_bridge.manage_dtb_rules'
+PERM_VIEW_HISTORY = 'aa_discord_telegram_bridge.view_forward_history'

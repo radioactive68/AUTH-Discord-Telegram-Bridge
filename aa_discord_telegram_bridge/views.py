@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 def _has_dtb_permission(user):
     """Check if user has DTB admin permission."""
-    return user.has_perm('dtb.manage_dtb_rules')
+    return user.has_perm('aa_discord_telegram_bridge.manage_dtb_rules')
 
 
 # ── User Views ──────────────────────────────────────────────
@@ -268,7 +268,7 @@ def connection_status(request):
 # ── Admin Views ─────────────────────────────────────────────
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_rules(request):
     """List and manage forwarding rules."""
     rules = ForwardRule.objects.all()
@@ -276,7 +276,7 @@ def admin_rules(request):
 
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_rule_add(request):
     """Add a new forwarding rule."""
     if request.method == 'POST':
@@ -295,7 +295,7 @@ def admin_rule_add(request):
 
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_rule_edit(request, rule_id):
     """Edit a forwarding rule."""
     rule = get_object_or_404(ForwardRule, pk=rule_id)
@@ -316,7 +316,7 @@ def admin_rule_edit(request, rule_id):
 
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 @require_POST
 def admin_rule_delete(request, rule_id):
     """Delete a forwarding rule."""
@@ -328,7 +328,7 @@ def admin_rule_delete(request, rule_id):
 
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 @require_POST
 def admin_rule_toggle(request, rule_id):
     """Toggle rule enabled/disabled."""
@@ -341,7 +341,7 @@ def admin_rule_toggle(request, rule_id):
 
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_groups(request):
     """Manage known Telegram groups."""
     from .models import DTBSettings
@@ -353,7 +353,7 @@ def admin_groups(request):
 
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_validate_now(request):
     """Run the Telegram membership validation/kick task immediately."""
     from .tasks import validate_all_telegram_users
@@ -371,7 +371,7 @@ def admin_validate_now(request):
 
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_index(request):
     """Central DTB admin dashboard."""
     from .models import DTBSettings, BotStatus
@@ -397,7 +397,7 @@ def admin_index(request):
 
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 @require_POST
 def admin_test_connection(request):
     """Test Discord and Telegram connections."""
@@ -447,7 +447,7 @@ def admin_test_connection(request):
 # ── Settings ─────────────────────────────────────────────────
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_settings(request):
     """Edit DTB plugin settings."""
     s = DTBSettings.load()
@@ -471,7 +471,7 @@ def admin_settings(request):
 
 
 @login_required
-@permission_required('dtb.manage_dtb_rules', raise_exception=True)
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_setup(request):
     """Guided first-time setup wizard."""
     from .models import ForwardRule, ConnectionStatus
