@@ -12,6 +12,15 @@
             <i class="fas fa-arrow-left"></i> {% translate "Back" %}
         </a>
 
+        {% if not is_configured %}
+        <div class="alert alert-danger">
+            <i class="fas fa-cog"></i>
+            <strong>{% translate "Not configured!" %}</strong>
+            {% translate "Alliance ID is not set. Telegram linking is disabled for all users." %}
+            <a href="{% url 'dtb:admin_settings' %}" class="alert-link">{% translate "Set Alliance ID" %}</a>
+        </div>
+        {% endif %}
+
         <div class="row mb-3">
             <div class="col-md-6">
                 <div class="card">

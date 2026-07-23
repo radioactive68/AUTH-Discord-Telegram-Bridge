@@ -49,7 +49,7 @@ def test_connections(self):
 def _user_in_alliance(user):
     """Check if user has at least one character in the configured alliance.
 
-    Returns True if DTBSettings.alliance_id is None (no check configured).
+    Returns False if DTBSettings.alliance_id is None (not configured).
     """
     try:
         from .models import DTBSettings
@@ -58,7 +58,7 @@ def _user_in_alliance(user):
     except Exception:
         alliance_id = getattr(__import__('django.conf', fromlist=['settings']).settings, 'DTB_ALLIANCE_ID', None)
     if alliance_id is None:
-        return True
+        return False
     # Trusted Alliance Auth administrators are always considered authorized
     if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False):
         return True
@@ -83,7 +83,16 @@ def validate_all_telegram_users(self):
     """Periodic task: validate all Telegram users are still in valid state.
 
     Kicks users from Telegram groups if they left the alliance.
+    Skips entirely if alliance_id is not configured.
     """
+    try:
+        from .models import DTBSettings
+        s = DTBSettings.load()
+        if s.alliance_id is None:
+            return {'validated': 0, 'kicked': 0, 'skipped': 'no alliance_id'}
+    except Exception:
+        return {'validated': 0, 'kicked': 0, 'skipped': 'error'}
+
     telegram_bot = TelegramBotManager()
 
     # Process all linked users (with a Telegram chat id) so that users who were

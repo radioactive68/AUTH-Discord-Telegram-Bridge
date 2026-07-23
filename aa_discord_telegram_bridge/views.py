@@ -27,6 +27,16 @@ def _has_dtb_permission(user):
     return user.has_perm('aa_discord_telegram_bridge.manage_dtb_rules')
 
 
+def _is_configured():
+    """Check if DTB has a configured alliance_id."""
+    try:
+        from .models import DTBSettings
+        s = DTBSettings.load()
+        return s.alliance_id is not None
+    except Exception:
+        return False
+
+
 # ── User Views ──────────────────────────────────────────────
 
 @login_required
@@ -53,6 +63,7 @@ def services_overview(request):
         'bot_username': bot_username,
         'bot_link': bot_link,
         'in_alliance': in_alliance,
+        'is_configured': _is_configured(),
     })
 
 
@@ -65,6 +76,10 @@ def link_telegram(request):
     request exists and we link automatically — no code needed. Otherwise we
     fall back to the verification-code flow.
     """
+    if not _is_configured():
+        messages.error(request, _('DTB is not configured. Admin must set alliance_id.'))
+        return redirect('dtb:services_overview')
+
     from .tasks import _user_in_alliance
     if not _user_in_alliance(request.user):
         messages.error(request, _('You must be a member of the configured alliance to link Telegram.'))
@@ -480,6 +495,7 @@ def admin_index(request):
         'bot_last_seen': bot_last_seen,
         'rules_count': ForwardRule.objects.count(),
         'groups_count': TelegramGroup.objects.count(),
+        'is_configured': s.alliance_id is not None,
     }
     return render(request, 'dtb/admin_index.html', ctx)
 
