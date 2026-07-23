@@ -1,32 +1,33 @@
 ﻿{% extends 'allianceauth/base-bs5.html' %}
+{% load i18n %}
 
-{% block page_title %}Manage Forward Rules{% endblock %}
+{% block page_title %}{% translate "Manage Forward Rules" %}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <h2>Manage Forward Rules</h2>
+        <h2>{% translate "Manage Forward Rules" %}</h2>
         <hr>
         <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary btn-sm mb-3">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i> {% translate "Back" %}
         </a>
         <a href="{% url 'dtb:admin_setup' %}" class="btn btn-info btn-sm mb-3">
-            <i class="fas fa-wizard"></i> Setup Wizard
+            <i class="fas fa-wizard"></i> {% translate "Setup Wizard" %}
         </a>
         <a href="{% url 'dtb:admin_rule_add' %}" class="btn btn-success btn-sm mb-3">
-            <i class="fas fa-plus"></i> Add Rule
+            <i class="fas fa-plus"></i> {% translate "Add Rule" %}
         </a>
 
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Discord Channel</th>
-                    <th>Telegram Target</th>
-                    <th>Keywords</th>
-                    <th>Priority</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>{% translate "Name" %}</th>
+                    <th>{% translate "Discord Channel" %}</th>
+                    <th>{% translate "Telegram Target" %}</th>
+                    <th>{% translate "Keywords" %}</th>
+                    <th>{% translate "Priority" %}</th>
+                    <th>{% translate "Status" %}</th>
+                    <th>{% translate "Actions" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -39,36 +40,36 @@
                         {% if rule.keyword_filter %}
                             <small>{{ rule.keyword_filter }}</small>
                         {% else %}
-                            <span class="text-muted">All</span>
+                            <span class="text-muted">{% translate "All" %}</span>
                         {% endif %}
                     </td>
                     <td>{{ rule.priority }}</td>
                     <td>
                         {% if rule.is_enabled %}
-                            <span class="badge bg-success">Enabled</span>
+                            <span class="badge bg-success">{% translate "Enabled" %}</span>
                         {% else %}
-                            <span class="badge bg-warning">Disabled</span>
+                            <span class="badge bg-warning">{% translate "Disabled" %}</span>
                         {% endif %}
                     </td>
                     <td>
                         <form method="post" action="{% url 'dtb:admin_rule_toggle' rule.id %}" style="display:inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-sm {% if rule.is_enabled %}btn-warning{% else %}btn-success{% endif %}">
-                                {% if rule.is_enabled %}Disable{% else %}Enable{% endif %}
+                                {% if rule.is_enabled %}{% translate "Disable" %}{% else %}{% translate "Enable" %}{% endif %}
                             </button>
                         </form>
-                        <a href="{% url 'dtb:admin_rule_edit' rule.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a href="{% url 'dtb:admin_rule_edit' rule.id %}" class="btn btn-sm btn-outline-primary">{% translate "Edit" %}</a>
                         <form method="post" action="{% url 'dtb:admin_rule_delete' rule.id %}" style="display:inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Delete rule {{ rule.name }}?')">Delete</button>
+                                    onclick="return confirm('{% blocktranslate %}Delete rule {{ rule.name }}?{% endblocktranslate %}')">{% translate "Delete" %}</button>
                         </form>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
                     <td colspan="7" class="text-center text-muted">
-                        No forwarding rules configured. Click "Add Rule" to create one.
+                        {% blocktranslate %}No forwarding rules configured. Click "Add Rule" to create one.{% endblocktranslate %}
                     </td>
                 </tr>
                 {% endfor %}

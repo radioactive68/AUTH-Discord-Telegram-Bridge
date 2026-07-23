@@ -1,67 +1,68 @@
 ﻿{% extends 'allianceauth/base-bs5.html' %}
+{% load i18n %}
 
-{% block page_title %}DTB Setup Wizard{% endblock %}
+{% block page_title %}{% translate "DTB Setup Wizard" %}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <h2>Discord-Telegram Bridge — Setup</h2>
+        <h2>{% translate "Discord-Telegram Bridge" %} — {% translate "Setup" %}</h2>
         <hr>
         <a href="{% url 'dtb:admin_rules' %}" class="btn btn-secondary btn-sm mb-3">
-            <i class="fas fa-arrow-left"></i> Back to Rules
+            <i class="fas fa-arrow-left"></i> {% translate "Back to Rules" %}
         </a>
 
         {# Status overview #}
         <div class="card mb-4">
-            <div class="card-header"><h5><i class="fas fa-list-check"></i> Status</h5></div>
+            <div class="card-header"><h5><i class="fas fa-list-check"></i> {% translate "Status" %}</h5></div>
             <div class="card-body">
                 <ul class="list-group">
                     <li class="list-group-item d-flex justify-content-between">
-                        <span>Discord bot token</span>
+                        <span>{% translate "Discord bot token" %}</span>
                         {% if settings_form.instance.discord_bot_token %}
-                            <span class="badge bg-success">set</span>
+                            <span class="badge bg-success">{% translate "set" %}</span>
                         {% else %}
-                            <span class="badge bg-danger">missing</span>
+                            <span class="badge bg-danger">{% translate "missing" %}</span>
                         {% endif %}
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
-                        <span>Telegram bot token</span>
+                        <span>{% translate "Telegram bot token" %}</span>
                         {% if settings_form.instance.telegram_bot_token %}
-                            <span class="badge bg-success">set</span>
+                            <span class="badge bg-success">{% translate "set" %}</span>
                         {% else %}
-                            <span class="badge bg-danger">missing</span>
+                            <span class="badge bg-danger">{% translate "missing" %}</span>
                         {% endif %}
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
-                        <span>Auto-start bot</span>
+                        <span>{% translate "Auto-start bot" %}</span>
                         {% if settings_form.instance.autostart_bot %}
-                            <span class="badge bg-success">enabled</span>
+                            <span class="badge bg-success">{% translate "enabled" %}</span>
                         {% else %}
-                            <span class="badge bg-warning">disabled</span>
+                            <span class="badge bg-warning">{% translate "disabled" %}</span>
                         {% endif %}
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
-                        <span>Forwarding rules</span>
+                        <span>{% translate "Forwarding rules" %}</span>
                         <span class="badge bg-info">{{ rules_count }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
-                        <span>Telegram connection</span>
+                        <span>{% translate "Telegram connection" %}</span>
                         {% if conn_status.telegram.is_connected %}
-                            <span class="badge bg-success">connected</span>
+                            <span class="badge bg-success">{% translate "connected" %}</span>
                         {% elif conn_status.telegram %}
-                            <span class="badge bg-danger">error</span>
+                            <span class="badge bg-danger">{% translate "error" %}</span>
                         {% else %}
-                            <span class="badge bg-secondary">untested</span>
+                            <span class="badge bg-secondary">{% translate "untested" %}</span>
                         {% endif %}
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
-                        <span>Discord connection</span>
+                        <span>{% translate "Discord connection" %}</span>
                         {% if conn_status.discord.is_connected %}
-                            <span class="badge bg-success">connected</span>
+                            <span class="badge bg-success">{% translate "connected" %}</span>
                         {% elif conn_status.discord %}
-                            <span class="badge bg-danger">error</span>
+                            <span class="badge bg-danger">{% translate "error" %}</span>
                         {% else %}
-                            <span class="badge bg-secondary">untested</span>
+                            <span class="badge bg-secondary">{% translate "untested" %}</span>
                         {% endif %}
                     </li>
                 </ul>
@@ -74,7 +75,7 @@
                 <button class="btn w-100 text-start btn-light d-flex align-items-center"
                         type="button" data-bs-toggle="collapse"
                         data-bs-target="#setupStep1" aria-expanded="false" aria-controls="setupStep1">
-                    <i class="fas fa-key me-2"></i> 1. Bot Tokens
+                    <i class="fas fa-key me-2"></i> {% translate "1. Bot Tokens" %}
                     <i class="fas fa-chevron-down ms-auto"></i>
                 </button>
             </div>
@@ -92,7 +93,7 @@
                         </div>
                         {% endfor %}
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Save Tokens
+                            <i class="fas fa-save"></i> {% translate "Save Tokens" %}
                         </button>
                     </form>
                 </div>
@@ -101,16 +102,16 @@
 
         {# Step 2: test #}
         <div class="card mb-4">
-            <div class="card-header"><h5><i class="fas fa-plug"></i> 2. Test Connections</h5></div>
+            <div class="card-header"><h5><i class="fas fa-plug"></i> {% translate "2. Test Connections" %}</h5></div>
             <div class="card-body">
                 <form method="post" id="dtb-setup-test-form">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="test">
                     <button type="button" id="dtb-setup-test-btn" class="btn btn-info">
-                        <i class="fas fa-vial"></i> Test Connections
+                        <i class="fas fa-vial"></i> {% translate "Test Connections" %}
                     </button>
                     <span id="dtb-setup-test-spinner" class="d-none ms-2">
-                        <i class="fas fa-spinner fa-spin"></i> Testing...
+                        <i class="fas fa-spinner fa-spin"></i> {% translate "Testing..." %}
                     </span>
                 </form>
                 <div id="dtb-setup-test-results" class="mt-3">
@@ -131,7 +132,7 @@
                 <button class="btn w-100 text-start btn-light d-flex align-items-center"
                         type="button" data-bs-toggle="collapse"
                         data-bs-target="#setupStep3" aria-expanded="false" aria-controls="setupStep3">
-                    <i class="fas fa-route me-2"></i> 3. Add Forwarding Rule
+                    <i class="fas fa-route me-2"></i> {% translate "3. Add Forwarding Rule" %}
                     <i class="fas fa-chevron-down ms-auto"></i>
                 </button>
             </div>
@@ -149,16 +150,16 @@
                         </div>
                         {% endfor %}
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-plus"></i> Add Rule
+                            <i class="fas fa-plus"></i> {% translate "Add Rule" %}
                         </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <p class="text-muted">Installed version: <strong>{{ current_version }}</strong></p>
+        <p class="text-muted">{% translate "Installed version:" %} <strong>{{ current_version }}</strong></p>
         <a href="{% url 'dtb:admin_settings' %}" class="btn btn-sm btn-outline-secondary">
-            <i class="fas fa-cog"></i> Open Settings
+            <i class="fas fa-cog"></i> {% translate "Open Settings" %}
         </a>
     </div>
 </div>

@@ -1,12 +1,13 @@
 ﻿{% extends 'allianceauth/base-bs5.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block page_title %}Discord-Telegram Bridge{% endblock %}
+{% block page_title %}{% translate "Discord-Telegram Bridge" %}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <h2>Discord-Telegram Bridge</h2>
+        <h2>{% translate "Discord-Telegram Bridge" %}</h2>
         <hr>
     </div>
 </div>
@@ -16,33 +17,33 @@
     <div class="col-md-6">
         <div class="card mb-4">
             <div class="card-header">
-                <h4><i class="fab fa-telegram"></i> Telegram</h4>
+                <h4><i class="fab fa-telegram"></i> {% translate "Telegram" %}</h4>
             </div>
             <div class="card-body">
                 {% if profile.telegram_username %}
-                    <p><strong>Linked account:</strong> @{{ profile.telegram_username }}</p>
+                    <p><strong>{% translate "Linked account:" %}</strong> @{{ profile.telegram_username }}</p>
                     <p>
-                        <strong>Status:</strong>
+                        <strong>{% translate "Status:" %}</strong>
                         {% if profile.is_active %}
-                            <span class="badge bg-success">Active</span>
+                            <span class="badge bg-success">{% translate "Active" %}</span>
                         {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
+                            <span class="badge bg-secondary">{% translate "Inactive" %}</span>
                         {% endif %}
                     </p>
                     <p>
-                        <strong>Notifications:</strong>
+                        <strong>{% translate "Notifications:" %}</strong>
                         {% if profile.notifications_enabled %}
-                            <span class="badge bg-success">Enabled</span>
+                            <span class="badge bg-success">{% translate "Enabled" %}</span>
                         {% else %}
-                            <span class="badge bg-warning">Disabled</span>
+                            <span class="badge bg-warning">{% translate "Disabled" %}</span>
                         {% endif %}
                     </p>
 
                     {% if bot_link %}
                     <p class="mb-1">
                         <small class="text-muted">
-                            Bot: <a href="{{ bot_link }}" target="_blank" rel="noopener">@{{ bot_username }}</a>
-                            — manages your access to the alliance Telegram groups.
+                            {% blocktranslate %}Bot: <a href="{{ bot_link }}" target="_blank" rel="noopener">@{{ bot_username }}</a>
+                            — manages your access to the alliance Telegram groups.{% endblocktranslate %}
                         </small>
                     </p>
                     {% endif %}
@@ -53,11 +54,11 @@
                         {% csrf_token %}
                         {% if profile.notifications_enabled %}
                             <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-bell-slash"></i> Disable Notifications
+                                <i class="fas fa-bell-slash"></i> {% translate "Disable Notifications" %}
                             </button>
                         {% else %}
                             <button type="submit" class="btn btn-success">
-                                <i class="fas fa-bell"></i> Enable Notifications
+                                <i class="fas fa-bell"></i> {% translate "Enable Notifications" %}
                             </button>
                         {% endif %}
                     </form>
@@ -65,38 +66,38 @@
                     <form method="post" action="{% url 'dtb:unlink_telegram' %}" class="mt-2">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger"
-                                onclick="return confirm('Unlink Telegram account?')">
-                            <i class="fas fa-unlink"></i> Unlink Account
+                                onclick="return confirm('{% translate "Unlink Telegram account?" %}')">
+                            <i class="fas fa-unlink"></i> {% translate "Unlink Account" %}
                         </button>
                     </form>
                 {% else %}
-                    <p>Link your Telegram account to receive pings from Discord channels.</p>
+                    <p>{% translate "Link your Telegram account to receive pings from Discord channels." %}</p>
 
                     {% if bot_link %}
                     <div class="alert alert-info py-2">
                         <i class="fab fa-telegram"></i>
-                        <strong>Step 1:</strong> open the bot
+                        <strong>{% translate "Step 1:" %}</strong> {% translate "open the bot" %}
                         <a href="{{ bot_link }}" target="_blank" rel="noopener" class="fw-bold">@{{ bot_username }}</a>
-                        and press <strong>Start</strong>.
+                        {% translate "and press" %} <strong>{% translate "Start" %}</strong>.
                     </div>
                     {% endif %}
 
                     <p>
                         <small class="text-muted">
-                            Click "Link Account" below and enter your @username.
-                            If you already pressed Start, you're done.
+                            {% blocktranslate %}Click "Link Account" below and enter your @username.
+                            If you already pressed Start, you're done.{% endblocktranslate %}
                         </small>
                     </p>
 
                     <form method="post" action="{% url 'dtb:link_telegram' %}">
                         {% csrf_token %}
                         <div class="form-group">
-                            <label for="id_telegram_username">Telegram Username</label>
+                            <label for="id_telegram_username">{% translate "Telegram Username" %}</label>
                             <input type="text" name="telegram_username" id="id_telegram_username"
                                     class="form-control" placeholder="@username or username" required>
                         </div>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-link"></i> Link Account
+                            <i class="fas fa-link"></i> {% translate "Link Account" %}
                         </button>
                     </form>
                 {% endif %}
@@ -108,38 +109,38 @@
     <div class="col-md-6">
         <div class="card mb-4">
             <div class="card-header">
-                <h4><i class="fas fa-info-circle"></i> Information</h4>
+                <h4><i class="fas fa-info-circle"></i> {% translate "Information" %}</h4>
             </div>
             <div class="card-body">
-                <p>This service forwards messages from configured Discord channels to Telegram groups/topics.</p>
+                <p>{% translate "This service forwards messages from configured Discord channels to Telegram groups/topics." %}</p>
 
-                <h5>How it works:</h5>
+                <h5>{% translate "How it works:" %}</h5>
                 <ul>
-                    <li>Messages and pings in specific Discord channels are automatically forwarded to Telegram</li>
-                    <li>You can enable/disable notifications at any time</li>
-                    <li>When you leave the alliance, you will be automatically removed from Telegram groups</li>
-                    <li>After linking, you are automatically invited to the alliance Telegram group(s)</li>
-                    <li>To link, just open the bot and press <code>/start</code>, then click "Link Account"</li>
+                    <li>{% translate "Messages and pings in specific Discord channels are automatically forwarded to Telegram" %}</li>
+                    <li>{% translate "You can enable/disable notifications at any time" %}</li>
+                    <li>{% translate "When you leave the alliance, you will be automatically removed from Telegram groups" %}</li>
+                    <li>{% translate "After linking, you are automatically invited to the alliance Telegram group(s)" %}</li>
+                    <li>{% blocktranslate %}To link, just open the bot and press <code>/start</code>, then click "Link Account"{% endblocktranslate %}</li>
                 </ul>
 
                 {% if perms.aa_discord_telegram_bridge.manage_dtb_rules %}
                 <hr>
-                <h5>Admin Tools:</h5>
+                <h5>{% translate "Admin Tools:" %}</h5>
                 <a href="{% url 'dtb:admin_index' %}" class="btn btn-primary btn-sm mb-2">
-                    <i class="fas fa-tachometer-alt"></i> DTB Admin Dashboard
+                    <i class="fas fa-tachometer-alt"></i> {% translate "DTB Admin Dashboard" %}
                 </a>
                 <br>
                 <a href="{% url 'dtb:admin_rules' %}" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-cog"></i> Manage Rules
+                    <i class="fas fa-cog"></i> {% translate "Manage Rules" %}
                 </a>
                 <a href="{% url 'dtb:admin_groups' %}" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-users"></i> Manage Groups
+                    <i class="fas fa-users"></i> {% translate "Manage Groups" %}
                 </a>
                 <a href="{% url 'dtb:forward_history' %}" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-history"></i> History
+                    <i class="fas fa-history"></i> {% translate "History" %}
                 </a>
                 <a href="{% url 'dtb:connection_status' %}" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-plug"></i> Connection Status
+                    <i class="fas fa-plug"></i> {% translate "Connection Status" %}
                 </a>
                 {% endif %}
             </div>

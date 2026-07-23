@@ -1,22 +1,23 @@
 ﻿{% extends 'allianceauth/base-bs5.html' %}
+{% load i18n %}
 
-{% block page_title %}Connection Status{% endblock %}
+{% block page_title %}{% translate "Connection Status" %}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <h2>Connection Status</h2>
+        <h2>{% translate "Connection Status" %}</h2>
         <hr>
         <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary btn-sm mb-3">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i> {% translate "Back" %}
         </a>
 
         <div class="mb-3">
             <button type="button" id="dtb-test-btn" class="btn btn-primary">
-                <i class="fas fa-sync"></i> Test Connection Now
+                <i class="fas fa-sync"></i> {% translate "Test Connection Now" %}
             </button>
             <span id="dtb-test-spinner" class="d-none ms-2">
-                <i class="fas fa-spinner fa-spin"></i> Testing...
+                <i class="fas fa-spinner fa-spin"></i> {% translate "Testing..." %}
             </span>
             <span class="d-none">{% csrf_token %}</span>
         </div>
@@ -27,24 +28,24 @@
                     <div class="card-header">
                         <h5>
                             <i class="fas fa-robot"></i>
-                            Discord Forwarder Bot
+                            {% translate "Discord Forwarder Bot" %}
                         </h5>
                     </div>
                     <div class="card-body">
                         <p>
-                            <strong>Status:</strong>
+                            <strong>{% translate "Status:" %}</strong>
                             {% if bot_running %}
-                                <span class="badge bg-success">Running</span>
+                                <span class="badge bg-success">{% translate "Running" %}</span>
                             {% else %}
-                                <span class="badge bg-danger">Stopped</span>
+                                <span class="badge bg-danger">{% translate "Stopped" %}</span>
                             {% endif %}
                         </p>
                         <p>
-                            <strong>Last heartbeat:</strong>
+                            <strong>{% translate "Last heartbeat:" %}</strong>
                             {% if bot_last_seen is not None %}
                                 {{ bot_last_seen }}s ago
                             {% else %}
-                                Never
+                                {% translate "Never" %}
                             {% endif %}
                         </p>
                     </div>
@@ -65,17 +66,17 @@
                     </div>
                     <div class="card-body">
                         <p>
-                            <strong>Status:</strong>
+                            <strong>{% translate "Status:" %}</strong>
                             {% if status.is_connected %}
-                                <span class="badge bg-success">Connected</span>
+                                <span class="badge bg-success">{% translate "Connected" %}</span>
                             {% else %}
-                                <span class="badge bg-danger">Disconnected</span>
+                                <span class="badge bg-danger">{% translate "Disconnected" %}</span>
                             {% endif %}
                         </p>
-                        <p><strong>Last checked:</strong> {{ status.last_checked|date:"Y-m-d H:i:s"|default:"Never" }}</p>
-                        <p><strong>Last success:</strong> {{ status.last_success|date:"Y-m-d H:i:s"|default:"Never" }}</p>
+                        <p><strong>{% translate "Last checked:" %}</strong> {{ status.last_checked|date:"Y-m-d H:i:s"|default:"Never" }}</p>
+                        <p><strong>{% translate "Last success:" %}</strong> {{ status.last_success|date:"Y-m-d H:i:s"|default:"Never" }}</p>
                         <p class="dtb-err text-danger mb-0"{% if not status.error_message %} style="display:none;"{% endif %}>
-                            <strong>Error:</strong> <span class="dtb-err-msg">{{ status.error_message }}</span>
+                            <strong>{% translate "Error:" %}</strong> <span class="dtb-err-msg">{{ status.error_message }}</span>
                         </p>
                     </div>
                 </div>
@@ -83,7 +84,7 @@
             {% empty %}
             <div class="col-12">
                 <div class="alert alert-info">
-                    No connection status recorded yet. Click "Test Connection Now" to check.
+                    {% blocktranslate %}No connection status recorded yet. Click "Test Connection Now" to check.{% endblocktranslate %}
                 </div>
             </div>
             {% endfor %}

@@ -1,31 +1,32 @@
 {% extends 'allianceauth/base-bs5.html' %}
+{% load i18n %}
 
-{% block page_title %}Link Telegram Account{% endblock %}
+{% block page_title %}{% translate "Link Telegram Account" %}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-6 offset-md-3">
         <div class="card">
             <div class="card-header">
-                <h4>Verify Telegram Link</h4>
+                <h4>{% translate "Verify Telegram Link" %}</h4>
             </div>
             <div class="card-body">
-                <p>A verification code has been sent to <strong>@{{ username }}</strong> in Telegram.</p>
-                <p>Please check your Telegram messages and enter the code below.</p>
+                <p>{% blocktranslate %}A verification code has been sent to <strong>@{{ username }}</strong> in Telegram.{% endblocktranslate %}</p>
+                <p>{% translate "Please check your Telegram messages and enter the code below." %}</p>
 
                 <form method="post" action="{% url 'dtb:link_telegram' %}">
                     {% csrf_token %}
                     <input type="hidden" name="telegram_username" value="{{ username }}">
                     <div class="form-group">
-                        <label for="code">Verification Code</label>
+                        <label for="code">{% translate "Verification Code" %}</label>
                         <input type="text" name="code" id="code" class="form-control"
-                               placeholder="Enter 8-character code" maxlength="8"
+                               placeholder="{% translate 'Enter 8-character code' %}" maxlength="8"
                                autocomplete="off" autofocus required>
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-check"></i> Verify & Link
+                        <i class="fas fa-check"></i> {% translate "Verify & Link" %}
                     </button>
-                    <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary">Cancel</a>
+                    <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary">{% translate "Cancel" %}</a>
                 </form>
             </div>
         </div>

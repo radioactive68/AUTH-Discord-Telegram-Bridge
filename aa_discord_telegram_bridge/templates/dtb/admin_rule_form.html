@@ -1,4 +1,5 @@
 {% extends 'allianceauth/base-bs5.html' %}
+{% load i18n %}
 
 {% block page_title %}{{ title }}{% endblock %}
 
@@ -8,7 +9,7 @@
         <h2>{{ title }}</h2>
         <hr>
         <a href="{% url 'dtb:admin_rules' %}" class="btn btn-secondary btn-sm mb-3">
-            <i class="fas fa-arrow-left"></i> Back to Rules
+            <i class="fas fa-arrow-left"></i> {% translate "Back to Rules" %}
         </a>
 
         <div class="card">
@@ -34,9 +35,9 @@
 
                     <hr>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Rule
+                        <i class="fas fa-save"></i> {% translate "Save Rule" %}
                     </button>
-                    <a href="{% url 'dtb:admin_rules' %}" class="btn btn-secondary">Cancel</a>
+                    <a href="{% url 'dtb:admin_rules' %}" class="btn btn-secondary">{% translate "Cancel" %}</a>
                 </form>
             </div>
         </div>

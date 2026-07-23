@@ -1,25 +1,26 @@
-﻿{% load dtb_tags %}
+﻿{% load i18n %}
+{% load dtb_tags %}
 <div class="card m-2" style="min-width: 300px; max-width: 400px;">
     <div class="card-header">
-        <h5 class="mb-0"><i class="fab fa-telegram"></i> Discord-Telegram Bridge</h5>
+        <h5 class="mb-0"><i class="fab fa-telegram"></i> {% translate "Discord-Telegram Bridge" %}</h5>
     </div>
     <div class="card-body">
         {% if profile.telegram_username %}
-            <p><strong>Linked as:</strong> @{{ profile.telegram_username }}</p>
+            <p><strong>{% translate "Linked as:" %}</strong> @{{ profile.telegram_username }}</p>
             <p>
-                <strong>Status:</strong>
+                <strong>{% translate "Status:" %}</strong>
                 {% if profile.is_active %}
-                    <span class="badge bg-success">Active</span>
+                    <span class="badge bg-success">{% translate "Active" %}</span>
                 {% else %}
-                    <span class="badge bg-secondary">Inactive</span>
+                    <span class="badge bg-secondary">{% translate "Inactive" %}</span>
                 {% endif %}
             </p>
             <p>
-                <strong>Notifications:</strong>
+                <strong>{% translate "Notifications:" %}</strong>
                 {% if profile.notifications_enabled %}
-                    <span class="badge bg-success">Enabled</span>
+                    <span class="badge bg-success">{% translate "Enabled" %}</span>
                 {% else %}
-                    <span class="badge bg-warning">Disabled</span>
+                    <span class="badge bg-warning">{% translate "Disabled" %}</span>
                 {% endif %}
             </p>
             <hr>
@@ -27,49 +28,49 @@
                 {% csrf_token %}
                 {% if profile.notifications_enabled %}
                     <button type="submit" class="btn btn-warning btn-sm">
-                        <i class="fas fa-bell-slash"></i> Disable
+                        <i class="fas fa-bell-slash"></i> {% translate "Disable" %}
                     </button>
                 {% else %}
                     <button type="submit" class="btn btn-success btn-sm">
-                        <i class="fas fa-bell"></i> Enable
+                        <i class="fas fa-bell"></i> {% translate "Enable" %}
                     </button>
                 {% endif %}
             </form>
             <form method="post" action="{% url 'dtb:unlink_telegram' %}" class="mt-2">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm"
-                        onclick="return confirm('Unlink Telegram account?')">
-                    <i class="fas fa-unlink"></i> Unlink
+                        onclick="return confirm('{% translate "Unlink Telegram account?" %}')">
+                    <i class="fas fa-unlink"></i> {% translate "Unlink" %}
                 </button>
             </form>
         {% else %}
-            <p>Forwards messages from Discord channels to Telegram.</p>
+            <p>{% translate "Forwards messages from Discord channels to Telegram." %}</p>
 
             {% if bot_link %}
             <div class="alert alert-info py-2 mb-2">
                 <i class="fab fa-telegram"></i>
-                <strong>Step 1:</strong> open the bot
+                <strong>{% translate "Step 1:" %}</strong> {% translate "open the bot" %}
                 <a href="{{ bot_link }}" target="_blank" rel="noopener" class="fw-bold">@{{ bot_username }}</a>
-                and press <strong>Start</strong>.
+                {% translate "and press" %} <strong>{% translate "Start" %}</strong>.
             </div>
             {% endif %}
 
             <form method="post" action="{% url 'dtb:link_telegram' %}">
                 {% csrf_token %}
                 <div class="mb-2">
-                    <label for="id_telegram_username" class="form-label"><strong>Step 2:</strong> enter your Telegram username</label>
+                    <label for="id_telegram_username" class="form-label"><strong>{% translate "Step 2:" %}</strong> {% translate "enter your Telegram username" %}</label>
                     <input type="text" name="telegram_username" id="id_telegram_username"
                             class="form-control form-control-sm" placeholder="@username or username" required>
                 </div>
                 <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="fas fa-link"></i> Link Account
+                    <i class="fas fa-link"></i> {% translate "Link Account" %}
                 </button>
             </form>
         {% endif %}
     </div>
     <div class="card-footer text-center">
         <a href="{% url 'dtb:services_overview' %}" class="btn btn-outline-primary btn-sm">
-            <i class="fas fa-external-link-alt"></i> Open DTB
+            <i class="fas fa-external-link-alt"></i> {% translate "Open DTB" %}
         </a>
     </div>
 </div>

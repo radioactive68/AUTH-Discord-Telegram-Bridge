@@ -1,28 +1,29 @@
 {% extends 'allianceauth/base-bs5.html' %}
+{% load i18n %}
 
-{% block page_title %}Discord-Telegram Bridge Admin{% endblock %}
+{% block page_title %}{% translate "Discord-Telegram Bridge Admin" %}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <h2>Discord-Telegram Bridge <small class="text-muted">v{{ version }}</small></h2>
+        <h2>{% translate "Discord-Telegram Bridge" %} <small class="text-muted">v{{ version }}</small></h2>
         <hr>
         <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary btn-sm mb-3">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i> {% translate "Back" %}
         </a>
 
         <div class="row mb-3">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <strong>Discord Forwarder Bot:</strong>
+                        <strong>{% translate "Discord Forwarder Bot:" %}</strong>
                         {% if bot_running %}
-                            <span class="badge bg-success">Running</span>
+                            <span class="badge bg-success">{% translate "Running" %}</span>
                         {% else %}
-                            <span class="badge bg-danger">Stopped</span>
+                            <span class="badge bg-danger">{% translate "Stopped" %}</span>
                         {% endif %}
                         <span class="text-muted">
-                            {% if bot_last_seen is not None %}({{ bot_last_seen }}s ago){% else %}(never){% endif %}
+                            {% if bot_last_seen is not None %}({{ bot_last_seen }}s ago){% else %}({% translate "never" %}){% endif %}
                         </span>
                     </div>
                 </div>
@@ -30,8 +31,8 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <strong>Membership enforcement:</strong>
-                        users who leave the alliance (or unlink their character) are auto-kicked from Telegram groups.
+                        <strong>{% translate "Membership enforcement:" %}</strong>
+                        {% translate "users who leave the alliance (or unlink their character) are auto-kicked from Telegram groups." %}
                     </div>
                 </div>
             </div>
@@ -41,54 +42,54 @@
             <div class="col-md-4 mb-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5><i class="fas fa-exchange-alt"></i> Forward Rules</h5>
-                        <p class="text-muted">{{ rules_count }} rule(s) configured</p>
-                        <a href="{% url 'dtb:admin_rules' %}" class="btn btn-primary btn-sm">Manage</a>
+                        <h5><i class="fas fa-exchange-alt"></i> {% translate "Forward Rules" %}</h5>
+                        <p class="text-muted">{% blocktranslate count counter=rules_count %}{{ rules_count }} rule(s) configured{% endblocktranslate %}</p>
+                        <a href="{% url 'dtb:admin_rules' %}" class="btn btn-primary btn-sm">{% translate "Manage" %}</a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 mb-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5><i class="fas fa-cog"></i> Settings</h5>
-                        <p class="text-muted">Tokens, alliance, membership</p>
-                        <a href="{% url 'dtb:admin_settings' %}" class="btn btn-primary btn-sm">Open</a>
+                        <h5><i class="fas fa-cog"></i> {% translate "Settings" %}</h5>
+                        <p class="text-muted">{% translate "Tokens, alliance, membership" %}</p>
+                        <a href="{% url 'dtb:admin_settings' %}" class="btn btn-primary btn-sm">{% translate "Open" %}</a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 mb-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5><i class="fas fa-wizard"></i> Setup Wizard</h5>
-                        <p class="text-muted">Guided first-time setup</p>
-                        <a href="{% url 'dtb:admin_setup' %}" class="btn btn-primary btn-sm">Start</a>
+                        <h5><i class="fas fa-wizard"></i> {% translate "Setup Wizard" %}</h5>
+                        <p class="text-muted">{% translate "Guided first-time setup" %}</p>
+                        <a href="{% url 'dtb:admin_setup' %}" class="btn btn-primary btn-sm">{% translate "Start" %}</a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 mb-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5><i class="fas fa-users"></i> Telegram Groups</h5>
-                        <p class="text-muted">{{ groups_count }} group(s) tracked</p>
-                        <a href="{% url 'dtb:admin_groups' %}" class="btn btn-primary btn-sm">Manage</a>
+                        <h5><i class="fas fa-users"></i> {% translate "Telegram Groups" %}</h5>
+                        <p class="text-muted">{% blocktranslate count counter=groups_count %}{{ groups_count }} group(s) tracked{% endblocktranslate %}</p>
+                        <a href="{% url 'dtb:admin_groups' %}" class="btn btn-primary btn-sm">{% translate "Manage" %}</a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 mb-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5><i class="fas fa-plug"></i> Connection Status</h5>
-                        <p class="text-muted">Discord / Telegram / bot health</p>
-                        <a href="{% url 'dtb:connection_status' %}" class="btn btn-primary btn-sm">View</a>
+                        <h5><i class="fas fa-plug"></i> {% translate "Connection Status" %}</h5>
+                        <p class="text-muted">{% translate "Discord / Telegram / bot health" %}</p>
+                        <a href="{% url 'dtb:connection_status' %}" class="btn btn-primary btn-sm">{% translate "View" %}</a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 mb-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5><i class="fas fa-history"></i> Forward History</h5>
-                        <p class="text-muted">Recent forwarded messages</p>
-                        <a href="{% url 'dtb:forward_history' %}" class="btn btn-primary btn-sm">View</a>
+                        <h5><i class="fas fa-history"></i> {% translate "Forward History" %}</h5>
+                        <p class="text-muted">{% translate "Recent forwarded messages" %}</p>
+                        <a href="{% url 'dtb:forward_history' %}" class="btn btn-primary btn-sm">{% translate "View" %}</a>
                     </div>
                 </div>
             </div>

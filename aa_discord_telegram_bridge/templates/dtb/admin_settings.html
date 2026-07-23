@@ -1,24 +1,25 @@
 {% extends 'allianceauth/base-bs5.html' %}
+{% load i18n %}
 
-{% block page_title %}DTB Settings{% endblock %}
+{% block page_title %}{% translate "DTB Settings" %}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <h2>Discord-Telegram Bridge Settings</h2>
+        <h2>{% translate "Discord-Telegram Bridge Settings" %}</h2>
         <hr>
         <a href="{% url 'dtb:admin_rules' %}" class="btn btn-secondary btn-sm mb-3">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i> {% translate "Back" %}
         </a>
         <a href="{% url 'dtb:admin_setup' %}" class="btn btn-info btn-sm mb-3">
-            <i class="fas fa-wizard"></i> Setup Wizard
+            <i class="fas fa-wizard"></i> {% translate "Setup Wizard" %}
         </a>
 
-        <p class="text-muted">Installed version: <strong>{{ current_version }}</strong></p>
+        <p class="text-muted">{% translate "Installed version:" %} <strong>{{ current_version }}</strong></p>
 
         <div class="card mb-4">
             <div class="card-header">
-                <h5><i class="fas fa-cog"></i> Plugin Configuration</h5>
+                <h5><i class="fas fa-cog"></i> {% translate "Plugin Configuration" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -38,7 +39,7 @@
                     </div>
                     {% endfor %}
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Settings
+                        <i class="fas fa-save"></i> {% translate "Save Settings" %}
                     </button>
                 </form>
             </div>
