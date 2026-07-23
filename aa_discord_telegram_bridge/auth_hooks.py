@@ -3,6 +3,7 @@ import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
+from django.urls import NoReverseMatch, reverse
 
 from allianceauth import hooks
 from allianceauth.menu.hooks import MenuItemHook
@@ -121,7 +122,10 @@ class DTBMenu(MenuItemHook):
 
     def render(self, request):
         if request.user.has_perm('aa_discord_telegram_bridge.manage_dtb_rules'):
-            return MenuItemHook.render(self, request)
+            try:
+                return MenuItemHook.render(self, request)
+            except (NoReverseMatch, Exception):
+                return ''
         return ''
 
 
