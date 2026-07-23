@@ -4,9 +4,11 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 
-from allianceauth.services.hooks import ServicesHook
 from allianceauth import hooks
+from allianceauth.menu.hooks import MenuItemHook
+from allianceauth.services.hooks import ServicesHook, UrlHook
 
+from . import urls
 from .models import TelegramUser
 
 logger = logging.getLogger(__name__)
@@ -91,3 +93,29 @@ def create_telegram_profile(sender, instance, created, **kwargs):
     """Auto-create TelegramUser profile when User is created."""
     if created:
         TelegramUser.objects.get_or_create(user=instance)
+
+
+class DTBMenu(MenuItemHook):
+    def __init__(self):
+        MenuItemHook.__init__(
+            self,
+            'DTB',
+            'fa-solid fa-comments',
+            'dtb:admin_index',
+            navactive=['dtb:'],
+        )
+
+    def render(self, request):
+        if request.user.has_perm('dtb.manage_dtb_rules'):
+            return MenuItemHook.render(self, request)
+        return ''
+
+
+@hooks.register('menu_item_hook')
+def register_menu():
+    return DTBMenu()
+
+
+@hooks.register('url_hook')
+def register_url():
+    return UrlHook(urls, 'dtb', r'^dtb/')
