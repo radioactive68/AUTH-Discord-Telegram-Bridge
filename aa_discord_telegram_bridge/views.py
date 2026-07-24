@@ -204,11 +204,30 @@ def verify_link(request):
         })
 
     # Code matches - we need to get the user's chat_id
-    # For now, we ask the user to provide it or we use a webhook
-    # In production, the Telegram bot would capture this via /start command
     profile.telegram_username = username
     profile.is_active = True
-    profile.save()
+
+    # Try to find the chat_id from a pending link request (user sent /start to bot)
+    from .models import TelegramLinkRequest
+    pending = TelegramLinkRequest.objects.filter(
+        username__iexact=username,
+        created_at__gte=timezone.now() - timedelta(minutes=15),
+    ).order_by('-created_at').first()
+
+    if pending and pending.telegram_user_id:
+        profile.telegram_user_id = pending.telegram_user_id
+        profile.telegram_chat_id = pending.chat_id
+        profile.save()
+        TelegramLinkRequest.objects.filter(chat_id=pending.chat_id).delete()
+
+        bot = TelegramBotManager()
+        try:
+            from .telegram_handler import _invite_to_groups
+            _invite_to_groups(bot, pending.telegram_user_id)
+        except Exception:
+            logger.exception('DTB: error inviting user to groups after code-link')
+    else:
+        profile.save()
 
     # Clean up session
     for key in ['dtb_link_code', 'dtb_link_username', 'dtb_link_time']:
