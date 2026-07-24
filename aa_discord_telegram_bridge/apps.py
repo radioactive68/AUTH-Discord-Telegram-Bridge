@@ -17,8 +17,7 @@ class DtbConfig(AppConfig):
         if is_gunicorn or is_celery or is_runserver:
             from .bot_runner import maybe_start_bot
             maybe_start_bot()
-
-        self._register_periodic_tasks()
+            self._register_periodic_tasks()
 
     def _register_periodic_tasks(self):
         try:
