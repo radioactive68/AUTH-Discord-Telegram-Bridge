@@ -97,6 +97,15 @@ class TelegramBotManager:
             'user_id': user_id,
         })
 
+    def create_chat_invite_link(self, chat_id: str, name: str = '', member_limit: int = None) -> dict:
+        """Create a one-time or limited invite link for a chat."""
+        data = {'chat_id': chat_id}
+        if name:
+            data['name'] = name
+        if member_limit:
+            data['member_limit'] = member_limit
+        return self._request('createChatInviteLink', data)
+
     def get_updates(self, offset: int = None, timeout: int = 30) -> dict:
         """Receive updates via long polling (used when no webhook is configured)."""
         data = {'timeout': timeout}

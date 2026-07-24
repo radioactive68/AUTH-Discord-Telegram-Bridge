@@ -190,7 +190,7 @@ def _process_linking_code(code, chat_id, user_id, telegram_username, tg_lang='en
 
                         # Send confirmation
                         bot = TelegramBotManager()
-                        _invite_to_groups(bot, user_id)
+                        _invite_to_groups(bot, user_id, chat_id=chat_id)
                         _send_localized(
                             chat_id, user_id,
                             lambda: gettext(
@@ -214,10 +214,11 @@ def _process_linking_code(code, chat_id, user_id, telegram_username, tg_lang='en
     return False
 
 
-def _invite_to_groups(bot, telegram_user_id):
+def _invite_to_groups(bot, telegram_user_id, chat_id=None):
     """Invite a (linked) Telegram user to all tracked active groups.
 
-    Unbans first so a previously-kicked user can be re-added, then invites.
+    Tries addChatMember first. If that fails (common in supergroups),
+    falls back to creating a one-time invite link and sending it to the user.
     """
     from .models import TelegramGroup
     for group in TelegramGroup.objects.filter(is_active=True):
@@ -226,19 +227,40 @@ def _invite_to_groups(bot, telegram_user_id):
             result = bot.add_chat_member(group.telegram_chat_id, telegram_user_id)
             if result.get('ok'):
                 logger.info(
-                    'Invited user %s to Telegram group %s',
+                    'Invited user %s to Telegram group %s via addChatMember',
                     telegram_user_id, group.name,
                 )
-            else:
-                logger.warning(
-                    'Could not invite user %s to group %s: %s',
-                    telegram_user_id, group.name, result.get('description', 'unknown'),
+                continue
+        except Exception:
+            pass
+
+        # Fallback: send an invite link to the user via DM
+        if chat_id:
+            try:
+                link_result = bot.create_chat_invite_link(
+                    group.telegram_chat_id,
+                    name=f'DTB invite {telegram_user_id}',
+                    member_limit=1,
                 )
-        except Exception as e:
-            logger.error(
-                'Error inviting user %s to group %s: %s',
-                telegram_user_id, group.name, e,
-            )
+                if link_result.get('ok'):
+                    invite_url = link_result['result'].get('invite_link')
+                    if invite_url:
+                        bot.send_message(
+                            chat_id=chat_id,
+                            text=f'You have been invited to <b>{group.name}</b>:\n{invite_url}',
+                        )
+                        logger.info(
+                            'Invited user %s to Telegram group %s via invite link',
+                            telegram_user_id, group.name,
+                        )
+                        continue
+            except Exception:
+                pass
+
+        logger.warning(
+            'Could not invite user %s to group %s',
+            telegram_user_id, group.name,
+        )
 
 
 def _process_plain_start(user_id, chat_id, username, tg_lang='en'):
@@ -290,7 +312,7 @@ def _process_plain_start(user_id, chat_id, username, tg_lang='en'):
     profile.save()
 
     bot = TelegramBotManager()
-    _invite_to_groups(bot, user_id)
+    _invite_to_groups(bot, user_id, chat_id=chat_id)
     bot.send_message(
         chat_id=chat_id,
         text='✅ Verified! Your access to the alliance Telegram groups is confirmed.',

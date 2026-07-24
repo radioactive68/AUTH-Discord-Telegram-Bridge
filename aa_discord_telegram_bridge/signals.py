@@ -67,7 +67,7 @@ def on_character_update(sender, instance, **kwargs):
             # User is (back) in the alliance: restore access if it was revoked
             if not tg_profile.is_active:
                 bot = TelegramBotManager()
-                _invite_to_groups(bot, tg_profile.telegram_user_id)
+                _invite_to_groups(bot, tg_profile.telegram_user_id, chat_id=tg_profile.telegram_chat_id)
                 tg_profile.is_active = True
                 tg_profile.save()
                 logger.info(

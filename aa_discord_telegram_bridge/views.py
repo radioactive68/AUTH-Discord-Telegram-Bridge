@@ -117,7 +117,7 @@ def link_telegram(request):
 
             bot = TelegramBotManager()
             try:
-                _invite_to_groups(bot, pending.telegram_user_id)
+                _invite_to_groups(bot, pending.telegram_user_id, chat_id=pending.chat_id)
                 bot.send_message(
                     pending.chat_id,
                     '✅ Linked! Your Telegram is now connected to Alliance Auth.\n'
@@ -223,7 +223,7 @@ def verify_link(request):
         bot = TelegramBotManager()
         try:
             from .telegram_handler import _invite_to_groups
-            _invite_to_groups(bot, pending.telegram_user_id)
+            _invite_to_groups(bot, pending.telegram_user_id, chat_id=pending.chat_id)
         except Exception:
             logger.exception('DTB: error inviting user to groups after code-link')
     else:
