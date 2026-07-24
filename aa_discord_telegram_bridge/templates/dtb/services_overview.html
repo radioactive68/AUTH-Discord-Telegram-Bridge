@@ -80,14 +80,13 @@
 
                     <form method="post" action="{% url 'dtb:link_telegram' %}">
                         {% csrf_token %}
-                        <div class="form-group">
-                            <label for="id_telegram_username">{% translate "Telegram Username" %}</label>
+                        <div class="input-group">
                             <input type="text" name="telegram_username" id="id_telegram_username"
-                                    class="form-control" placeholder="@username or username" required>
+                                    class="form-control" placeholder="{% translate 'Telegram Username' %}" required>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-link"></i> {% translate "Link Account" %}
+                            </button>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-link"></i> {% translate "Link Account" %}
-                        </button>
                     </form>
                 {% endif %}
             </div>
