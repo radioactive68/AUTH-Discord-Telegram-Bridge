@@ -41,11 +41,11 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="scan">
                 <button type="submit" class="btn btn-info">
-                    <i class="fas fa-radar"></i> {% translate "Scan Recent Activity" %}
+                    <i class="fas fa-radar"></i> {% translate "Refresh Groups" %}
                 </button>
             </form>
             <span class="text-muted">
-                {% translate "Discovers groups from recent bot updates (messages, join requests)." %}
+                {% translate "Verifies all tracked groups. New groups are auto-discovered when the bot receives messages in them." %}
             </span>
             <form method="post" action="{% url 'dtb:admin_validate_now' %}">
                 {% csrf_token %}

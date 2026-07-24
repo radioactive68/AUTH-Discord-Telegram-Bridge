@@ -15,18 +15,9 @@ from .manager import TelegramBotManager
 
 logger = logging.getLogger(__name__)
 
-# In-memory cache of chats seen by polling/webhook.  Keyed by chat_id (str).
-# The scan admin action reads from here instead of calling getUpdates again.
-_seen_chats: dict = {}
-
-
-def get_seen_chats():
-    """Return a copy of chats observed during polling/webhook."""
-    return dict(_seen_chats)
-
 
 def _record_chat(data):
-    """Extract chat info from an update and store it in _seen_chats."""
+    """Extract chat info from an update and auto-register groups in DB."""
     for key in ('message', 'my_chat_member', 'chat_join_request'):
         msg = data.get(key)
         if not msg:
@@ -35,11 +26,17 @@ def _record_chat(data):
         if chat and chat.get('type') in ('group', 'supergroup', 'channel'):
             cid = str(chat.get('id', ''))
             if cid:
-                _seen_chats[cid] = {
-                    'id': cid,
-                    'title': chat.get('title') or chat.get('username', cid),
-                    'type': chat.get('type', 'supergroup'),
-                }
+                try:
+                    from .models import TelegramGroup
+                    TelegramGroup.objects.get_or_create(
+                        telegram_chat_id=cid,
+                        defaults={
+                            'name': chat.get('title') or chat.get('username', cid),
+                            'chat_type': chat.get('type', 'supergroup'),
+                        },
+                    )
+                except Exception:
+                    pass
 
 
 def _get_user_locale(telegram_user_id=None):
