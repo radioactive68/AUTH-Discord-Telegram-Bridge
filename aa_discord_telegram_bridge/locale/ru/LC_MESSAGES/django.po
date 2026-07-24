@@ -673,13 +673,13 @@ msgstr "Шаг 1:"
 
 #: services_ctrl.html:52
 #: services_overview.html:79
-msgid "open the bot"
-msgstr "откройте бота"
+#~ msgid "open the bot"
+#~ msgstr "откройте бота"
 
 #: services_ctrl.html:54
 #: services_overview.html:81
-msgid "and press"
-msgstr "и нажмите"
+#~ msgid "and press"
+#~ msgstr "и нажмите"
 
 #: services_ctrl.html:61
 msgid "Step 2:"
@@ -768,9 +768,17 @@ msgstr ""
 #: services_overview.html:122
 msgid ""
 "After linking, you will receive an invite link to the alliance Telegram "
-"group(s)"
+"group(s) in Telegram"
 msgstr ""
 "После привязки вы получите ссылку-приглашение в Telegram группу(ы) альянса"
+
+#: services_overview.html:122
+msgid ""
+"Enter your Telegram username below and click \"Link Account\". You will "
+"receive an invite link to the alliance group(s) in Telegram."
+msgstr ""
+"Введите ваш Telegram username ниже и нажмите «Привязать аккаунт». Вы получите "
+"ссылку-приглашение в Telegram группу(ы) альянса."
 
 #: services_overview.html:128
 msgid "Admin Tools:"

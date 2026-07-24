@@ -466,11 +466,11 @@ msgstr "DiscordチャンネルからのメッセージをTelegramに転送しま
 msgid "Step 1:"
 msgstr "ステップ1:"
 
-msgid "open the bot"
-msgstr "Botを開く"
+#~ msgid "open the bot"
+#~ msgstr "Botを開く"
 
-msgid "and press"
-msgstr "押してください"
+#~ msgid "and press"
+#~ msgstr "押してください"
 
 msgid "Step 2:"
 msgstr "ステップ2:"
@@ -539,9 +539,17 @@ msgstr ""
 
 msgid ""
 "After linking, you will receive an invite link to the alliance Telegram "
-"group(s)"
+"group(s) in Telegram"
 msgstr ""
 "連携後、アライアンスのTelegramグループへの招待リンクが送信されます"
+
+#: services_overview.html:122
+msgid ""
+"Enter your Telegram username below and click \"Link Account\". You will "
+"receive an invite link to the alliance group(s) in Telegram."
+msgstr ""
+"以下にTelegramユーザー名を入力して「アカウントを連携」をクリックしてください。"
+"アライアンスのTelegramグループへの招待リンクが送信されます。"
 
 msgid "Admin Tools:"
 msgstr "管理ツール:"

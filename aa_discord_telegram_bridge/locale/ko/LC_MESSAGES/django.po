@@ -672,13 +672,13 @@ msgstr "1단계:"
 
 #: services_ctrl.html:52
 #: services_overview.html:79
-msgid "open the bot"
-msgstr "Bot을 열고"
+#~ msgid "open the bot"
+#~ msgstr "Bot을 열고"
 
 #: services_ctrl.html:54
 #: services_overview.html:81
-msgid "and press"
-msgstr "버튼을"
+#~ msgid "and press"
+#~ msgstr "버튼을"
 
 #: services_ctrl.html:61
 msgid "Step 2:"
@@ -766,9 +766,17 @@ msgstr ""
 #: services_overview.html:122
 msgid ""
 "After linking, you will receive an invite link to the alliance Telegram "
-"group(s)"
+"group(s) in Telegram"
 msgstr ""
 "연동 후, 얼라이언스 Telegram 그룹 초대 링크가 전송됩니다"
+
+#: services_overview.html:122
+msgid ""
+"Enter your Telegram username below and click \"Link Account\". You will "
+"receive an invite link to the alliance group(s) in Telegram."
+msgstr ""
+"아래에 Telegram 사용자 이름을 입력하고 '계정 연결'을 클릭하세요. "
+"얼라이언스 Telegram 그룹 초대 링크가 전송됩니다."
 
 #: services_overview.html:128
 msgid "Admin Tools:"
