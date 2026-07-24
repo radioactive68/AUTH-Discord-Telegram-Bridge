@@ -15,6 +15,32 @@ from .manager import TelegramBotManager
 
 logger = logging.getLogger(__name__)
 
+# In-memory cache of chats seen by polling/webhook.  Keyed by chat_id (str).
+# The scan admin action reads from here instead of calling getUpdates again.
+_seen_chats: dict = {}
+
+
+def get_seen_chats():
+    """Return a copy of chats observed during polling/webhook."""
+    return dict(_seen_chats)
+
+
+def _record_chat(data):
+    """Extract chat info from an update and store it in _seen_chats."""
+    for key in ('message', 'my_chat_member', 'chat_join_request'):
+        msg = data.get(key)
+        if not msg:
+            continue
+        chat = msg.get('chat')
+        if chat and chat.get('type') in ('group', 'supergroup', 'channel'):
+            cid = str(chat.get('id', ''))
+            if cid:
+                _seen_chats[cid] = {
+                    'id': cid,
+                    'title': chat.get('title') or chat.get('username', cid),
+                    'type': chat.get('type', 'supergroup'),
+                }
+
 
 def _get_user_locale(telegram_user_id=None):
     """Get locale for a linked Telegram user from their AA profile language.
@@ -49,6 +75,7 @@ def _send_localized(chat_id, telegram_user_id, text_func):
 
 def _dispatch_update(data):
     """Process a single Telegram update (used by both webhook and polling)."""
+    _record_chat(data)
     message = data.get('message') or data.get('my_chat_member')
     if not message:
         # Handle pending join requests (group membership gating)

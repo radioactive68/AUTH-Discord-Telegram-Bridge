@@ -399,36 +399,20 @@ def admin_groups(request):
                 return redirect('dtb:admin_groups')
 
         elif action == 'scan':
+            from .telegram_handler import get_seen_chats
+            seen_chats = get_seen_chats()
             added = 0
-            try:
-                bot = TelegramBotManager()
-                res = bot.get_updates(timeout=0)
-                if res.get('ok'):
-                    seen = set()
-                    for update in res.get('result', []):
-                        chat = update.get('message', {}).get('chat') or \
-                               update.get('my_chat_member', {}).get('chat') or \
-                               update.get('chat_join_request', {}).get('chat')
-                        if chat and chat.get('type') in ('group', 'supergroup', 'channel'):
-                            cid = str(chat.get('id', ''))
-                            if cid and cid not in seen:
-                                seen.add(cid)
-                                group_obj, created = TelegramGroup.objects.get_or_create(
-                                    telegram_chat_id=cid,
-                                    defaults={
-                                        'name': chat.get('title') or chat.get('username', cid),
-                                        'chat_type': chat.get('type', 'supergroup'),
-                                    },
-                                )
-                                if created:
-                                    added += 1
-                    messages.success(request, _('Scan complete. %(added)s new group(s) found.') % {'added': added})
-                else:
-                    messages.error(request, _('Scan failed: %(desc)s') % {
-                        'desc': res.get('description', 'Unknown error')
-                    })
-            except Exception as e:
-                messages.error(request, _('Scan error: %(error)s') % {'error': str(e)})
+            for cid, info in seen_chats.items():
+                group_obj, created = TelegramGroup.objects.get_or_create(
+                    telegram_chat_id=cid,
+                    defaults={
+                        'name': info.get('title', cid),
+                        'chat_type': info.get('type', 'supergroup'),
+                    },
+                )
+                if created:
+                    added += 1
+            messages.success(request, _('Scan complete. %(added)s new group(s) found.') % {'added': added})
             return redirect('dtb:admin_groups')
 
     return render(request, 'dtb/admin_groups.html', {
