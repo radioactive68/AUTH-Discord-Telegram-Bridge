@@ -105,7 +105,19 @@ def create_telegram_profile(sender, instance, created, **kwargs):
 
 @hooks.register('url_hook')
 def register_urls():
-    return UrlHook(urls, 'dtb', r'^dtb/')
+    return UrlHook(
+        urls,
+        'dtb',
+        r'^dtb/',
+        excluded_views=[
+            'aa_discord_telegram_bridge.views.services_overview',
+            'aa_discord_telegram_bridge.views.link_telegram',
+            'aa_discord_telegram_bridge.views.unlink_telegram',
+            'aa_discord_telegram_bridge.views.forward_history',
+            'aa_discord_telegram_bridge.views.connection_status',
+            'aa_discord_telegram_bridge.telegram_handler.telegram_webhook',
+        ],
+    )
 
 
 class DTBMenu(MenuItemHook):
