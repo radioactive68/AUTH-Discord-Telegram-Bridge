@@ -240,9 +240,10 @@ def verify_link(request):
 @login_required
 @require_POST
 def unlink_telegram(request):
-    """Unlink Telegram account."""
+    """Unlink Telegram account and kick from tracked groups."""
     profile, created = TelegramUser.objects.get_or_create(user=request.user)
     chat_id = profile.telegram_chat_id
+    tg_user_id = profile.telegram_user_id
 
     if chat_id:
         try:
@@ -254,6 +255,15 @@ def unlink_telegram(request):
             )
         except Exception:
             logger.exception('DTB: failed to send unlink notification')
+
+    # Kick user from all tracked Telegram groups
+    if tg_user_id:
+        try:
+            from .tasks import _kick_user_from_all_groups
+            bot = TelegramBotManager()
+            _kick_user_from_all_groups(bot, profile)
+        except Exception:
+            logger.exception('DTB: failed to kick user from Telegram groups on unlink')
 
     profile.is_active = False
     profile.telegram_chat_id = ''
