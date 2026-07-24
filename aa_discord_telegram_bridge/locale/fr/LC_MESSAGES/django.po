@@ -468,6 +468,10 @@ msgstr "Transfère les messages des canaux Discord vers Telegram."
 msgid "Step 1:"
 msgstr "Étape 1 :"
 
+#: services_overview.html
+msgid "send /start to the bot"
+msgstr "envoyez /start au bot"
+
 msgid "Step 2:"
 msgstr "Étape 2 :"
 
@@ -547,9 +551,7 @@ msgstr ""
 "Après la liaison, vous recevrez un lien d'invitation vers le(s) groupe(s) Telegram de l'alliance"
 
 #: services_overview.html:122
-msgid ""
-"Enter your Telegram username below and click \"Link Account\". You will "
-"receive an invite link to the alliance group(s) in Telegram."
+msgid "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
 msgstr ""
 "Entrez votre nom d'utilisateur Telegram ci-dessous et cliquez sur «Lier le "
 "compte». Vous recevrez un lien d'invitation vers le(s) groupe(s) de "

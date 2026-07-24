@@ -665,6 +665,10 @@ msgstr "将 Discord 频道的消息转发至 Telegram。"
 msgid "Step 1:"
 msgstr "第一步："
 
+#: services_overview.html
+msgid "send /start to the bot"
+msgstr "向机器人发送 /start"
+
 msgid "Step 2:"
 msgstr "步骤 2："
 
@@ -766,9 +770,7 @@ msgstr ""
 "绑定后，您将收到联盟Telegram群组的邀请链接"
 
 #: services_overview.html:122
-msgid ""
-"Enter your Telegram username below and click \"Link Account\". You will "
-"receive an invite link to the alliance group(s) in Telegram."
+msgid "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
 msgstr ""
 "在下方输入您的Telegram用户名并点击「关联账号」。您将收到联盟Telegram群组的邀请链接。"
 

@@ -670,6 +670,10 @@ msgstr "Discord 채널의 메시지를 Telegram으로 전달합니다."
 msgid "Step 1:"
 msgstr "1단계:"
 
+#: services_overview.html
+msgid "send /start to the bot"
+msgstr "봇에게 /start를 보내세요"
+
 msgid "Step 2:"
 msgstr "단계 2:"
 
@@ -772,9 +776,7 @@ msgstr ""
 "연동 후, 얼라이언스 Telegram 그룹 초대 링크가 전송됩니다"
 
 #: services_overview.html:122
-msgid ""
-"Enter your Telegram username below and click \"Link Account\". You will "
-"receive an invite link to the alliance group(s) in Telegram."
+msgid "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
 msgstr ""
 "아래에 Telegram 사용자 이름을 입력하고 '계정 연결'을 클릭하세요. "
 "얼라이언스 Telegram 그룹 초대 링크가 전송됩니다."

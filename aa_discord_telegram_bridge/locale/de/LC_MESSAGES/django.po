@@ -671,6 +671,10 @@ msgstr "Leitet Nachrichten aus Discord-Kanälen an Telegram weiter."
 msgid "Step 1:"
 msgstr "Schritt 1:"
 
+#: services_overview.html
+msgid "send /start to the bot"
+msgstr "Senden Sie /start an den Bot"
+
 msgid "Step 2:"
 msgstr "Schritt 2:"
 
@@ -777,9 +781,7 @@ msgstr ""
 "Nach dem Verlinken erhalten Sie einen Einladungslink zu den Alliance-Telegram-Gruppen"
 
 #: services_overview.html:122
-msgid ""
-"Enter your Telegram username below and click \"Link Account\". You will "
-"receive an invite link to the alliance group(s) in Telegram."
+msgid "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
 msgstr ""
 "Geben Sie Ihren Telegram-Benutzernamen ein und klicken Sie auf "
 "\"Konto verbinden\". Sie erhalten einen Einladungslink zu den "
