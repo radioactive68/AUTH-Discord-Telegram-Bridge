@@ -10,9 +10,11 @@ class DtbConfig(AppConfig):
     def ready(self):
         import aa_discord_telegram_bridge.signals  # noqa: F401
 
-        skip_commands = {'migrate', 'makemigrations', 'collectstatic', 'test', 'shell', 'dbshell'}
-        current_cmd = sys.argv[1] if len(sys.argv) > 1 else ''
-        if current_cmd not in skip_commands:
+        is_gunicorn = 'gunicorn' in sys.argv[0] if sys.argv else False
+        is_celery = 'celery' in sys.argv[0] if sys.argv else False
+        is_runserver = sys.argv[1:2] == ['runserver'] if len(sys.argv) > 1 else False
+
+        if is_gunicorn or is_celery or is_runserver:
             from .bot_runner import maybe_start_bot
             maybe_start_bot()
 
