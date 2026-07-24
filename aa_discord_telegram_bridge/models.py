@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-DTB_VERSION = '1.0.4'
+DTB_VERSION = '1.0.5'
 
 
 class DTBSettings(models.Model):

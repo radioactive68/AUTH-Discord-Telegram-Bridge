@@ -195,18 +195,29 @@ def maybe_start_bot():
     """
     try:
         from .models import DTBSettings
-        if not DTBSettings.load().autostart_bot:
+        s = DTBSettings.load()
+        if not s.autostart_bot:
+            return
+        if not s.discord_bot_token and not s.telegram_bot_token:
             return
     except Exception:
-        # DB/table not ready yet (e.g. during migrate) — skip autostart.
+        return
+
+    try:
+        import discord  # noqa: F401
+    except ImportError:
+        logger.warning(
+            'DTB: discord.py is not installed. '
+            'Install it with: pip install discord.py'
+        )
         return
 
     def _target():
         try:
             run_bot()
         except Exception:
-            traceback.print_exc()
+            logger.error('DTB: bot thread crashed', exc_info=True)
 
     t = threading.Thread(target=_target, name='dtb-discord-bot', daemon=True)
     t.start()
-    print('[DTB] Discord bot autostart requested (thread started).', flush=True)
+    logger.info('DTB: bot autostart thread started.')

@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+import sys
 
 
 class DtbConfig(AppConfig):
@@ -8,13 +9,22 @@ class DtbConfig(AppConfig):
 
     def ready(self):
         import aa_discord_telegram_bridge.signals  # noqa: F401
-        from .bot_runner import maybe_start_bot
-        maybe_start_bot()
+
+        skip_commands = {'migrate', 'makemigrations', 'collectstatic', 'test', 'shell', 'dbshell'}
+        current_cmd = sys.argv[1] if len(sys.argv) > 1 else ''
+        if current_cmd not in skip_commands:
+            from .bot_runner import maybe_start_bot
+            maybe_start_bot()
+
         self._register_periodic_tasks()
 
     def _register_periodic_tasks(self):
         try:
             from django_celery_beat.models import PeriodicTask, CrontabSchedule
+            from django.db import connection
+
+            if not connection.tables_exist(['django_celery_beat_periodictask']):
+                return
 
             schedule, _ = CrontabSchedule.objects.get_or_create(
                 minute='15',
