@@ -304,7 +304,7 @@ def _process_plain_start(user_id, chat_id, username, tg_lang='en'):
                     '1. Open Alliance Auth -> Discord-Telegram Bridge\n'
                     '2. Click "Link Account"\n'
                     '3. Enter your Telegram username: @%(username)s\n'
-                    '4. Click Link - you will be connected automatically\n\n'
+                    '4. Click Link - you will receive an invite to the alliance Telegram group(s)\n\n'
                     'I will send a confirmation here once it is done.'
                 ) % {'username': username}
             bot.send_message(chat_id=chat_id, text=text)

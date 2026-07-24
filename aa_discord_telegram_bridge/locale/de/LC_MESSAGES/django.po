@@ -770,11 +770,10 @@ msgstr ""
 
 #: services_overview.html:122
 msgid ""
-"After linking, you are automatically invited to the alliance Telegram "
+"After linking, you will receive an invite link to the alliance Telegram "
 "group(s)"
 msgstr ""
-"Nach der Verknüpfung werden Sie automatisch in die Allianz-Telegram-Gruppe(n) "
-"eingeladen"
+"Nach dem Verlinken erhalten Sie einen Einladungslink zu den Alliance-Telegram-Gruppen"
 
 #: services_overview.html:128
 msgid "Admin Tools:"
@@ -909,8 +908,8 @@ msgstr "Discord-Telegram Bridge"
 msgid "Successfully linked!\\n\\nYou will now receive notifications from Alliance Auth.\\nUse /stop to disable notifications."
 msgstr "Erfolgreich verknüpft!\\n\\nSie erhalten nun Benachrichtigungen von Alliance Auth.\\nVerwenden Sie /stop, um Benachrichtigungen zu deaktivieren."
 
-msgid "Hello! To link your account:\\n1. Open Alliance Auth -> Discord-Telegram Bridge\\n2. Click \"Link Account\"\\n3. Enter your Telegram username: @%(username)s\\n4. Click Link - you will be connected automatically\\n\\nI will send a confirmation here once it is done."
-msgstr "Hallo! Um Ihr Konto zu verknüpfen:\\n1. Öffnen Sie Alliance Auth -> Discord-Telegram Bridge\\n2. Klicken Sie auf \"Link Account\"\\n3. Geben Sie Ihren Telegram-Benutzernamen ein: @%(username)s\\n4. Klicken Sie auf Link - Sie werden automatisch verbunden\\n\\nIch sende Ihnen hier eine Bestätigung, sobald alles fertig ist."
+msgid "Hello! To link your account:\\n1. Open Alliance Auth -> Discord-Telegram Bridge\\n2. Click \"Link Account\"\\n3. Enter your Telegram username: @%(username)s\\n4. Click Link - you will receive an invite to the alliance Telegram group(s)\\n\\nI will send a confirmation here once it is done."
+msgstr "Hallo! Um Ihr Konto zu verknüpfen:\\n1. Öffnen Sie Alliance Auth -> Discord-Telegram Bridge\\n2. Klicken Sie auf \"Link Account\"\\n3. Geben Sie Ihren Telegram-Benutzernamen ein: @%(username)s\\n4. Klicken Sie auf Link - Sie erhalten eine Einladung zu den Alliance-Telegram-Gruppen\\n\\nIch sende Ihnen hier eine Bestätigung, sobald alles fertig ist."
 
 msgid "Hello! To link your account, open Alliance Auth -> Discord-Telegram Bridge -> Link Account and enter your Telegram username. (You need a Telegram @username set in your profile to link.)"
 msgstr "Hallo! Um Ihr Konto zu verknüpfen, öffnen Sie Alliance Auth -> Discord-Telegram Bridge -> Link Account und geben Sie Ihren Telegram-Benutzernamen ein. (Sie benötigen einen Telegram @username in Ihrem Profil, um zu verknüpfen.)"

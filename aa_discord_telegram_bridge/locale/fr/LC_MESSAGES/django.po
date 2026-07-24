@@ -541,11 +541,10 @@ msgstr ""
 "Telegram"
 
 msgid ""
-"After linking, you are automatically invited to the alliance Telegram "
+"After linking, you will receive an invite link to the alliance Telegram "
 "group(s)"
 msgstr ""
-"Après la liaison, vous êtes automatiquement invité aux groupe(s) Telegram "
-"de l'alliance"
+"Après la liaison, vous recevrez un lien d'invitation vers le(s) groupe(s) Telegram de l'alliance"
 
 msgid "Admin Tools:"
 msgstr "Outils d'administration :"
@@ -650,8 +649,8 @@ msgid "Successfully linked!\\n\\nYou will now receive notifications from Allianc
 msgstr "Liaison réussie !\\n\\nVous recevrez désormais les notifications d'Alliance Auth.\\nUtilisez /stop pour désactiver les notifications."
 
 #, python-format
-msgid "Hello! To link your account:\\n1. Open Alliance Auth -> Discord-Telegram Bridge\\n2. Click \"Link Account\"\\n3. Enter your Telegram username: @%(username)s\\n4. Click Link - you will be connected automatically\\n\\nI will send a confirmation here once it is done."
-msgstr "Bonjour ! Pour lier votre compte :\\n1. Ouvrez Alliance Auth -> Discord-Telegram Bridge\\n2. Cliquez sur \"Link Account\"\\n3. Entrez votre nom d'utilisateur Telegram : @%(username)s\\n4. Cliquez sur Link - vous serez connecté automatiquement\\n\\nJe vous enverrai une confirmation ici une fois terminé."
+msgid "Hello! To link your account:\\n1. Open Alliance Auth -> Discord-Telegram Bridge\\n2. Click \"Link Account\"\\n3. Enter your Telegram username: @%(username)s\\n4. Click Link - you will receive an invite to the alliance Telegram group(s)\\n\\nI will send a confirmation here once it is done."
+msgstr "Bonjour ! Pour lier votre compte :\\n1. Ouvrez Alliance Auth -> Discord-Telegram Bridge\\n2. Cliquez sur \"Link Account\"\\n3. Entrez votre nom d'utilisateur Telegram : @%(username)s\\n4. Cliquez sur Link - vous recevrez une invitation au(x) groupe(s) Telegram de l'alliance\\n\\nJe vous enverrai une confirmation ici une fois terminé."
 
 msgid "Hello! To link your account, open Alliance Auth -> Discord-Telegram Bridge -> Link Account and enter your Telegram username. (You need a Telegram @username set in your profile to link.)"
 msgstr "Bonjour ! Pour lier votre compte, ouvrez Alliance Auth -> Discord-Telegram Bridge -> Link Account et entrez votre nom d'utilisateur Telegram. (Vous devez avoir un @username Telegram défini dans votre profil pour vous lier.)"
