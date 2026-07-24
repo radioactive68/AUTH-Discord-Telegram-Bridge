@@ -468,14 +468,14 @@ msgstr "Transfère les messages des canaux Discord vers Telegram."
 msgid "Step 1:"
 msgstr "Étape 1 :"
 
+msgid "Step 2:"
+msgstr "Étape 2 :"
+
 #~ msgid "open the bot"
 #~ msgstr "ouvrez le bot"
 
 #~ msgid "and press"
 #~ msgstr "et appuyez sur"
-
-msgid "Step 2:"
-msgstr "Étape 2 :"
 
 msgid "enter your Telegram username"
 msgstr "saisissez votre nom d'utilisateur Telegram"

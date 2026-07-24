@@ -67,12 +67,13 @@
                         <i class="fab fa-telegram"></i>
                         <strong>{% translate "Step 1:" %}</strong>
                         {% blocktranslate %}send <code>/start</code> to the bot{% endblocktranslate %}
-                        <a href="{{ bot_link }}" target="_blank" rel="noopener" class="fw-bold">@{{ bot_username }}</a>
+                        <a href="{{ bot_link }}" target="_blank" rel="noopener" class="fw-bold text-white">@{{ bot_username }}</a>
                     </div>
                     {% endif %}
 
                     <p>
                         <small class="text-muted">
+                            <strong>{% translate "Step 2:" %}</strong>
                             {% blocktranslate %}Enter your Telegram username below and click "Link Account".
                             You will receive an invite link to the alliance group(s) in Telegram.{% endblocktranslate %}
                         </small>
@@ -108,7 +109,6 @@
                     <li>{% translate "You can enable/disable notifications at any time" %}</li>
                     <li>{% translate "When you leave the alliance, you will be automatically removed from Telegram groups" %}</li>
                     <li>{% translate "After linking, you will receive an invite link to the alliance Telegram group(s) in Telegram" %}</li>
-                    <li>{% blocktranslate %}To link, just open the bot and press <code>/start</code>, then click "Link Account"{% endblocktranslate %}</li>
                 </ul>
 
                 {% if perms.aa_discord_telegram_bridge.manage_dtb_rules %}

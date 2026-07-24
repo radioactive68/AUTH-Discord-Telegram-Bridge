@@ -671,6 +671,9 @@ msgstr "Leitet Nachrichten aus Discord-Kanälen an Telegram weiter."
 msgid "Step 1:"
 msgstr "Schritt 1:"
 
+msgid "Step 2:"
+msgstr "Schritt 2:"
+
 #: services_ctrl.html:52
 #: services_overview.html:79
 #~ msgid "open the bot"
@@ -681,9 +684,7 @@ msgstr "Schritt 1:"
 #~ msgid "and press"
 #~ msgstr "und drücken Sie"
 
-#: services_ctrl.html:61
-msgid "Step 2:"
-msgstr "Schritt 2:"
+
 
 #: services_ctrl.html:61
 msgid "enter your Telegram username"

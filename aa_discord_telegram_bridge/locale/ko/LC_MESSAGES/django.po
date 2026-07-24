@@ -670,6 +670,9 @@ msgstr "Discord 채널의 메시지를 Telegram으로 전달합니다."
 msgid "Step 1:"
 msgstr "1단계:"
 
+msgid "Step 2:"
+msgstr "단계 2:"
+
 #: services_ctrl.html:52
 #: services_overview.html:79
 #~ msgid "open the bot"
@@ -680,9 +683,7 @@ msgstr "1단계:"
 #~ msgid "and press"
 #~ msgstr "버튼을"
 
-#: services_ctrl.html:61
-msgid "Step 2:"
-msgstr "2단계:"
+
 
 #: services_ctrl.html:61
 msgid "enter your Telegram username"

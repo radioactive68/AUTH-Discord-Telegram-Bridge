@@ -466,14 +466,16 @@ msgstr "DiscordチャンネルからのメッセージをTelegramに転送しま
 msgid "Step 1:"
 msgstr "ステップ1:"
 
+msgid "Step 2:"
+msgstr "ステップ 2："
+
 #~ msgid "open the bot"
 #~ msgstr "Botを開く"
 
 #~ msgid "and press"
 #~ msgstr "押してください"
 
-msgid "Step 2:"
-msgstr "ステップ2:"
+
 
 msgid "enter your Telegram username"
 msgstr "Telegramのusernameを入力"
