@@ -7,9 +7,10 @@ from django.urls import NoReverseMatch, reverse
 
 from allianceauth import hooks
 from allianceauth.menu.hooks import MenuItemHook
-from allianceauth.services.hooks import ServicesHook
+from allianceauth.services.hooks import ServicesHook, UrlHook
 from django.utils.translation import gettext_lazy as _
 
+from . import urls
 from .models import TelegramUser
 
 logger = logging.getLogger(__name__)
@@ -34,12 +35,9 @@ class DiscordTelegramBridgeService(ServicesHook):
         return _('Discord-Telegram Bridge')
 
     def service_active_for_user(self, user):
-        """Check if service is active for user."""
-        try:
-            profile = user.telegram_profile
-            return profile.is_active and profile.telegram_chat_id
-        except TelegramUser.DoesNotExist:
-            return False
+        """Check if service is available for user (alliance members)."""
+        from .tasks import _user_in_alliance
+        return _user_in_alliance(user)
 
     def show_service_ctrl(self, user):
         """Show service control only for alliance members."""
@@ -103,6 +101,11 @@ def create_telegram_profile(sender, instance, created, **kwargs):
     """Auto-create TelegramUser profile when User is created."""
     if created:
         TelegramUser.objects.get_or_create(user=instance)
+
+
+@hooks.register('url_hook')
+def register_urls():
+    return UrlHook(urls, 'dtb', r'^dtb/')
 
 
 class DTBMenu(MenuItemHook):
