@@ -97,6 +97,13 @@ class TelegramBotManager:
             'user_id': user_id,
         })
 
+    def get_chat_member(self, chat_id: str, user_id: int) -> dict:
+        """Get the status of a chat member."""
+        return self._request('getChatMember', {
+            'chat_id': chat_id,
+            'user_id': user_id,
+        })
+
     def create_chat_invite_link(self, chat_id: str, name: str = '', member_limit: int = None) -> dict:
         """Create a one-time or limited invite link for a chat."""
         data = {'chat_id': chat_id}

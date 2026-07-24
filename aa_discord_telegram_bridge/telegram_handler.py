@@ -217,11 +217,25 @@ def _process_linking_code(code, chat_id, user_id, telegram_username, tg_lang='en
 def _invite_to_groups(bot, telegram_user_id, chat_id=None):
     """Invite a (linked) Telegram user to all tracked active groups.
 
-    Tries addChatMember first. If that fails (common in supergroups),
-    falls back to creating a one-time invite link and sending it to the user.
+    Skips groups where the user is already a member. Tries addChatMember
+    first; falls back to creating a one-time invite link and sending it
+    to the user via DM.
     """
     from .models import TelegramGroup
     for group in TelegramGroup.objects.filter(is_active=True):
+        try:
+            member = bot.get_chat_member(group.telegram_chat_id, telegram_user_id)
+            if member.get('ok'):
+                status = member['result'].get('status', '')
+                if status in ('member', 'administrator', 'creator'):
+                    logger.info(
+                        'User %s already in group %s, skipping invite',
+                        telegram_user_id, group.name,
+                    )
+                    continue
+        except Exception:
+            pass
+
         try:
             bot.unban_chat_member(group.telegram_chat_id, telegram_user_id)
             result = bot.add_chat_member(group.telegram_chat_id, telegram_user_id)
