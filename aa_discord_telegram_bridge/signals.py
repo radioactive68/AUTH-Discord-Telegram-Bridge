@@ -1,6 +1,7 @@
 import logging
 import threading
 
+from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
@@ -25,16 +26,25 @@ def on_dtb_group_request(sender, instance, **kwargs):
         return
 
     if instance.leave_request:
-        _dtb_rejecting.active = True
-        try:
-            instance.user.groups.remove(instance.group)
-            instance.delete()
-            logger.info(
-                'Auto-approved leave from DTB Admins for %s',
-                instance.user.username,
-            )
-        finally:
-            _dtb_rejecting.active = False
+        user = instance.user
+        group = instance.group
+
+        def _do_leave():
+            _dtb_rejecting.active = True
+            try:
+                user.groups.remove(group)
+                GroupRequest = instance.__class__
+                GroupRequest.objects.filter(
+                    user=user, group=group, leave_request=True
+                ).delete()
+                logger.info(
+                    'Auto-approved leave from DTB Admins for %s',
+                    user.username,
+                )
+            finally:
+                _dtb_rejecting.active = False
+
+        transaction.on_commit(_do_leave)
         return
 
     from .tasks import _user_in_alliance
