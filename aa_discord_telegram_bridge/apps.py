@@ -17,8 +17,12 @@ class DtbConfig(AppConfig):
         is_runserver = sys.argv[1:2] == ['runserver'] if len(sys.argv) > 1 else False
 
         if is_gunicorn or is_celery or is_runserver:
-            from .bot_runner import maybe_start_bot
-            maybe_start_bot()
+            import threading
+            threading.Timer(1.0, self._deferred_start).start()
+
+    def _deferred_start(self):
+        from .bot_runner import maybe_start_bot
+        maybe_start_bot()
 
 
 def _on_post_migrate(sender, **kwargs):
