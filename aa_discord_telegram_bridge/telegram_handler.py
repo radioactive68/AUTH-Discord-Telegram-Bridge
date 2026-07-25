@@ -120,13 +120,14 @@ def telegram_webhook(request):
 
 
 def sync_groups_from_updates():
-    """Process buffered Telegram updates to discover and register groups.
+    """Discover and register Telegram groups.
 
-    Called on bot startup so that groups the bot was added to are
-    immediately visible in the admin panel, even if no messages
-    have been exchanged yet.
+    Sources:
+    1. Buffered Telegram updates (getUpdates)
+    2. ForwardRule targets in DB
     """
-    from .models import TelegramGroup, DTBSettings
+    from .models import TelegramGroup, ForwardRule, DTBSettings
+    from .manager import TelegramBotManager
     try:
         if DTBSettings.load().telegram_webhook_url:
             return
@@ -134,31 +135,51 @@ def sync_groups_from_updates():
         pass
 
     bot = TelegramBotManager()
-    try:
-        resp = bot.get_updates(timeout=1)
-        if not resp.get('ok'):
-            return
-        seen = set()
-        for u in resp.get('result', []):
-            for key in ('message', 'my_chat_member', 'chat_join_request'):
-                msg = u.get(key)
-                if not msg:
-                    continue
-                chat = msg.get('chat')
-                if chat and chat.get('type') in ('group', 'supergroup', 'channel'):
-                    cid = str(chat.get('id', ''))
-                    if cid and cid not in seen:
-                        seen.add(cid)
-                        obj, created = TelegramGroup.objects.get_or_create(
-                            telegram_chat_id=cid,
+
+    # 1. Register groups from ForwardRule targets
+    for rule in ForwardRule.objects.filter(is_enabled=True):
+        target = rule.telegram_target.split(':')[0].strip()
+        if target and not TelegramGroup.objects.filter(telegram_chat_id=target).exists():
+            try:
+                result = bot.get_chat(target)
+                if result.get('ok'):
+                    chat_info = result['result']
+                    chat_type = chat_info.get('type', 'supergroup')
+                    if chat_type in ('group', 'supergroup', 'channel'):
+                        TelegramGroup.objects.get_or_create(
+                            telegram_chat_id=target,
                             defaults={
-                                'name': chat.get('title') or chat.get('username', cid),
-                                'chat_type': chat.get('type', 'supergroup'),
+                                'name': chat_info.get('title') or chat_info.get('username', target),
+                                'chat_type': chat_type,
                             },
                         )
-                        if created:
-                            logger.info('DTB: discovered group %s (%s)', obj.name, cid)
-        logger.info('DTB: group sync complete, found %d groups from updates', len(seen))
+                        logger.info('DTB: registered group from rule %s: %s', rule.name, target)
+            except Exception as e:
+                logger.warning('DTB: could not register group %s: %s', target, e)
+
+    # 2. Register groups from getUpdates
+    try:
+        resp = bot.get_updates(timeout=1)
+        if resp.get('ok'):
+            seen = set()
+            for u in resp.get('result', []):
+                for key in ('message', 'my_chat_member', 'chat_join_request', 'channel_post'):
+                    msg = u.get(key)
+                    if not msg:
+                        continue
+                    chat = msg.get('chat')
+                    if chat and chat.get('type') in ('group', 'supergroup', 'channel'):
+                        cid = str(chat.get('id', ''))
+                        if cid and cid not in seen:
+                            seen.add(cid)
+                            TelegramGroup.objects.get_or_create(
+                                telegram_chat_id=cid,
+                                defaults={
+                                    'name': chat.get('title') or chat.get('username', cid),
+                                    'chat_type': chat.get('type', 'supergroup'),
+                                },
+                            )
+            logger.info('DTB: group sync complete, total groups: %d', TelegramGroup.objects.count())
     except Exception as e:
         logger.error('DTB: group sync failed: %s', e)
 

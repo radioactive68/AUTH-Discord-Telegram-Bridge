@@ -73,7 +73,32 @@ class TelegramBotManager:
         }
         if message_thread_id is not None:
             data['message_thread_id'] = message_thread_id
-        return self._request('sendMessage', data)
+        result = self._request('sendMessage', data)
+        if result.get('ok'):
+            self._auto_register_chat(chat_id)
+        return result
+
+    def _auto_register_chat(self, chat_id: str):
+        """Auto-register a chat as TelegramGroup if not already tracked."""
+        try:
+            from .models import TelegramGroup
+            if TelegramGroup.objects.filter(telegram_chat_id=str(chat_id)).exists():
+                return
+            result = self.get_chat(chat_id)
+            if result.get('ok'):
+                chat_info = result['result']
+                chat_type = chat_info.get('type', 'supergroup')
+                if chat_type in ('group', 'supergroup', 'channel'):
+                    TelegramGroup.objects.get_or_create(
+                        telegram_chat_id=str(chat_id),
+                        defaults={
+                            'name': chat_info.get('title') or chat_info.get('username', str(chat_id)),
+                            'chat_type': chat_type,
+                        },
+                    )
+                    logger.info('DTB: auto-registered group %s (%s)', chat_info.get('title', chat_id), chat_id)
+        except Exception:
+            pass
 
     def kick_chat_member(self, chat_id: str, user_id: int) -> dict:
         """Kick a user from a chat (ban)."""
