@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-DTB_VERSION = '1.1.9'
+DTB_VERSION = '1.2.0'
 
 
 class DTBSettings(models.Model):
@@ -30,7 +30,7 @@ class DTBSettings(models.Model):
         help_text=_('Telegram webhook URL for receiving updates (for user linking)'),
     )
     autostart_bot = models.BooleanField(
-        default=False,
+        default=True,
         help_text=_('Auto-start the Discord forwarder bot inside Alliance Auth '
                   '(no separate process needed). Requires a restart to take effect.'),
     )

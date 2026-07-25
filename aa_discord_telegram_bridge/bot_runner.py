@@ -8,22 +8,50 @@ import traceback
 logger = logging.getLogger(__name__)
 
 
+def _pid_is_alive(pid):
+    """Check if a process with the given PID is still running."""
+    try:
+        os.kill(pid, 0)
+        return True
+    except (OSError, ProcessLookupError):
+        return False
+
+
 def _acquire_lock():
-    """Acquire a cross-process lock so only one Discord bot runs at a time.
+    """Acquire a cross-process lock so only one bot runs at a time.
+
+    If a stale lock file exists (PID in it is dead), it is removed and
+    a new lock is acquired.
 
     Returns the open lock file handle on success, or None if another
     instance already holds the lock.
     """
     lock_path = os.path.join(tempfile.gettempdir(), 'dtb_discord_bot.lock')
+
+    # Stale lock detection: if lock file exists, check if the PID inside is alive
+    if os.path.exists(lock_path):
+        try:
+            with open(lock_path, 'r') as f:
+                old_pid = int(f.read().strip())
+            if not _pid_is_alive(old_pid):
+                logger.info('DTB: removing stale lock file (PID %d is dead)', old_pid)
+                os.remove(lock_path)
+        except (ValueError, IOError, OSError):
+            pass
+
     try:
         if os.name == 'nt':
             import msvcrt
             f = open(lock_path, 'w')
+            f.write(str(os.getpid()))
+            f.flush()
             msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
             return f
         else:
             import fcntl
             f = open(lock_path, 'w')
+            f.write(str(os.getpid()))
+            f.flush()
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
             return f
     except (IOError, OSError):
