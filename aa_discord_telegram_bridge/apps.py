@@ -94,6 +94,7 @@ def _ensure_dtb_group(sender, **kwargs):
 
 def _ensure_members_group():
     from django.contrib.auth.models import Group, Permission
+    from groupmanagement.models import AuthGroup
 
     perm = Permission.objects.filter(codename='request_groups').first()
     if not perm:
@@ -102,3 +103,15 @@ def _ensure_members_group():
     members, _ = Group.objects.get_or_create(name='Members')
     if perm not in members.permissions.all():
         members.permissions.add(perm)
+
+    AuthGroup.objects.get_or_create(
+        group=members,
+        defaults={
+            'internal': False,
+            'hidden': False,
+            'open': False,
+            'public': True,
+            'restricted': False,
+            'description': 'All authenticated users.',
+        },
+    )

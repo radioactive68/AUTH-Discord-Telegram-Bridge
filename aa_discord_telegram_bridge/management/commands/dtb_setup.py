@@ -120,6 +120,20 @@ class Command(BaseCommand):
                 members.permissions.add(request_perm)
                 self.stdout.write(self.style.SUCCESS('  Added request_groups to Members group'))
 
+            from groupmanagement.models import AuthGroup
+            AuthGroup.objects.get_or_create(
+                group=members,
+                defaults={
+                    'internal': False,
+                    'hidden': False,
+                    'open': False,
+                    'public': True,
+                    'restricted': False,
+                    'description': 'All authenticated users.',
+                },
+            )
+            self.stdout.write(self.style.SUCCESS('  Members AuthGroup: ensured (visible, public)'))
+
             from aa_discord_telegram_bridge.tasks import _user_in_alliance
             added = 0
             for u in User.objects.filter(is_active=True, is_superuser=False):
