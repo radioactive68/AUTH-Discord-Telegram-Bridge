@@ -73,7 +73,7 @@ class Command(BaseCommand):
     def _setup_groups(self):
         from django.contrib.auth.models import Permission
         from django.contrib.contenttypes.models import ContentType
-        from groupmanagement.models import AuthGroup
+        from allianceauth.groupmanagement.models import AuthGroup
 
         self.stdout.write(self.style.MIGRATE_HEADING('\nSetting up AA Auth Group...'))
 
