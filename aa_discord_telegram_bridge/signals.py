@@ -1,6 +1,4 @@
 import logging
-import threading
-import time
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -17,40 +15,15 @@ DTB_GROUP_NAME = 'DTB Admins'
 def on_dtb_group_request(sender, instance, **kwargs):
     """Handle DTB Admins group requests.
 
-    - Leave requests from DTB Admins are auto-approved (direct leave).
-    - Join requests to DTB Admins from alliance members are auto-approved.
+    - Join requests from alliance members are auto-approved (synchronous).
     - Join requests from non-alliance members are rejected.
+    - Leave requests are handled by GROUPMANAGEMENT_AUTO_LEAVE setting.
     """
     if getattr(_dtb_rejecting, 'active', False):
         return
     if instance.group.name != DTB_GROUP_NAME:
         return
-
     if instance.leave_request:
-        user_pk = instance.user.pk
-        group_pk = instance.group.pk
-        username = instance.user.username
-
-        def _do_leave():
-            time.sleep(2)
-            from django.contrib.auth.models import User as UserModel
-            from django.contrib.auth.models import Group
-            from groupmanagement.models import GroupRequest
-            try:
-                user = UserModel.objects.get(pk=user_pk)
-                group = Group.objects.get(pk=group_pk)
-                user.groups.remove(group)
-                GroupRequest.objects.filter(
-                    user=user, group=group, leave_request=True
-                ).delete()
-                logger.info(
-                    'Auto-approved leave from DTB Admins for %s',
-                    username,
-                )
-            except Exception:
-                logger.exception('Failed to auto-leave DTB Admins for %s', username)
-
-        threading.Thread(target=_do_leave, daemon=True).start()
         return
 
     from .tasks import _user_in_alliance
@@ -66,30 +39,21 @@ def on_dtb_group_request(sender, instance, **kwargs):
             _dtb_rejecting.active = False
         return
 
-    user_pk = instance.user.pk
-    group_pk = instance.group.pk
-    username = instance.user.username
-
-    def _do_approve():
-        time.sleep(2)
-        from django.contrib.auth.models import User as UserModel
-        from django.contrib.auth.models import Group
-        from groupmanagement.models import GroupRequest
-        try:
-            user = UserModel.objects.get(pk=user_pk)
-            group = Group.objects.get(pk=group_pk)
-            user.groups.add(group)
-            GroupRequest.objects.filter(
-                user=user, group=group, leave_request=False
-            ).delete()
-            logger.info(
-                'Auto-approved join to DTB Admins for %s',
-                username,
-            )
-        except Exception:
-            logger.exception('Failed to auto-approve join to DTB Admins for %s', username)
-
-    threading.Thread(target=_do_approve, daemon=True).start()
+    _dtb_rejecting.active = True
+    try:
+        instance.user.groups.add(instance.group)
+        instance.delete()
+        logger.info(
+            'Auto-approved join to DTB Admins for %s',
+            instance.user.username,
+        )
+    except Exception:
+        logger.exception(
+            'Failed to auto-approve join to DTB Admins for %s',
+            instance.user.username,
+        )
+    finally:
+        _dtb_rejecting.active = False
 
 
 @receiver(post_save, sender=User)
