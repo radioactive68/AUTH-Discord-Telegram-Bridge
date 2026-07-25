@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = 'Quick setup for DTB: create settings, validate config, sync groups.'
+    help = 'Quick setup for DTB: create settings, groups, validate config, sync groups.'
 
     def add_arguments(self, parser):
         parser.add_argument('--alliance-id', type=int, help='EVE Alliance ID')
@@ -30,6 +30,8 @@ class Command(BaseCommand):
 
         settings.save()
         self.stdout.write(self.style.SUCCESS('  Settings saved.'))
+
+        self._setup_groups()
 
         self.stdout.write(self.style.MIGRATE_HEADING('\nSyncing Telegram groups...'))
         try:
@@ -67,3 +69,49 @@ class Command(BaseCommand):
         self.stdout.write(f'  {in_alliance}/{members.count()} active users in configured alliance')
 
         self.stdout.write(self.style.SUCCESS('\nDone! Visit https://<your-domain>/services/ to link Telegram.'))
+
+    def _setup_groups(self):
+        from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
+        from groupmanagement.models import AuthGroup
+
+        self.stdout.write(self.style.MIGRATE_HEADING('\nSetting up AA Auth Group...'))
+
+        from aa_discord_telegram_bridge.models import DTBSettings
+        ct = ContentType.objects.get_for_model(DTBSettings)
+
+        perm_manage = Permission.objects.filter(codename='manage_dtb_rules', content_type=ct).first()
+        perm_access = Permission.objects.filter(codename='access_dtb', content_type=ct).first()
+        perm_history = Permission.objects.filter(codename='view_forward_history', content_type=ct).first()
+
+        if not perm_manage:
+            self.stdout.write(self.style.WARNING('  Permissions not found. Run migrate first.'))
+            return
+
+        from django.contrib.auth.models import Group
+        group, created = Group.objects.get_or_create(name='DTB Admins')
+        if created:
+            self.stdout.write(self.style.SUCCESS('  Created Group: DTB Admins'))
+        else:
+            self.stdout.write('  Group "DTB Admins" already exists')
+
+        for perm in [perm_manage, perm_access, perm_history]:
+            if perm and perm not in group.permissions.all():
+                group.permissions.add(perm)
+                self.stdout.write(f'  Added permission: {perm.codename}')
+
+        auth_group, ag_created = AuthGroup.objects.get_or_create(
+            group=group,
+            defaults={
+                'internal': False,
+                'hidden': False,
+                'open': False,
+                'public': False,
+                'restricted': False,
+                'description': 'Manage Discord-Telegram Bridge rules and settings.',
+            },
+        )
+        if ag_created:
+            self.stdout.write(self.style.SUCCESS('  Created AuthGroup (requestable, requires approval)'))
+        else:
+            self.stdout.write('  AuthGroup already exists')
