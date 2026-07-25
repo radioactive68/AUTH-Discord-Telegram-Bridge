@@ -1,10 +1,5 @@
 import logging
 import re
-import os
-import django
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myauth.settings.local')
-django.setup()
 
 import discord
 from discord.ext import commands

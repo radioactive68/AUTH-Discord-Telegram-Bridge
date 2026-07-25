@@ -94,7 +94,7 @@ def _ensure_dtb_group(sender, **kwargs):
 
 def _ensure_members_group():
     from django.contrib.auth.models import Group, Permission
-    from groupmanagement.models import AuthGroup
+    from allianceauth.groupmanagement.models import AuthGroup
 
     perm = Permission.objects.filter(codename='request_groups').first()
     if not perm:

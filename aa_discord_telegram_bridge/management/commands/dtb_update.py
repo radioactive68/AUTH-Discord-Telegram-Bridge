@@ -18,15 +18,16 @@ class Command(BaseCommand):
             '--branch', default='main',
             help='Branch to pull from (default: main)',
         )
+        parser.add_argument(
+            '--repo', default=None,
+            help='GitHub repo URL (e.g. radioactive68/AUTH-Discord-Telegram-Bridge)',
+        )
 
     def handle(self, *args, **options):
-        from aa_discord_telegram_bridge.models import DTBSettings
-
-        s = DTBSettings.load()
-        repo = s.github_repo
+        repo = options['repo']
         if not repo:
             self.stderr.write(self.style.ERROR(
-                'GitHub repo not configured. Set it in DTB Settings admin page.'
+                'GitHub repo not specified. Use --repo radioactive68/AUTH-Discord-Telegram-Bridge'
             ))
             return
 
@@ -60,7 +61,4 @@ class Command(BaseCommand):
                 self.stderr.write(r2.stderr)
 
         from aa_discord_telegram_bridge.models import DTB_VERSION
-        s.version = DTB_VERSION
-        s.save()
-
         self.stdout.write(self.style.SUCCESS(f'Update complete. Version: {DTB_VERSION}'))

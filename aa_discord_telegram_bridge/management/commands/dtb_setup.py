@@ -120,7 +120,7 @@ class Command(BaseCommand):
                 members.permissions.add(request_perm)
                 self.stdout.write(self.style.SUCCESS('  Added request_groups to Members group'))
 
-            from groupmanagement.models import AuthGroup
+            from allianceauth.groupmanagement.models import AuthGroup
             AuthGroup.objects.get_or_create(
                 group=members,
                 defaults={
