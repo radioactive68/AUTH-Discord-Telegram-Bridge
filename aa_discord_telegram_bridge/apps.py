@@ -88,3 +88,17 @@ def _ensure_dtb_group(sender, **kwargs):
         )
     except Exception:
         pass
+
+    _ensure_members_group()
+
+
+def _ensure_members_group():
+    from django.contrib.auth.models import Group, Permission
+
+    perm = Permission.objects.filter(codename='request_groups').first()
+    if not perm:
+        return
+
+    members, _ = Group.objects.get_or_create(name='Members')
+    if perm not in members.permissions.all():
+        members.permissions.add(perm)

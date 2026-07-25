@@ -71,11 +71,11 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('\nDone! Visit https://<your-domain>/services/ to link Telegram.'))
 
     def _setup_groups(self):
-        from django.contrib.auth.models import Permission
+        from django.contrib.auth.models import Group, Permission, User
         from django.contrib.contenttypes.models import ContentType
         from allianceauth.groupmanagement.models import AuthGroup
 
-        self.stdout.write(self.style.MIGRATE_HEADING('\nSetting up AA Auth Group...'))
+        self.stdout.write(self.style.MIGRATE_HEADING('\nSetting up AA Auth Groups...'))
 
         from aa_discord_telegram_bridge.models import DTBSettings
         ct = ContentType.objects.get_for_model(DTBSettings)
@@ -88,7 +88,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING('  Permissions not found. Run migrate first.'))
             return
 
-        from django.contrib.auth.models import Group
         group, created = Group.objects.get_or_create(name='DTB Admins')
         if created:
             self.stdout.write(self.style.SUCCESS('  Created Group: DTB Admins'))
@@ -113,3 +112,19 @@ class Command(BaseCommand):
         )
         action = 'Created' if ag_created else 'Updated'
         self.stdout.write(self.style.SUCCESS(f'  AuthGroup: {action} (requestable, requires approval)'))
+
+        request_perm = Permission.objects.filter(codename='request_groups').first()
+        if request_perm:
+            members, m_created = Group.objects.get_or_create(name='Members')
+            if request_perm not in members.permissions.all():
+                members.permissions.add(request_perm)
+                self.stdout.write(self.style.SUCCESS('  Added request_groups to Members group'))
+
+            from aa_discord_telegram_bridge.tasks import _user_in_alliance
+            added = 0
+            for u in User.objects.filter(is_active=True, is_superuser=False):
+                if _user_in_alliance(u) and not u.groups.filter(name='Members').exists():
+                    u.groups.add(members)
+                    added += 1
+            if added:
+                self.stdout.write(self.style.SUCCESS(f'  Added {added} alliance users to Members group'))
