@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aa-discord-telegram-bridge"
-version = "1.2.5"
+version = "1.2.6"
 description = "Alliance Auth plugin: Bridge Discord pings to Telegram channels with membership management"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -24,7 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
-    "allianceauth>=3.0",
+    "allianceauth>=5.0",
     "discord.py>=2.0",
     "requests>=2.28",
     "celery>=5.0",

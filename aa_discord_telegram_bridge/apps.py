@@ -5,7 +5,7 @@ import sys
 class DtbConfig(AppConfig):
     name = 'aa_discord_telegram_bridge'
     verbose_name = 'Discord-Telegram Bridge'
-    default_auto_field = 'django.db.models.AutoField'
+    default_auto_field = 'django.db.models.BigAutoField'
 
     def ready(self):
         import aa_discord_telegram_bridge.signals  # noqa: F401
