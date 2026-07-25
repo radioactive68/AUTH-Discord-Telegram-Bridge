@@ -119,6 +119,106 @@ def telegram_webhook(request):
     return JsonResponse({'ok': True})
 
 
+def sync_groups_from_updates():
+    """Process buffered Telegram updates to discover and register groups.
+
+    Called on bot startup so that groups the bot was added to are
+    immediately visible in the admin panel, even if no messages
+    have been exchanged yet.
+    """
+    from .models import TelegramGroup, DTBSettings
+    try:
+        if DTBSettings.load().telegram_webhook_url:
+            return
+    except Exception:
+        pass
+
+    bot = TelegramBotManager()
+    try:
+        resp = bot.get_updates(timeout=1)
+        if not resp.get('ok'):
+            return
+        seen = set()
+        for u in resp.get('result', []):
+            for key in ('message', 'my_chat_member', 'chat_join_request'):
+                msg = u.get(key)
+                if not msg:
+                    continue
+                chat = msg.get('chat')
+                if chat and chat.get('type') in ('group', 'supergroup', 'channel'):
+                    cid = str(chat.get('id', ''))
+                    if cid and cid not in seen:
+                        seen.add(cid)
+                        obj, created = TelegramGroup.objects.get_or_create(
+                            telegram_chat_id=cid,
+                            defaults={
+                                'name': chat.get('title') or chat.get('username', cid),
+                                'chat_type': chat.get('type', 'supergroup'),
+                            },
+                        )
+                        if created:
+                            logger.info('DTB: discovered group %s (%s)', obj.name, cid)
+        logger.info('DTB: group sync complete, found %d groups from updates', len(seen))
+    except Exception as e:
+        logger.error('DTB: group sync failed: %s', e)
+
+
+def sync_invites_for_all_users():
+    """Check all linked users and send invites to groups they are missing.
+
+    Runs periodically so that users get invited to newly-added groups
+    without requiring a re-link.
+    """
+    from .models import TelegramUser, TelegramGroup
+    linked = TelegramUser.objects.filter(is_active=True, telegram_user_id__isnull=False)
+    groups = TelegramGroup.objects.filter(is_active=True, auto_invite=True)
+    if not linked.exists() or not groups.exists():
+        return
+
+    bot = TelegramBotManager()
+    for profile in linked:
+        uid = profile.telegram_user_id
+        chat_id = profile.telegram_chat_id
+        if not uid:
+            continue
+        for group in groups:
+            try:
+                member = bot.get_chat_member(group.telegram_chat_id, uid)
+                if member.get('ok'):
+                    status = member['result'].get('status', '')
+                    if status in ('member', 'administrator', 'creator'):
+                        continue
+            except Exception:
+                pass
+
+            try:
+                bot.unban_chat_member(group.telegram_chat_id, uid)
+                result = bot.add_chat_member(group.telegram_chat_id, uid)
+                if result.get('ok'):
+                    logger.info('DTB: invited user %s to %s', uid, group.name)
+                    continue
+            except Exception:
+                pass
+
+            if chat_id:
+                try:
+                    link_result = bot.create_chat_invite_link(
+                        group.telegram_chat_id,
+                        name=f'DTB invite {uid}',
+                        member_limit=1,
+                    )
+                    if link_result.get('ok'):
+                        invite_url = link_result['result'].get('invite_link')
+                        if invite_url:
+                            bot.send_message(
+                                chat_id=chat_id,
+                                text=f'You have been invited to <b>{group.name}</b>:\n{invite_url}',
+                            )
+                            logger.info('DTB: invited user %s to %s via link', uid, group.name)
+                except Exception:
+                    pass
+
+
 def run_telegram_polling():
     """Long-poll Telegram for updates when no webhook is configured.
 
@@ -136,6 +236,9 @@ def run_telegram_polling():
     bot = TelegramBotManager()
     offset = None
     logger.info('DTB: Telegram polling started.')
+
+    sync_groups_from_updates()
+
     while True:
         try:
             resp = bot.get_updates(offset=offset, timeout=30)

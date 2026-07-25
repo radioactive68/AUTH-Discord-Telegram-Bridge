@@ -184,11 +184,20 @@ def run_bot():
                 from .models import BotStatus
                 from asgiref.sync import sync_to_async
                 import os as _os
+                invite_counter = 0
                 while True:
                     try:
                         await sync_to_async(BotStatus.update_heartbeat)(_os.getpid())
                     except Exception:
                         pass
+                    invite_counter += 1
+                    if invite_counter >= 120:
+                        invite_counter = 0
+                        try:
+                            from .telegram_handler import sync_invites_for_all_users
+                            await sync_to_async(sync_invites_for_all_users)()
+                        except Exception:
+                            pass
                     await asyncio.sleep(30)
 
             bot.loop.create_task(_heartbeat())
@@ -238,11 +247,20 @@ def run_telegram_only():
             import os as _os
             import time as _time
             from .models import BotStatus
+            invite_counter = 0
             while True:
                 try:
                     BotStatus.update_heartbeat(_os.getpid())
                 except Exception:
                     pass
+                invite_counter += 1
+                if invite_counter >= 120:
+                    invite_counter = 0
+                    try:
+                        from .telegram_handler import sync_invites_for_all_users
+                        sync_invites_for_all_users()
+                    except Exception:
+                        pass
                 _time.sleep(30)
 
         threading.Thread(target=_heartbeat, name='dtb-tg-heartbeat', daemon=True).start()
