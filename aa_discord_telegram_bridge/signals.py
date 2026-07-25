@@ -1,7 +1,7 @@
 import logging
 import threading
+import time
 
-from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
@@ -26,25 +26,30 @@ def on_dtb_group_request(sender, instance, **kwargs):
         return
 
     if instance.leave_request:
-        user = instance.user
-        group = instance.group
+        user_pk = instance.user.pk
+        group_pk = instance.group.pk
+        username = instance.user.username
 
         def _do_leave():
-            _dtb_rejecting.active = True
+            time.sleep(2)
+            from django.contrib.auth.models import User as UserModel
+            from django.contrib.auth.models import Group
+            from groupmanagement.models import GroupRequest
             try:
+                user = UserModel.objects.get(pk=user_pk)
+                group = Group.objects.get(pk=group_pk)
                 user.groups.remove(group)
-                GroupRequest = instance.__class__
                 GroupRequest.objects.filter(
                     user=user, group=group, leave_request=True
                 ).delete()
                 logger.info(
                     'Auto-approved leave from DTB Admins for %s',
-                    user.username,
+                    username,
                 )
-            finally:
-                _dtb_rejecting.active = False
+            except Exception:
+                logger.exception('Failed to auto-leave DTB Admins for %s', username)
 
-        transaction.on_commit(_do_leave)
+        threading.Thread(target=_do_leave, daemon=True).start()
         return
 
     from .tasks import _user_in_alliance
