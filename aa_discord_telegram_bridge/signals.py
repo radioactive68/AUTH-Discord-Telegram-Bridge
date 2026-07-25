@@ -1,7 +1,6 @@
 import logging
 import threading
 
-from django.db import connection
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
@@ -17,9 +16,9 @@ DTB_GROUP_NAME = 'DTB Admins'
 def on_dtb_group_request(sender, instance, **kwargs):
     """Handle DTB Admins group requests.
 
-    - Join requests from alliance members are auto-approved (synchronous).
-    - Join requests from non-alliance members are rejected.
-    - Leave requests are handled by GROUPMANAGEMENT_AUTO_LEAVE setting.
+    - Join requests from non-alliance members are auto-rejected.
+    - Join requests from alliance members: left pending for admin approval.
+    - Leave requests: handled by GROUPMANAGEMENT_AUTO_LEAVE setting.
     """
     if getattr(_dtb_rejecting, 'active', False):
         return
@@ -39,34 +38,6 @@ def on_dtb_group_request(sender, instance, **kwargs):
             instance.delete()
         finally:
             _dtb_rejecting.active = False
-        return
-
-    _dtb_rejecting.active = True
-    try:
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "INSERT INTO auth_user_groups (user_id, group_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                    [instance.user.pk, instance.group.pk],
-                )
-        except Exception:
-            logger.exception(
-                'Failed to add %s to DTB Admins group (non-fatal)',
-                instance.user.username,
-            )
-        try:
-            instance.delete()
-        except Exception:
-            logger.exception(
-                'Failed to delete GroupRequest for %s in DTB Admins',
-                instance.user.username,
-            )
-        logger.info(
-            'Auto-approved join to DTB Admins for %s',
-            instance.user.username,
-        )
-    finally:
-        _dtb_rejecting.active = False
 
 
 @receiver(post_save, sender=User)
