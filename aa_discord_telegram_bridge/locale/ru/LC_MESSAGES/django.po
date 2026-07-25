@@ -675,6 +675,14 @@ msgstr "Шаг 1:"
 msgid "send /start to the bot"
 msgstr "отправьте /start боту"
 
+#: services_ctrl.html
+msgid "send"
+msgstr "отправьте"
+
+#: services_ctrl.html
+msgid "to the bot"
+msgstr "боту"
+
 msgid "Step 2:"
 msgstr "Шаг 2:"
 
