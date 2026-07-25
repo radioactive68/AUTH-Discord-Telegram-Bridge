@@ -14,12 +14,27 @@ DTB_GROUP_NAME = 'DTB Admins'
 
 @receiver(post_save, sender='groupmanagement.GroupRequest')
 def on_dtb_group_request(sender, instance, **kwargs):
-    """Restrict DTB Admins group requests to alliance members only."""
+    """Handle DTB Admins group requests.
+
+    - Leave requests from DTB Admins are auto-approved (direct leave).
+    - Join requests to DTB Admins from non-alliance members are rejected.
+    """
     if getattr(_dtb_rejecting, 'active', False):
         return
-    if instance.leave_request:
-        return
     if instance.group.name != DTB_GROUP_NAME:
+        return
+
+    if instance.leave_request:
+        _dtb_rejecting.active = True
+        try:
+            instance.user.groups.remove(instance.group)
+            instance.delete()
+            logger.info(
+                'Auto-approved leave from DTB Admins for %s',
+                instance.user.username,
+            )
+        finally:
+            _dtb_rejecting.active = False
         return
 
     from .tasks import _user_in_alliance
