@@ -1,6 +1,7 @@
 import logging
 import threading
 
+from django.db import connection
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
@@ -43,7 +44,11 @@ def on_dtb_group_request(sender, instance, **kwargs):
     _dtb_rejecting.active = True
     try:
         try:
-            instance.user.groups.add(instance.group)
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO auth_user_groups (user_id, group_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                    [instance.user.pk, instance.group.pk],
+                )
         except Exception:
             logger.exception(
                 'Failed to add %s to DTB Admins group (non-fatal)',
