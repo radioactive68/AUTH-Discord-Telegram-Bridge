@@ -9,6 +9,8 @@ class DtbConfig(AppConfig):
 
     def ready(self):
         import aa_discord_telegram_bridge.signals  # noqa: F401
+        from django.db.models.signals import post_migrate
+        post_migrate.connect(_ensure_dtb_group, sender=self)
 
         is_gunicorn = 'gunicorn' in sys.argv[0] if sys.argv else False
         is_celery = 'celery' in sys.argv[0] if sys.argv else False
@@ -44,3 +46,45 @@ class DtbConfig(AppConfig):
             )
         except Exception:
             pass
+
+
+def _ensure_dtb_group(sender, **kwargs):
+    from django.contrib.auth.models import Group, Permission
+    from django.contrib.contenttypes.models import ContentType
+
+    try:
+        from .models import DTBSettings
+        s = DTBSettings.load()
+    except Exception:
+        return
+
+    if not s.alliance_id:
+        return
+
+    ct = ContentType.objects.get_for_model(DTBSettings)
+    perm_manage = Permission.objects.filter(codename='manage_dtb_rules', content_type=ct).first()
+    if not perm_manage:
+        return
+
+    group, _ = Group.objects.get_or_create(name='DTB Admins')
+
+    for codename in ['manage_dtb_rules', 'access_dtb', 'view_forward_history']:
+        perm = Permission.objects.filter(codename=codename, content_type=ct).first()
+        if perm and perm not in group.permissions.all():
+            group.permissions.add(perm)
+
+    try:
+        from allianceauth.groupmanagement.models import AuthGroup
+        AuthGroup.objects.get_or_create(
+            group=group,
+            defaults={
+                'internal': False,
+                'hidden': False,
+                'open': False,
+                'public': False,
+                'restricted': False,
+                'description': 'Manage Discord-Telegram Bridge rules and settings.',
+            },
+        )
+    except Exception:
+        pass
