@@ -242,10 +242,10 @@ def maybe_start_bot():
                 'DTB: discord.py is not installed. '
                 'Install it with: pip install discord.py'
             )
-            if has_telegram:
-                logger.info('DTB: starting Telegram-only mode.')
-            else:
+            has_discord = False
+            if not has_telegram:
                 return
+            logger.info('DTB: starting Telegram-only mode.')
 
     def _target():
         try:
