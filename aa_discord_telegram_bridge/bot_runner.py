@@ -186,6 +186,35 @@ def run_bot():
             pass
 
 
+def run_telegram_only():
+    """Run Telegram polling without Discord (blocking).
+
+    Used when only a Telegram bot token is configured.  Handles /start,
+    account linking and join-request approvals without requiring discord.py.
+    """
+    from .models import DTBSettings
+    s = DTBSettings.load()
+    if not s.telegram_bot_token:
+        logger.error('DTB: Telegram bot token not configured.')
+        return
+
+    lock = _acquire_lock()
+    if lock is None:
+        logger.info('DTB: bot already running elsewhere (lock held), exiting.')
+        return
+
+    try:
+        from .telegram_handler import run_telegram_polling
+        logger.info('DTB: starting Telegram polling (no Discord).')
+        print('[DTB] Telegram-only mode. Starting polling...', flush=True)
+        run_telegram_polling()
+    finally:
+        try:
+            lock.close()
+        except Exception:
+            pass
+
+
 def maybe_start_bot():
     """Start the bot in a background daemon thread if autostart is enabled.
 
@@ -198,23 +227,32 @@ def maybe_start_bot():
         s = DTBSettings.load()
         if not s.autostart_bot:
             return
-        if not s.discord_bot_token and not s.telegram_bot_token:
+        has_discord = bool(s.discord_bot_token)
+        has_telegram = bool(s.telegram_bot_token)
+        if not has_discord and not has_telegram:
             return
     except Exception:
         return
 
-    try:
-        import discord  # noqa: F401
-    except ImportError:
-        logger.warning(
-            'DTB: discord.py is not installed. '
-            'Install it with: pip install discord.py'
-        )
-        return
+    if has_discord:
+        try:
+            import discord  # noqa: F401
+        except ImportError:
+            logger.warning(
+                'DTB: discord.py is not installed. '
+                'Install it with: pip install discord.py'
+            )
+            if has_telegram:
+                logger.info('DTB: starting Telegram-only mode.')
+            else:
+                return
 
     def _target():
         try:
-            run_bot()
+            if has_discord:
+                run_bot()
+            else:
+                run_telegram_only()
         except Exception:
             logger.error('DTB: bot thread crashed', exc_info=True)
 
