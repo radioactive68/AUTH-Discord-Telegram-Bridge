@@ -205,6 +205,20 @@ def run_telegram_only():
 
     try:
         from .telegram_handler import run_telegram_polling
+
+        def _heartbeat():
+            import os as _os
+            import time as _time
+            from .models import BotStatus
+            while True:
+                try:
+                    BotStatus.update_heartbeat(_os.getpid())
+                except Exception:
+                    pass
+                _time.sleep(30)
+
+        threading.Thread(target=_heartbeat, name='dtb-tg-heartbeat', daemon=True).start()
+
         logger.info('DTB: starting Telegram polling (no Discord).')
         print('[DTB] Telegram-only mode. Starting polling...', flush=True)
         run_telegram_polling()
