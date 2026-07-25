@@ -58,9 +58,6 @@ def _ensure_dtb_group(sender, **kwargs):
     except Exception:
         return
 
-    if not s.alliance_id:
-        return
-
     ct = ContentType.objects.get_for_model(DTBSettings)
     perm_manage = Permission.objects.filter(codename='manage_dtb_rules', content_type=ct).first()
     if not perm_manage:
@@ -73,17 +70,20 @@ def _ensure_dtb_group(sender, **kwargs):
         if perm and perm not in group.permissions.all():
             group.permissions.add(perm)
 
+    is_configured = bool(s.alliance_id)
+
     try:
         from allianceauth.groupmanagement.models import AuthGroup
-        auth_group, created = AuthGroup.objects.update_or_create(
+        AuthGroup.objects.update_or_create(
             group=group,
             defaults={
-                'internal': False,
-                'hidden': False,
+                'internal': not is_configured,
+                'hidden': not is_configured,
                 'open': False,
                 'public': False,
                 'restricted': False,
-                'description': 'Manage Discord-Telegram Bridge rules and settings.',
+                'description': 'Manage Discord-Telegram Bridge rules and settings.'
+                    if is_configured else 'DTB Admins - configure alliance_id to enable.',
             },
         )
     except Exception:

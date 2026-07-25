@@ -1,10 +1,38 @@
 import logging
+import threading
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
+
+_dtb_rejecting = threading.local()
+
+DTB_GROUP_NAME = 'DTB Admins'
+
+
+@receiver(post_save, sender='groupmanagement.GroupRequest')
+def on_dtb_group_request(sender, instance, **kwargs):
+    """Restrict DTB Admins group requests to alliance members only."""
+    if getattr(_dtb_rejecting, 'active', False):
+        return
+    if instance.leave_request:
+        return
+    if instance.group.name != DTB_GROUP_NAME:
+        return
+
+    from .tasks import _user_in_alliance
+    if not _user_in_alliance(instance.user):
+        logger.info(
+            'Rejected DTB Admins request from %s: not in configured alliance',
+            instance.user.username,
+        )
+        _dtb_rejecting.active = True
+        try:
+            instance.delete()
+        finally:
+            _dtb_rejecting.active = False
 
 
 @receiver(post_save, sender=User)
