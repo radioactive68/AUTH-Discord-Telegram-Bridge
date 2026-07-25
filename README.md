@@ -5,6 +5,8 @@ links user Telegram accounts to AA characters and manages Telegram group
 membership based on EVE Online alliance membership. Optionally forwards Discord
 messages to Telegram channels.
 
+**Out-of-the-box** — install, configure tokens, and it works.
+
 ## Features
 
 - **Telegram account linking** — users send `/start` to the bot, receive a
@@ -12,26 +14,33 @@ messages to Telegram channels.
   Telegram account to their AA character.
 - **Alliance membership enforcement** — configurable `alliance_id` ensures only
   members of the specified EVE alliance can stay in Telegram groups. Non-members
-  are automatically kicked.
+  are automatically rejected from join requests and kicked on character update.
 - **Auto-invite** — linked users receive Telegram group invitations. The bot
   tries to add the user directly (`addChatMember`); if Telegram does not allow
-  it (common for supergroups), a one-time invite link is sent to the user via DM.
+  it (common for supergroups), a one-time invite link is sent via DM. Periodic
+  invite sync ensures users get invited to newly-added groups automatically.
 - **Auto-kick on unlink / alliance leave** — when a user unlinks their account,
   leaves the alliance, or their character is updated and no longer matches, they
   are kicked from all Telegram groups.
 - **Discord → Telegram forwarding** (optional) — forward messages from Discord
   channels to Telegram based on configurable rules with keyword filtering.
+  Supports forum topics via `chat_id:thread_id` format.
 - **Telegram-only mode** — works without discord.py or a Discord bot token. If
   only the Telegram token is configured, only Telegram features are activated.
 - **Localized bot messages** — bot responses adapt to the user's AA language
   setting (EN, RU, DE, FR, ZH, JA, KO).
 - **DTB Admins group** — auto-created Alliance Auth group with `manage_dtb_rules`,
   `access_dtb`, and `view_forward_history` permissions. Join requires approval;
-  leave is automatic.
+  leave is automatic (raw SQL bypass).
 - **Members group** — auto-created group with `request_groups` permission so
   users can browse and join AA groups.
-- **Setup wizard** — guided first-time setup page (`/dtb/admin/setup/`) for
-  tokens, connection test, and rules.
+- **Group auto-discovery** — groups are automatically registered when the bot
+  sends a message to them, from ForwardRule targets on startup, and from
+  incoming Telegram updates.
+- **Periodic bot check** — if tokens are configured after gunicorn starts, the
+  bot picks them up automatically within ~60 seconds. No restart needed.
+- **Stale lock detection** — lock files track PID; dead process locks are
+  cleaned up automatically.
 - **Forward history** — a log of every forwarded Discord → Telegram message.
 - **No in-app restart** — the bot starts automatically with the web server.
   Restarting is done at the process level (systemd / supervisor / docker).
@@ -53,13 +62,21 @@ messages to Telegram channels.
 # Activate your Auth virtualenv
 source /path/to/myauth/bin/activate
 
-# From source / git (recommended)
-pip install git+https://github.com/radioactive68/AUTH-Discord-Telegram-Bridge.git
+# From git (recommended)
+cd /path/to/auth_root
+git clone https://github.com/radioactive68/AUTH-Discord-Telegram-Bridge.git dtb
+pip install -e dtb --no-deps
+
+# Dependencies (if not already installed)
+pip install discord.py asgiref
 ```
+
+> **Note**: `--no-deps` avoids pulling in `mysqlclient` which is only needed
+> for MySQL backends. Install remaining deps manually if needed.
 
 ### 2. Add to INSTALLED_APPS
 
-In `myauth/settings/local.py`:
+In `settings.py` (or `local.py`):
 
 ```python
 INSTALLED_APPS = [
@@ -71,20 +88,33 @@ INSTALLED_APPS = [
 ### 3. Run migrations and setup
 
 ```bash
-python manage.py migrate aa_discord_telegram_bridge
+python manage.py migrate
 python manage.py collectstatic --noinput
 python manage.py dtb_setup
 ```
 
 `dtb_setup` creates:
-- **DTB Admins** auth group with DTB management permissions.
-- **Members** auth group with `request_groups` permission.
-- Adds all alliance members to the Members group (if `alliance_id` is set).
+- **DTB Admins** auth group with DTB management permissions (requestable, requires approval).
+- **Members** auth group with `request_groups` permission (public).
+- Validates user membership in configured alliance (if `alliance_id` is set).
+
+Optional arguments:
+
+```bash
+# Set everything in one command
+python manage.py dtb_setup --alliance-id 99003995 --tg-token "YOUR_TOKEN"
+
+# Or configure later in the admin panel
+python manage.py dtb_setup
+```
 
 ### 4. Restart services
 
 ```bash
-# Bare Metal
+# systemd
+systemctl restart aa-gunicorn aa-celery aa-celerybeat
+
+# Supervisor
 supervisorctl restart myauth:
 supervisorctl restart myauth_worker:
 
@@ -131,31 +161,36 @@ Open the DTB Settings page (`/dtb/admin/settings/`) and fill in:
   Leave empty to disable the membership check.
 - **Discord Bot Token** — from the Discord Developer Portal (optional).
 - **Discord Guild ID** — your Discord server ID (optional).
-- **Auto-start bot** — enable to run the bot inside Alliance Auth.
+- **Auto-start bot** — enabled by default. The bot starts with gunicorn.
+
+> **Tip**: You can configure tokens after gunicorn starts. The periodic checker
+> will detect them and start the bot automatically within ~60 seconds.
 
 ## Updating
 
 ```bash
-# Pull latest code (if installed from git)
+# Pull latest code
 cd /path/to/dtb
 git pull
-
-# Or reinstall from git
-pip install --no-deps git+https://github.com/radioactive68/AUTH-Discord-Telegram-Bridge.git
 
 # Run migrations
 python manage.py migrate aa_discord_telegram_bridge
 
 # Restart services
-supervisorctl restart myauth:
+systemctl restart aa-gunicorn aa-celery aa-celerybeat
 ```
 
-Or use the built-in management command:
+## Management Commands
 
-```bash
-python manage.py dtb_update --repo radioactive68/AUTH-Discord-Telegram-Bridge
-python manage.py migrate aa_discord_telegram_bridge
-```
+| Command | Description |
+|---|---|
+| `dtb_setup` | First-time setup: create groups, validate config, sync groups |
+| `dtb_setup --alliance-id X --tg-token Y` | Setup with inline config |
+| `dtb_add_group <chat_id>` | Manually add a Telegram group by chat_id |
+| `dtb_add_group <chat_id> --name "Name"` | Add with custom name |
+| `dtb_sync_groups --fetch-updates` | Discover groups from getUpdates + linked users |
+| `dtb_update --repo radioactive68/AUTH-Discord-Telegram-Bridge` | Pull update from GitHub |
+| `dtb_run_bot` | Run the bot manually (for debugging) |
 
 ## Permissions
 
@@ -172,8 +207,8 @@ python manage.py migrate aa_discord_telegram_bridge
 3. Clicks **Link Telegram** — sees a step-by-step instruction:
    - **Step 1**: Send `/start` to the bot in Telegram.
    - **Step 2**: Copy the verification code from the bot and click **Link Account**.
-4. After linking, the user receives an invite link to configured Telegram groups
-   via DM (Telegram supergroups do not allow bots to add users directly).
+4. After linking, the user is invited to all tracked Telegram groups
+   (directly or via invite link as a fallback).
 5. Clicking **Unlink** removes the link and kicks the user from all groups.
 
 ## Admin flow
@@ -181,8 +216,9 @@ python manage.py migrate aa_discord_telegram_bridge
 1. Log in as superuser or user with `manage_dtb_rules` permission.
 2. Open `/dtb/admin/` — see bot status, validation, user list.
 3. Configure **forwarding rules** (if using Discord forwarding):
-   - Discord channel ID, Telegram target, optional keyword filter.
-4. Manage **Telegram groups** — add/remove groups for auto-invite.
+   - Discord channel ID, Telegram target (supports `chat_id:thread_id` for forum topics),
+     optional keyword filter.
+4. Manage **Telegram groups** — toggle auto-invite per group.
 5. Manage **DTB Admins** group via `/groups/` — approve/reject join requests.
 
 ## Plugin structure
@@ -199,12 +235,11 @@ aa_discord_telegram_bridge/
 ├── auth_hooks.py        # Alliance Auth service hook + URL hook + menu
 ├── tasks.py             # Celery tasks (validation, kick, alliance check)
 ├── signals.py           # Django signals (alliance membership, character update, group requests)
-├── bot_runner.py        # Bot autostart (Telegram-only or Discord+Telegram)
-├── manager.py           # Telegram/Discord API managers
-├── discord_cog.py       # Discord.py cog for forwarding (optional)
-├── telegram_handler.py  # Telegram bot handlers (/start, linking, join requests)
+├── bot_runner.py        # Bot autostart, periodic check, stale lock detection
+├── manager.py           # Telegram/Discord API managers with auto-group registration
+├── telegram_handler.py  # Telegram bot handlers (/start, linking, join requests, group sync)
 ├── permissions.py       # Custom permissions
-├── management/commands/ # dtb_setup, dtb_update, dtb_run_bot
+├── management/commands/ # dtb_setup, dtb_update, dtb_add_group, dtb_sync_groups
 ├── templatetags/        # dtb_tags
 ├── templates/dtb/       # Service overview, admin pages
 └── migrations/          # Database migrations
@@ -215,8 +250,10 @@ aa_discord_telegram_bridge/
 ### Bot does not start
 
 1. Check that the Telegram bot token is set in DTB Settings.
-2. Check logs: `journalctl -u aa_gunicorn | grep DTB`
+2. Check logs: `journalctl -u aa-gunicorn | grep DTB`
 3. If only Telegram is configured, discord.py is not required.
+4. The bot auto-starts within ~60 seconds of token configuration (periodic check).
+5. Stale lock files are auto-cleaned if the previous process died.
 
 ### Telegram bot does not respond to /start
 
@@ -235,12 +272,21 @@ aa_discord_telegram_bridge/
 2. Check `alliance_id` is set correctly in DTB Settings.
 3. Verify the user's EVE character has the correct alliance in ESI data.
 4. The user must have sent `/start` to the bot in Telegram.
+5. Periodic invite sync runs every ~60 minutes for linked users.
 
 ### Kick on alliance leave does not work
 
 1. The bot must be a group admin with the "Ban Users" right.
 2. Check the bot token in DTB Settings.
 3. Check that `telegram_user_id` is saved correctly on link.
+
+### Telegram groups not appearing in admin
+
+Groups are auto-registered when:
+- The bot sends a message to them (forwarding rule fires).
+- They are listed as ForwardRule targets (registered on bot startup).
+- A user sends a message in the group.
+- You add them manually: `python manage.py dtb_add_group <chat_id>`
 
 ## License
 
