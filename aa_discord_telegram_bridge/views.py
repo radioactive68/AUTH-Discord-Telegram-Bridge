@@ -268,6 +268,7 @@ def unlink_telegram(request):
     profile.is_active = False
     profile.telegram_chat_id = ''
     profile.telegram_user_id = None
+    profile.telegram_username = ''
     profile.save()
 
     messages.info(request, _('Telegram account unlinked.'))
