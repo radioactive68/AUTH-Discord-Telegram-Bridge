@@ -257,24 +257,22 @@ def run_telegram_only():
             pass
 
 
-def maybe_start_bot():
-    """Start the bot in a background daemon thread if autostart is enabled.
+def _try_start_bot():
+    """Check settings and start the bot if tokens are configured.
 
-    run_bot() itself holds a file lock so that only a single bot instance
-    runs even when Django is served by multiple workers or the command is
-    launched directly.
+    Returns True if the bot was started, False otherwise.
     """
     try:
         from .models import DTBSettings
         s = DTBSettings.load()
         if not s.autostart_bot:
-            return
+            return False
         has_discord = bool(s.discord_bot_token)
         has_telegram = bool(s.telegram_bot_token)
         if not has_discord and not has_telegram:
-            return
+            return False
     except Exception:
-        return
+        return False
 
     if has_discord:
         try:
@@ -286,7 +284,7 @@ def maybe_start_bot():
             )
             has_discord = False
             if not has_telegram:
-                return
+                return False
             logger.info('DTB: starting Telegram-only mode.')
 
     def _target():
@@ -301,3 +299,52 @@ def maybe_start_bot():
     t = threading.Thread(target=_target, name='dtb-discord-bot', daemon=True)
     t.start()
     logger.info('DTB: bot autostart thread started.')
+    return True
+
+
+def _periodic_bot_check():
+    """Background thread: check every 60s if bot should be running."""
+    import time as _time
+    while True:
+        _time.sleep(60)
+        try:
+            from .models import DTBSettings
+            s = DTBSettings.load()
+            if not s.autostart_bot:
+                continue
+            has_discord = bool(s.discord_bot_token)
+            has_telegram = bool(s.telegram_bot_token)
+            if not has_discord and not has_telegram:
+                continue
+        except Exception:
+            continue
+
+        lock = _acquire_lock()
+        if lock is None:
+            continue
+        try:
+            lock.close()
+        except Exception:
+            pass
+
+        logger.info('DTB: periodic check — tokens detected, starting bot.')
+        print('[DTB] Periodic check: tokens found, starting bot...', flush=True)
+        _try_start_bot()
+
+
+def maybe_start_bot():
+    """Start the bot in a background daemon thread if autostart is enabled.
+
+    run_bot() itself holds a file lock so that only a single bot instance
+    runs even when Django is served by multiple workers or the command is
+    launched directly.
+
+    If tokens are not yet configured, a periodic checker starts that will
+    detect them within ~60 seconds and launch the bot automatically.
+    """
+    started = _try_start_bot()
+    if not started:
+        logger.info('DTB: tokens not configured, starting periodic checker.')
+        print('[DTB] No tokens yet. Periodic check will start bot when tokens appear.', flush=True)
+        t = threading.Thread(target=_periodic_bot_check, name='dtb-periodic-check', daemon=True)
+        t.start()
