@@ -42,15 +42,22 @@ def on_dtb_group_request(sender, instance, **kwargs):
 
     _dtb_rejecting.active = True
     try:
-        instance.user.groups.add(instance.group)
-        instance.delete()
+        try:
+            instance.user.groups.add(instance.group)
+        except Exception:
+            logger.exception(
+                'Failed to add %s to DTB Admins group (non-fatal)',
+                instance.user.username,
+            )
+        try:
+            instance.delete()
+        except Exception:
+            logger.exception(
+                'Failed to delete GroupRequest for %s in DTB Admins',
+                instance.user.username,
+            )
         logger.info(
             'Auto-approved join to DTB Admins for %s',
-            instance.user.username,
-        )
-    except Exception:
-        logger.exception(
-            'Failed to auto-approve join to DTB Admins for %s',
             instance.user.username,
         )
     finally:
