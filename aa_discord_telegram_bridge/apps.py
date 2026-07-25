@@ -75,7 +75,7 @@ def _ensure_dtb_group(sender, **kwargs):
 
     try:
         from allianceauth.groupmanagement.models import AuthGroup
-        AuthGroup.objects.get_or_create(
+        auth_group, created = AuthGroup.objects.update_or_create(
             group=group,
             defaults={
                 'internal': False,

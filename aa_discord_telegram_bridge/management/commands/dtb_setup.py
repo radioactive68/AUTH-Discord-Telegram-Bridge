@@ -100,7 +100,7 @@ class Command(BaseCommand):
                 group.permissions.add(perm)
                 self.stdout.write(f'  Added permission: {perm.codename}')
 
-        auth_group, ag_created = AuthGroup.objects.get_or_create(
+        auth_group, ag_created = AuthGroup.objects.update_or_create(
             group=group,
             defaults={
                 'internal': False,
@@ -111,7 +111,5 @@ class Command(BaseCommand):
                 'description': 'Manage Discord-Telegram Bridge rules and settings.',
             },
         )
-        if ag_created:
-            self.stdout.write(self.style.SUCCESS('  Created AuthGroup (requestable, requires approval)'))
-        else:
-            self.stdout.write('  AuthGroup already exists')
+        action = 'Created' if ag_created else 'Updated'
+        self.stdout.write(self.style.SUCCESS(f'  AuthGroup: {action} (requestable, requires approval)'))
