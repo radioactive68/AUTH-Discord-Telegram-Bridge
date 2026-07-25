@@ -13,8 +13,9 @@ messages to Telegram channels.
 - **Alliance membership enforcement** — configurable `alliance_id` ensures only
   members of the specified EVE alliance can stay in Telegram groups. Non-members
   are automatically kicked.
-- **Auto-invite** — linked users are automatically invited to configured
-  Telegram groups with proper permission checks and invite-link fallback.
+- **Auto-invite** — linked users receive Telegram group invitations. The bot
+  tries to add the user directly (`addChatMember`); if Telegram does not allow
+  it (common for supergroups), a one-time invite link is sent to the user via DM.
 - **Auto-kick on unlink / alliance leave** — when a user unlinks their account,
   leaves the alliance, or their character is updated and no longer matches, they
   are kicked from all Telegram groups.
@@ -171,7 +172,8 @@ python manage.py migrate aa_discord_telegram_bridge
 3. Clicks **Link Telegram** — sees a step-by-step instruction:
    - **Step 1**: Send `/start` to the bot in Telegram.
    - **Step 2**: Copy the verification code from the bot and click **Link Account**.
-4. After linking, the user is automatically invited to configured Telegram groups.
+4. After linking, the user receives an invite link to configured Telegram groups
+   via DM (Telegram supergroups do not allow bots to add users directly).
 5. Clicking **Unlink** removes the link and kicks the user from all groups.
 
 ## Admin flow
@@ -227,11 +229,12 @@ aa_discord_telegram_bridge/
 1. Check that the user has the `dtb.access_dtb` permission (via DTB Admins or
    Members group).
 
-### Auto-invite does not work
+### Auto-invite does not send links
 
 1. The bot must be an admin in the Telegram group with "Invite Users" permission.
 2. Check `alliance_id` is set correctly in DTB Settings.
 3. Verify the user's EVE character has the correct alliance in ESI data.
+4. The user must have sent `/start` to the bot in Telegram.
 
 ### Kick on alliance leave does not work
 
