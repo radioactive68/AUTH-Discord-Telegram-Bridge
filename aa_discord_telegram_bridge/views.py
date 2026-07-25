@@ -396,7 +396,7 @@ def admin_groups(request):
     """Manage known Telegram groups."""
     from .models import DTBSettings, TelegramGroup
     from .forms import TelegramGroupForm
-    groups = TelegramGroup.objects.all()
+    groups = TelegramGroup.objects.exclude(chat_type='private')
     form = TelegramGroupForm()
 
     if request.method == 'POST':
@@ -411,9 +411,12 @@ def admin_groups(request):
                     res = bot.get_chat(chat_id)
                     if res.get('ok'):
                         info = res['result']
+                        chat_type = info.get('type', 'supergroup')
+                        if chat_type == 'private':
+                            messages.error(request, _('Cannot add private chats. Only groups and channels are supported.'))
+                            return redirect('dtb:admin_groups')
                         tg_id = str(info.get('id', chat_id))
                         name = info.get('title') or info.get('username', chat_id)
-                        chat_type = info.get('type', 'supergroup')
                         TelegramGroup.objects.get_or_create(
                             telegram_chat_id=tg_id,
                             defaults={'name': name, 'chat_type': chat_type},
@@ -426,6 +429,16 @@ def admin_groups(request):
                 except Exception as e:
                     messages.error(request, _('Error: %(error)s') % {'error': str(e)})
                 return redirect('dtb:admin_groups')
+
+        elif action == 'toggle_invite':
+            group_id = request.POST.get('group_id')
+            try:
+                g = TelegramGroup.objects.get(id=group_id)
+                g.auto_invite = not g.auto_invite
+                g.save(update_fields=['auto_invite'])
+            except TelegramGroup.DoesNotExist:
+                pass
+            return redirect('dtb:admin_groups')
 
         elif action == 'scan':
             bot = TelegramBotManager()

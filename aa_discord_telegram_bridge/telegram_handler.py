@@ -222,7 +222,7 @@ def _invite_to_groups(bot, telegram_user_id, chat_id=None):
     to the user via DM.
     """
     from .models import TelegramGroup
-    for group in TelegramGroup.objects.filter(is_active=True):
+    for group in TelegramGroup.objects.filter(is_active=True, auto_invite=True):
         try:
             member = bot.get_chat_member(group.telegram_chat_id, telegram_user_id)
             if member.get('ok'):

@@ -71,6 +71,7 @@
                     <th>{% translate "Chat ID" %}</th>
                     <th>{% translate "Type" %}</th>
                     <th>{% translate "Status" %}</th>
+                    <th>{% translate "Auto-invite" %}</th>
                     <th>{% translate "Added" %}</th>
                 </tr>
             </thead>
@@ -87,11 +88,25 @@
                             <span class="badge bg-secondary">{% translate "Inactive" %}</span>
                         {% endif %}
                     </td>
+                    <td>
+                        <form method="post" action="{% url 'dtb:admin_groups' %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_invite">
+                            <input type="hidden" name="group_id" value="{{ group.id }}">
+                            <button type="submit" class="btn btn-sm {% if group.auto_invite %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                                {% if group.auto_invite %}
+                                    <i class="fas fa-check"></i>
+                                {% else %}
+                                    <i class="fas fa-times"></i>
+                                {% endif %}
+                            </button>
+                        </form>
+                    </td>
                     <td>{{ group.added_at|date:"Y-m-d" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center text-muted">
+                    <td colspan="6" class="text-center text-muted">
                         {% translate "No Telegram groups tracked yet." %}
                     </td>
                 </tr>

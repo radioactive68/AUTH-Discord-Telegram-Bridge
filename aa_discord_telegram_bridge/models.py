@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-DTB_VERSION = '1.1.1'
+DTB_VERSION = '1.1.2'
 
 
 class DTBSettings(models.Model):
@@ -71,6 +71,10 @@ class TelegramGroup(models.Model):
         default='supergroup',
     )
     is_active = models.BooleanField(default=True)
+    auto_invite = models.BooleanField(
+        default=True,
+        help_text='Send an invite link to this group when a user links their account.',
+    )
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
