@@ -100,9 +100,9 @@ class TelegramBotManager:
         except Exception:
             pass
 
-    def kick_chat_member(self, chat_id: str, user_id: int) -> dict:
-        """Kick a user from a chat (ban)."""
-        return self._request('kickChatMember', {
+    def ban_chat_member(self, chat_id: str, user_id: int) -> dict:
+        """Ban (kick) a user from a chat."""
+        return self._request('banChatMember', {
             'chat_id': chat_id,
             'user_id': user_id,
         })
@@ -113,13 +113,6 @@ class TelegramBotManager:
             'chat_id': chat_id,
             'user_id': user_id,
             'only_if_banned': True,
-        })
-
-    def add_chat_member(self, chat_id: str, user_id: int) -> dict:
-        """Invite a user to a chat (bot must be an admin with invite rights)."""
-        return self._request('addChatMember', {
-            'chat_id': chat_id,
-            'user_id': user_id,
         })
 
     def get_chat_member(self, chat_id: str, user_id: int) -> dict:
@@ -144,13 +137,6 @@ class TelegramBotManager:
         if offset is not None:
             data['offset'] = offset
         return self._request('getUpdates', data, timeout=timeout + 10)
-
-    def get_chat_member(self, chat_id: str, user_id: int) -> dict:
-        """Get info about a chat member."""
-        return self._request('getChatMember', {
-            'chat_id': chat_id,
-            'user_id': user_id,
-        })
 
     def get_chat(self, chat_id: str) -> dict:
         """Get chat info."""

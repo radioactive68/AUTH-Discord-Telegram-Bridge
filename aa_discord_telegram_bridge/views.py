@@ -278,7 +278,7 @@ def unlink_telegram(request):
 @login_required
 def forward_history(request):
     """View forwarding history (for users with permission)."""
-    if not _has_dtb_permission(request.user):
+    if not request.user.has_perm('aa_discord_telegram_bridge.view_forward_history'):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden('Permission denied.')
 

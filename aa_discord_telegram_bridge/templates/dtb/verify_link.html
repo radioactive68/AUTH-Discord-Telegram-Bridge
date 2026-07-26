@@ -14,9 +14,8 @@
                 <p>{% translate "A verification code has been sent to" %} <strong>@{{ username }}</strong> {% translate "in Telegram." %}</p>
                 <p>{% translate "Please check your Telegram messages and enter the code below." %}</p>
 
-                <form method="post" action="{% url 'dtb:link_telegram' %}">
+                <form method="post" action="{% url 'dtb:verify_link' %}">
                     {% csrf_token %}
-                    <input type="hidden" name="telegram_username" value="{{ username }}">
                     <div class="form-group">
                         <label for="code">{% translate "Verification Code" %}</label>
                         <input type="text" name="code" id="code" class="form-control"

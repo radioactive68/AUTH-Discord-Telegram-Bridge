@@ -28,7 +28,7 @@ class DiscordTelegramBridgeService(ServicesHook):
         ServicesHook.__init__(self)
         self.name = _('Discord-Telegram Bridge')
         self.service_ctrl_template = 'dtb/services_ctrl.html'
-        self.access_perm = None
+        self.access_perm = 'aa_discord_telegram_bridge.access_dtb'
 
     @property
     def title(self):
@@ -88,10 +88,9 @@ class DiscordTelegramBridgeService(ServicesHook):
             from .tasks import _user_in_alliance
 
             # If user has no characters or left alliance, deactivate
-            has_ownership = (
-                (hasattr(user, 'character_ownerships') and user.character_ownerships.exists()) or
-                (hasattr(user, 'character_ownership'))
-            )
+            has_ownership = user.character_ownerships.filter(
+                character__alliance_id__isnull=False
+            ).exists()
             if not has_ownership or not _user_in_alliance(user):
                 self.delete_user(user, notify_user=True)
 

@@ -15,10 +15,9 @@ messages to Telegram channels.
 - **Alliance membership enforcement** — configurable `alliance_id` ensures only
   members of the specified EVE alliance can stay in Telegram groups. Non-members
   are automatically rejected from join requests and kicked on character update.
-- **Auto-invite** — linked users receive Telegram group invitations. The bot
-  tries to add the user directly (`addChatMember`); if Telegram does not allow
-  it (common for supergroups), a one-time invite link is sent via DM. Periodic
-  invite sync ensures users get invited to newly-added groups automatically.
+- **Auto-invite** — linked users receive Telegram group invitations via one-time
+  invite links sent through DM. Periodic invite sync ensures users get invited
+  to newly-added groups automatically.
 - **Auto-kick on unlink / alliance leave** — when a user unlinks their account,
   leaves the alliance, or their character is updated and no longer matches, they
   are kicked from all Telegram groups.
@@ -189,7 +188,6 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat
 | `dtb_add_group <chat_id>` | Manually add a Telegram group by chat_id |
 | `dtb_add_group <chat_id> --name "Name"` | Add with custom name |
 | `dtb_sync_groups --fetch-updates` | Discover groups from getUpdates, linked users, and ForwardRule targets |
-| `dtb_update --repo radioactive68/AUTH-Discord-Telegram-Bridge` | Pull update from GitHub |
 | `dtb_run_bot` | Run the bot manually (for debugging) |
 
 ## Permissions
@@ -204,12 +202,16 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat
 
 1. User opens `/services/` in Alliance Auth.
 2. Sees the "Discord-Telegram Bridge" block.
-3. Clicks **Link Telegram** — sees a step-by-step instruction:
-   - **Step 1**: Send `/start` to the bot in Telegram.
-   - **Step 2**: Copy the verification code from the bot and click **Link Account**.
+3. Clicks **Link Telegram** — two linking methods:
+   - **Auto-link** (preferred): User first sends `/start` to the bot in Telegram,
+     then enters their Telegram username on the portal and clicks Link.
+     The account is linked instantly.
+   - **Code-based**: If the user hasn't sent `/start` yet, a verification code
+     is sent via Telegram DM. User enters the code on the portal to complete linking.
 4. After linking, the user is invited to all tracked Telegram groups
-   (directly or via invite link as a fallback).
-5. Clicking **Unlink** removes the link and kicks the user from all groups.
+   via one-time invite links.
+5. Clicking **Unlink** (or sending `/stop` to the bot) removes the link
+   and kicks the user from all groups.
 
 ## Admin flow
 
@@ -236,10 +238,11 @@ aa_discord_telegram_bridge/
 ├── tasks.py             # Celery tasks (validation, kick, alliance check)
 ├── signals.py           # Django signals (alliance membership, character update, group requests)
 ├── bot_runner.py        # Bot autostart, periodic check, stale lock detection
+├── discord_cog.py       # Discord forwarding cog (embed support, dedup, keyword filter)
 ├── manager.py           # Telegram/Discord API managers with auto-group registration
 ├── telegram_handler.py  # Telegram bot handlers (/start, linking, join requests, group sync)
 ├── permissions.py       # Custom permissions
-├── management/commands/ # dtb_setup, dtb_update, dtb_add_group, dtb_sync_groups
+├── management/commands/ # dtb_setup, dtb_add_group, dtb_sync_groups, dtb_run_bot
 ├── templatetags/        # dtb_tags
 ├── templates/dtb/       # Service overview, admin pages
 └── migrations/          # Database migrations

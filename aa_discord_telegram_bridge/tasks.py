@@ -6,8 +6,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 from .models import (
-    ForwardRule, TelegramUser, ForwardHistory,
-    ConnectionStatus, TelegramGroup, DTBSettings,
+    TelegramUser, ConnectionStatus, TelegramGroup, DTBSettings,
 )
 from .manager import TelegramBotManager, DiscordBotManager
 
@@ -121,10 +120,9 @@ def validate_all_telegram_users(self):
 
             if not authorized:
                 # Check if user has any character ownership
-                has_ownership = (
-                    (hasattr(user, 'character_ownerships') and user.character_ownerships.exists()) or
-                    (hasattr(user, 'character_ownership'))
-                )
+                has_ownership = user.character_ownerships.filter(
+                    character__alliance_id__isnull=False
+                ).exists()
                 if not has_ownership:
                     _kick_user_from_all_groups(telegram_bot, tg_user)
                     tg_user.is_active = False
@@ -201,7 +199,7 @@ def _kick_user_from_all_groups(telegram_bot, tg_user):
     groups = TelegramGroup.objects.filter(is_active=True)
     for group in groups:
         try:
-            result = telegram_bot.kick_chat_member(
+            result = telegram_bot.ban_chat_member(
                 chat_id=group.telegram_chat_id,
                 user_id=tg_user.telegram_user_id,
             )
@@ -220,81 +218,4 @@ def _kick_user_from_all_groups(telegram_bot, tg_user):
             logger.error(
                 'Error kicking user %s from group %s: %s',
                 tg_user.user.username, group.name, e,
-            )
-
-
-@shared_task(bind=True, max_retries=3)
-def forward_message(self, rule_id, discord_channel_id, discord_channel_name,
-                    message_text, message_id, author_name=''):
-    """Forward a single message from Discord to Telegram."""
-    try:
-        rule = ForwardRule.objects.get(pk=rule_id, is_enabled=True)
-    except ForwardRule.DoesNotExist:
-        logger.warning('Rule %s not found or disabled, skipping forward', rule_id)
-        return
-
-    # Check keyword filter
-    if not rule.matches_keywords(message_text):
-        return
-
-    telegram_bot = TelegramBotManager()
-
-    # Format message
-    text = (
-        f'<b>[{rule.name}]</b>\n'
-        f'👤 {author_name}\n\n'
-        f'{message_text}'
-    )
-
-    # Send to target (supports chat_id:thread_id for forum topics)
-    target = TelegramBotManager.parse_target(rule.telegram_target)
-    result = telegram_bot.send_message(
-        chat_id=target['chat_id'],
-        text=text,
-        message_thread_id=target.get('message_thread_id'),
-    )
-
-    # Log to history
-    ForwardHistory.objects.create(
-        rule=rule,
-        source_channel=f'#{discord_channel_name}',
-        target_channel=rule.telegram_target,
-        message_preview=message_text[:500],
-        discord_message_id=str(message_id),
-        success=result.get('ok', False),
-        error_message=result.get('description', '') if not result.get('ok') else '',
-    )
-
-    if not result.get('ok'):
-        logger.error(
-            'Failed to forward message to %s: %s',
-            rule.telegram_target,
-            result.get('description', 'unknown'),
-        )
-
-
-@shared_task(bind=True, max_retries=1)
-def sync_telegram_groups(self):
-    """Sync known Telegram groups by querying the bot for joined groups."""
-    bot = TelegramBotManager()
-    is_ok, _ = bot.test_connection()
-    if not is_ok:
-        logger.error('Cannot sync groups: Telegram bot not connected')
-        return
-
-    # Note: Telegram Bot API doesn't have a direct way to list all groups.
-    # Groups are tracked when the bot is added or when users link.
-    # This task refreshes info for existing groups.
-    for group in TelegramGroup.objects.filter(is_active=True):
-        result = bot.get_chat(group.telegram_chat_id)
-        if result.get('ok'):
-            chat_info = result.get('result', {})
-            group.name = chat_info.get('title', group.name)
-            group.chat_type = chat_info.get('type', group.chat_type)
-            group.save()
-        else:
-            logger.warning(
-                'Could not fetch info for group %s: %s',
-                group.name,
-                result.get('description', 'unknown'),
             )

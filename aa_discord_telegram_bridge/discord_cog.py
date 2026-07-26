@@ -1,3 +1,4 @@
+import html
 import logging
 import re
 
@@ -34,9 +35,9 @@ class DiscordForwarderCog(commands.Cog):
 
         telegram_bot = TelegramBotManager()
         text = (
-            f'<b>[{rule.name}]</b>\n'
-            f'👤 {author_name}\n\n'
-            f'{message_text}'
+            f'<b>[{html.escape(rule.name)}]</b>\n'
+            f'\U0001f464 {html.escape(str(author_name))}\n\n'
+            f'{html.escape(message_text)}'
         )
 
         target = TelegramBotManager.parse_target(rule.telegram_target)

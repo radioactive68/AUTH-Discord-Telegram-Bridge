@@ -1,4 +1,5 @@
 import hashlib
+import html
 import logging
 import time
 
@@ -214,10 +215,6 @@ def sync_invites_for_all_users():
 
             try:
                 bot.unban_chat_member(group.telegram_chat_id, uid)
-                result = bot.add_chat_member(group.telegram_chat_id, uid)
-                if result.get('ok'):
-                    logger.info('DTB: invited user %s to %s', uid, group.name)
-                    continue
             except Exception:
                 pass
 
@@ -341,9 +338,8 @@ def _process_linking_code(code, chat_id, user_id, telegram_username, tg_lang='en
 def _invite_to_groups(bot, telegram_user_id, chat_id=None):
     """Invite a (linked) Telegram user to all tracked active groups.
 
-    Skips groups where the user is already a member. Tries addChatMember
-    first; falls back to creating a one-time invite link and sending it
-    to the user via DM.
+    Skips groups where the user is already a member. Creates a one-time
+    invite link and sends it to the user via DM if a chat_id is available.
     """
     from .models import TelegramGroup
     for group in TelegramGroup.objects.filter(is_active=True, auto_invite=True):
@@ -360,19 +356,13 @@ def _invite_to_groups(bot, telegram_user_id, chat_id=None):
         except Exception:
             pass
 
+        # Try unban first (in case user was previously banned/kicked)
         try:
             bot.unban_chat_member(group.telegram_chat_id, telegram_user_id)
-            result = bot.add_chat_member(group.telegram_chat_id, telegram_user_id)
-            if result.get('ok'):
-                logger.info(
-                    'Invited user %s to Telegram group %s via addChatMember',
-                    telegram_user_id, group.name,
-                )
-                continue
         except Exception:
             pass
 
-        # Fallback: send an invite link to the user via DM
+        # Send an invite link to the user via DM
         if chat_id:
             try:
                 link_result = bot.create_chat_invite_link(
@@ -383,9 +373,10 @@ def _invite_to_groups(bot, telegram_user_id, chat_id=None):
                 if link_result.get('ok'):
                     invite_url = link_result['result'].get('invite_link')
                     if invite_url:
+                        safe_name = html.escape(group.name)
                         bot.send_message(
                             chat_id=chat_id,
-                            text=f'You have been invited to <b>{group.name}</b>:\n{invite_url}',
+                            text=f'You have been invited to <b>{safe_name}</b>:\n{invite_url}',
                         )
                         logger.info(
                             'Invited user %s to Telegram group %s via invite link',
@@ -501,18 +492,25 @@ def _process_join_request(req):
 
 
 def _process_unlink(chat_id, user_id):
-    """Process /stop command - disable notifications."""
+    """Process /stop command - disable notifications and kick from groups."""
     try:
         profile = TelegramUser.objects.get(
             telegram_user_id=user_id,
             telegram_chat_id=chat_id,
         )
+        profile.is_active = False
         profile.save()
 
         bot = TelegramBotManager()
+        try:
+            from .tasks import _kick_user_from_all_groups
+            _kick_user_from_all_groups(bot, profile)
+        except Exception:
+            logger.exception('DTB: error kicking user from groups on /stop')
+
         bot.send_message(
             chat_id=chat_id,
-            text='🔕 Notifications disabled.\nUse /start to re-enable.',
+            text='🔕 Notifications disabled and removed from groups.\nUse /start to re-enable.',
         )
     except TelegramUser.DoesNotExist:
         pass

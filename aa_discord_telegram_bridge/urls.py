@@ -11,6 +11,7 @@ urlpatterns = [
     # User-facing views
     path('', views.services_overview, name='services_overview'),
     path('link/', views.link_telegram, name='link_telegram'),
+    path('verify/', views.verify_link, name='verify_link'),
     path('unlink/', views.unlink_telegram, name='unlink_telegram'),
     path('history/', views.forward_history, name='forward_history'),
     path('status/', views.connection_status, name='connection_status'),
