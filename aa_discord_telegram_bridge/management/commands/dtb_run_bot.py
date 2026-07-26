@@ -12,7 +12,7 @@ class Command(BaseCommand):
     help = 'Run the DTB bot with auto-restart and token wait logic.'
 
     def handle(self, *args, **options):
-        from .models import DTBSettings
+        from aa_discord_telegram_bridge.models import DTBSettings
         from aa_discord_telegram_bridge.bot_runner import run_bot, run_telegram_only
 
         while True:
