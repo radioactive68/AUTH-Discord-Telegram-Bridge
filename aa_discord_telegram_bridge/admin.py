@@ -9,7 +9,7 @@ from .models import (
 class DTBSettingsAdmin(admin.ModelAdmin):
     fields = (
         'telegram_bot_token', 'discord_bot_token', 'discord_guild_id',
-        'alliance_id', 'telegram_webhook_url', 'autostart_bot',
+        'alliance_id', 'telegram_webhook_url',
     )
 
     def has_add_permission(self, request):

@@ -1,24 +1,23 @@
+import os
+import sys
+import time
+import logging
+
 from django.core.management.base import BaseCommand
+
+logger = logging.getLogger('aa_discord_telegram_bridge.bot_runner')
 
 
 class Command(BaseCommand):
     help = 'Run the DTB bot with auto-restart and token wait logic.'
 
     def handle(self, *args, **options):
-        from aa_discord_telegram_bridge.bot_runner import maybe_start_bot, _periodic_bot_check, run_bot, run_telegram_only
-        from aa_discord_telegram_bridge.models import DTBSettings
-        import time
-        import logging
-
-        logger = logging.getLogger('aa_discord_telegram_bridge.bot_runner')
+        from .models import DTBSettings
+        from aa_discord_telegram_bridge.bot_runner import run_bot, run_telegram_only
 
         while True:
             try:
                 s = DTBSettings.load()
-                if not s.autostart_bot:
-                    print('[DTB] autostart_bot is disabled. Waiting 60s...', flush=True)
-                    time.sleep(60)
-                    continue
                 has_discord = bool(s.discord_bot_token)
                 has_telegram = bool(s.telegram_bot_token)
                 if not has_discord and not has_telegram:

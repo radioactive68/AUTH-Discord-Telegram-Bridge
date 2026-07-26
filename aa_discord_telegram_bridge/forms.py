@@ -8,7 +8,7 @@ class DTBSettingsForm(forms.ModelForm):
         model = DTBSettings
         fields = [
             'telegram_bot_token', 'discord_bot_token', 'discord_guild_id',
-            'alliance_id', 'autostart_bot',
+            'alliance_id',
         ]
         widgets = {
             'telegram_bot_token': forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),

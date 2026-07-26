@@ -579,9 +579,6 @@ def admin_settings(request):
         form = DTBSettingsForm(request.POST, instance=s)
         if form.is_valid():
             form.save()
-            if form.instance.autostart_bot:
-                from .bot_runner import maybe_start_bot
-                maybe_start_bot()
             messages.success(request, _('Settings saved.'))
             return redirect('dtb:admin_settings')
     else:

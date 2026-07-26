@@ -184,7 +184,6 @@ Open the DTB Settings page (`/admin/` → DTB Settings) and fill in:
   Leave empty to disable the membership check.
 - **Discord Bot Token** — from the Discord Developer Portal (optional).
 - **Discord Guild ID** — your Discord server ID (optional).
-- **Auto-start bot** — enabled by default.
 
 After saving, start the bot:
 
