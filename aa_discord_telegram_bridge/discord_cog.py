@@ -3,6 +3,7 @@ import logging
 import re
 
 import discord
+from asgiref.sync import sync_to_async
 from discord.ext import commands
 
 from .models import ForwardRule, ForwardHistory
@@ -19,21 +20,38 @@ class DiscordForwarderCog(commands.Cog):
         self._rules_cache = None
         self._rules_cache_time = 0
 
-    def _get_active_rules(self):
+    def _load_rules(self):
+        """Sync helper to load rules from DB."""
+        return list(ForwardRule.objects.filter(is_enabled=True))
+
+    async def _get_active_rules(self):
         """Get active rules, with caching."""
         import time
         now = time.time()
         if self._rules_cache is None or (now - self._rules_cache_time) > 60:
-            self._rules_cache = list(ForwardRule.objects.filter(is_enabled=True))
+            self._rules_cache = await sync_to_async(self._load_rules)()
             self._rules_cache_time = now
         return self._rules_cache
 
-    def _send_to_telegram(self, rule, channel_name, message_text, message_id, author_name):
-        """Send message to Telegram directly (without Celery)."""
+    def _send_sync(self, chat_id, text, message_thread_id):
+        """Sync helper to send message and create history record."""
+        telegram_bot = TelegramBotManager()
+        result = telegram_bot.send_message(
+            chat_id=chat_id,
+            text=text,
+            message_thread_id=message_thread_id,
+        )
+        return result
+
+    def _create_history_sync(self, **kwargs):
+        """Sync helper to create ForwardHistory record."""
+        return ForwardHistory.objects.create(**kwargs)
+
+    async def _send_to_telegram(self, rule, channel_name, message_text, message_id, author_name):
+        """Send message to Telegram directly."""
         if not rule.matches_keywords(message_text):
             return
 
-        telegram_bot = TelegramBotManager()
         text = (
             f'<b>[{html.escape(rule.name)}]</b>\n'
             f'\U0001f464 {html.escape(str(author_name))}\n\n'
@@ -41,13 +59,13 @@ class DiscordForwarderCog(commands.Cog):
         )
 
         target = TelegramBotManager.parse_target(rule.telegram_target)
-        result = telegram_bot.send_message(
+        result = await sync_to_async(self._send_sync)(
             chat_id=target['chat_id'],
             text=text,
             message_thread_id=target.get('message_thread_id'),
         )
 
-        ForwardHistory.objects.create(
+        await sync_to_async(self._create_history_sync)(
             rule=rule,
             source_channel=f'#{channel_name}',
             target_channel=rule.telegram_target,
@@ -71,18 +89,18 @@ class DiscordForwarderCog(commands.Cog):
             return
 
         channel_id = str(message.channel.id)
-        rules = self._get_active_rules()
+        rules = await self._get_active_rules()
 
         for rule in rules:
             if rule.discord_channel_id == channel_id:
-                self._send_to_telegram(
+                await self._send_to_telegram(
                     rule, message.channel.name, message.content,
                     message.id, message.author.display_name,
                 )
                 for embed in message.embeds:
                     embed_text = self._embed_to_text(embed)
                     if embed_text:
-                        self._send_to_telegram(
+                        await self._send_to_telegram(
                             rule, message.channel.name, embed_text,
                             message.id, message.author.display_name,
                         )
