@@ -36,13 +36,11 @@ messages to Telegram channels.
 - **Group auto-discovery** — groups are automatically registered when the bot
   sends a message to them, from ForwardRule targets on startup, and from
   incoming Telegram updates.
-- **Periodic bot check** — if tokens are configured after gunicorn starts, the
-  bot picks them up automatically within ~60 seconds. No restart needed.
+- **Separate systemd service** — the bot runs as its own `aa-dtb-bot.service`,
+  independent of gunicorn. Auto-restarts on crash (`Restart=always`).
 - **Stale lock detection** — lock files track PID; dead process locks are
   cleaned up automatically.
 - **Forward history** — a log of every forwarded Discord → Telegram message.
-- **No in-app restart** — the bot starts automatically with the web server.
-  Restarting is done at the process level (systemd / supervisor / docker).
 
 ## Requirements
 
@@ -107,21 +105,47 @@ python manage.py dtb_setup --alliance-id 99003995 --tg-token "YOUR_TOKEN" --disc
 python manage.py dtb_setup
 ```
 
-### 4. Restart services
+### 4. Set up the DTB bot systemd service
+
+The bot runs as a separate systemd service, independent of gunicorn.
+Create `/etc/systemd/system/aa-dtb-bot.service`:
+
+```ini
+[Unit]
+Description=Alliance Auth DTB Bot (Discord-Telegram Bridge)
+After=network.target aa-gunicorn.service
+Requires=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/path/to/myproject
+Environment=DJANGO_SETTINGS_MODULE=myproject.settings
+ExecStart=/path/to/venv/bin/python manage.py dtb_run_bot
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then enable and start:
+
+```bash
+systemctl daemon-reload
+systemctl enable aa-dtb-bot
+systemctl start aa-dtb-bot
+```
+
+### 5. Restart services
 
 ```bash
 # systemd
 systemctl restart aa-gunicorn aa-celery aa-celerybeat
-
-# Supervisor
-supervisorctl restart myauth:
-supervisorctl restart myauth_worker:
-
-# Docker Compose
-docker compose restart
+# Bot is a separate service — starts with aa-dtb-bot
 ```
 
-### 5. Create the Telegram bot
+### 6. Create the Telegram bot
 
 1. Open Telegram and find [@BotFather](https://t.me/BotFather).
 2. Send `/newbot`.
@@ -133,7 +157,7 @@ docker compose restart
    - Send messages
    - Invite users (for auto-invite to groups)
 
-### 6. Create the Discord bot (optional)
+### 7. Create the Discord bot (optional)
 
 Only needed if you want Discord → Telegram message forwarding.
 
@@ -151,19 +175,29 @@ Only needed if you want Discord → Telegram message forwarding.
    - Invite the bot to your Discord server.
 5. Enable **Developer Mode** in Discord (Settings > Advanced) to copy channel IDs.
 
-### 7. Configure DTB
+### 8. Configure DTB
 
-Open the DTB Settings page (`/dtb/admin/settings/`) and fill in:
+Open the DTB Settings page (`/admin/` → DTB Settings) and fill in:
 
 - **Telegram Bot Token** — from @BotFather.
 - **Alliance ID** — EVE Alliance ID to enforce membership (e.g. `99003995`).
   Leave empty to disable the membership check.
 - **Discord Bot Token** — from the Discord Developer Portal (optional).
 - **Discord Guild ID** — your Discord server ID (optional).
-- **Auto-start bot** — enabled by default. The bot starts with gunicorn.
+- **Auto-start bot** — enabled by default.
 
-> **Tip**: You can configure tokens after gunicorn starts. The periodic checker
-> will detect them and start the bot automatically within ~60 seconds.
+After saving, start the bot:
+
+```bash
+systemctl start aa-dtb-bot
+```
+
+Check that it's running:
+
+```bash
+systemctl status aa-dtb-bot
+journalctl -u aa-dtb-bot -f
+```
 
 ## Updating
 
@@ -175,8 +209,8 @@ git pull
 # Run migrations
 python manage.py migrate aa_discord_telegram_bridge
 
-# Restart services
-systemctl restart aa-gunicorn aa-celery aa-celerybeat
+# Restart all services
+systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 ```
 
 ## Management Commands
@@ -228,7 +262,7 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat
 ```
 aa_discord_telegram_bridge/
 ├── __init__.py
-├── apps.py              # AppConfig (auto-start, post_migrate group setup, deferred bot start)
+├── apps.py              # AppConfig (post_migrate group setup)
 ├── models.py            # Django models (DTBSettings, TelegramUser, ForwardRule, etc.)
 ├── admin.py             # Django admin registration
 ├── views.py             # View functions (services, linking, admin)
@@ -237,8 +271,8 @@ aa_discord_telegram_bridge/
 ├── auth_hooks.py        # Alliance Auth service hook + URL hook + menu
 ├── tasks.py             # Celery tasks (validation, kick, alliance check)
 ├── signals.py           # Django signals (alliance membership, character update, group requests)
-├── bot_runner.py        # Bot autostart, periodic check, stale lock detection
-├── discord_cog.py       # Discord forwarding cog (embed support, dedup, keyword filter)
+├── bot_runner.py        # Bot lifecycle, periodic token check, stale lock detection
+├── discord_cog.py       # Discord forwarding cog (async-safe, embed support, dedup, keyword filter)
 ├── manager.py           # Telegram/Discord API managers with auto-group registration
 ├── telegram_handler.py  # Telegram bot handlers (/start, linking, join requests, group sync)
 ├── permissions.py       # Custom permissions
@@ -252,17 +286,17 @@ aa_discord_telegram_bridge/
 
 ### Bot does not start
 
-1. Check that the Telegram bot token is set in DTB Settings.
-2. Check logs: `journalctl -u aa-gunicorn | grep DTB`
-3. If only Telegram is configured, discord.py is not required.
-4. The bot auto-starts within ~60 seconds of token configuration (periodic check).
+1. Check that tokens are set in DTB Settings (`/admin/` → DTB Settings).
+2. Check bot service: `systemctl status aa-dtb-bot`
+3. Check logs: `journalctl -u aa-dtb-bot -f`
+4. If tokens are empty, the bot waits and retries every 60 seconds.
 5. Stale lock files are auto-cleaned if the previous process died.
 
 ### Telegram bot does not respond to /start
 
 1. Make sure bot privacy is disabled (Bot Settings > Group Privacy > off).
 2. Check the token in DTB Settings.
-3. Check that the bot is running: look for "Telegram polling started" in logs.
+3. Check that the bot is running: `systemctl status aa-dtb-bot`
 
 ### Users cannot see the DTB block on /services/
 
@@ -290,6 +324,17 @@ Groups are auto-registered when:
 - They are listed as ForwardRule targets (registered on bot startup).
 - A user sends a message in the group.
 - You add them manually: `python manage.py dtb_add_group <chat_id>`
+
+### Discord forwarding does not work
+
+1. Ensure `discord.py` is installed: `pip install discord.py`
+2. Check the Discord bot token in DTB Settings.
+3. Ensure the Discord bot is invited to your server with "Send Messages" and
+   "Read Message History" permissions.
+4. Check bot logs for `SynchronousOnlyOperation` errors — this means the code
+   is outdated; update from GitHub.
+5. Verify ForwardRules: Discord channel IDs must match exactly (use Developer Mode
+   to copy IDs). Telegram targets use `chat_id:thread_id` for forum topics.
 
 ## License
 
