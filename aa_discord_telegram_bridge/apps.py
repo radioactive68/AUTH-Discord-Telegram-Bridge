@@ -1,5 +1,4 @@
 from django.apps import AppConfig
-import sys
 
 
 class DtbConfig(AppConfig):
@@ -11,18 +10,6 @@ class DtbConfig(AppConfig):
         import aa_discord_telegram_bridge.signals  # noqa: F401
         from django.db.models.signals import post_migrate
         post_migrate.connect(_on_post_migrate, sender=self)
-
-        is_gunicorn = 'gunicorn' in sys.argv[0] if sys.argv else False
-        is_celery = 'celery' in sys.argv[0] if sys.argv else False
-        is_runserver = sys.argv[1:2] == ['runserver'] if len(sys.argv) > 1 else False
-
-        if is_gunicorn or is_celery or is_runserver:
-            import threading
-            threading.Timer(1.0, self._deferred_start).start()
-
-    def _deferred_start(self):
-        from .bot_runner import maybe_start_bot
-        maybe_start_bot()
 
 
 def _on_post_migrate(sender, **kwargs):
