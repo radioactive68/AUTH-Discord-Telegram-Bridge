@@ -102,7 +102,7 @@ Optional arguments:
 
 ```bash
 # Set everything in one command
-python manage.py dtb_setup --alliance-id 99003995 --tg-token "YOUR_TOKEN"
+python manage.py dtb_setup --alliance-id 99003995 --tg-token "YOUR_TOKEN" --discord-token "YOUR_DISCORD_TOKEN"
 
 # Or configure later in the admin panel
 python manage.py dtb_setup
@@ -188,7 +188,7 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat
 | `dtb_setup --alliance-id X --tg-token Y` | Setup with inline config |
 | `dtb_add_group <chat_id>` | Manually add a Telegram group by chat_id |
 | `dtb_add_group <chat_id> --name "Name"` | Add with custom name |
-| `dtb_sync_groups --fetch-updates` | Discover groups from getUpdates + linked users |
+| `dtb_sync_groups --fetch-updates` | Discover groups from getUpdates, linked users, and ForwardRule targets |
 | `dtb_update --repo radioactive68/AUTH-Discord-Telegram-Bridge` | Pull update from GitHub |
 | `dtb_run_bot` | Run the bot manually (for debugging) |
 
@@ -226,7 +226,7 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat
 ```
 aa_discord_telegram_bridge/
 ├── __init__.py
-├── apps.py              # AppConfig (auto-start, periodic task registration, group setup)
+├── apps.py              # AppConfig (auto-start, post_migrate group setup, deferred bot start)
 ├── models.py            # Django models (DTBSettings, TelegramUser, ForwardRule, etc.)
 ├── admin.py             # Django admin registration
 ├── views.py             # View functions (services, linking, admin)
