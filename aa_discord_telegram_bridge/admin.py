@@ -7,6 +7,11 @@ from .models import (
 
 @admin.register(DTBSettings)
 class DTBSettingsAdmin(admin.ModelAdmin):
+    fields = (
+        'telegram_bot_token', 'discord_bot_token', 'discord_guild_id',
+        'alliance_id', 'telegram_webhook_url', 'autostart_bot',
+    )
+
     def has_add_permission(self, request):
         return not DTBSettings.objects.exists()
 
