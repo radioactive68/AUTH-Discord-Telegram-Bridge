@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1
+- Forward Discord messages from other bots too (removed the blanket bot-message
+  filter). Still drops the plugin's own messages to prevent loops.
+
 ## 1.4.0
 - Kicking a user from Telegram groups now also auto-unlinks their Telegram from
   the portal, so the periodic validation stops re-notifying/re-kicking on every cycle.

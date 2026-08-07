@@ -83,9 +83,9 @@ class DiscordForwarderCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         """Listen for messages in configured Discord channels."""
-        if message.author.bot:
-            return
         if not message.guild:
+            return
+        if message.author.id == self.bot.user.id:
             return
 
         channel_id = str(message.channel.id)
