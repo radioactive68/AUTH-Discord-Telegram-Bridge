@@ -93,17 +93,18 @@ class DiscordForwarderCog(commands.Cog):
 
         for rule in rules:
             if rule.discord_channel_id == channel_id:
-                await self._send_to_telegram(
-                    rule, message.channel.name, message.content,
-                    message.id, message.author.display_name,
-                )
+                combined = message.content or ''
                 for embed in message.embeds:
                     embed_text = self._embed_to_text(embed)
                     if embed_text:
-                        await self._send_to_telegram(
-                            rule, message.channel.name, embed_text,
-                            message.id, message.author.display_name,
-                        )
+                        if combined:
+                            combined += '\n\n'
+                        combined += embed_text
+                if combined:
+                    await self._send_to_telegram(
+                        rule, message.channel.name, combined,
+                        message.id, message.author.display_name,
+                    )
 
     def _embed_to_text(self, embed: discord.Embed) -> str:
         parts = []

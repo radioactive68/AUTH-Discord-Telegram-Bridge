@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2
+- Combine a Discord message's text and embeds into a single Telegram message
+  (previously content and each embed were sent as separate messages).
+
 ## 1.4.1
 - Forward Discord messages from other bots too (removed the blanket bot-message
   filter). Still drops the plugin's own messages to prevent loops.
