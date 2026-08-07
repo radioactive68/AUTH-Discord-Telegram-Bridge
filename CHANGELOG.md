@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.5
+- Removed the leftover "Auto-start bot" row from the setup wizard status list
+  (the `autostart_bot` field was removed in 1.3.0; the bot is managed via
+  `systemctl`, not from the portal).
+
 ## 1.4.4
 - Human-readable Discord mentions in forwarded messages: `<@id>`, `<@&id>`,
   `<#id>` are resolved to nicknames/role/channel names (`clean_content`).
