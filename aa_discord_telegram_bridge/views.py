@@ -256,12 +256,13 @@ def unlink_telegram(request):
         except Exception:
             logger.exception('DTB: failed to send unlink notification')
 
-    # Kick user from all tracked Telegram groups
+    # Kick user from all tracked Telegram groups (no extra notification:
+    # the unlink message above already told the user what happened)
     if tg_user_id:
         try:
             from .tasks import _kick_user_from_all_groups
             bot = TelegramBotManager()
-            _kick_user_from_all_groups(bot, profile)
+            _kick_user_from_all_groups(bot, profile, notify=False)
         except Exception:
             logger.exception('DTB: failed to kick user from Telegram groups on unlink')
 

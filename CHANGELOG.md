@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0
+- Kicking a user from Telegram groups now also auto-unlinks their Telegram from
+  the portal, so the periodic validation stops re-notifying/re-kicking on every cycle.
+- Removed auto-creation of the "DTB Admins" and "Members" auth groups — the
+  plugin no longer modifies Alliance Auth groups. Permissions are granted via
+  normal AA group management (`aa_discord_telegram_bridge.manage_dtb_rules`).
+
 ## 1.3.0
 - Bot moved to dedicated systemd service (`aa-dtb-bot.service`). Removed gunicorn thread approach entirely.
 - Removed `autostart_bot` field — bot is managed via `systemctl`.

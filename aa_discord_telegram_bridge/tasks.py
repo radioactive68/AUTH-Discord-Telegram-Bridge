@@ -166,15 +166,18 @@ def validate_all_telegram_users(self):
     }
 
 
-def _kick_user_from_all_groups(telegram_bot, tg_user):
-    """Kick a user from all known Telegram groups.
+def _kick_user_from_all_groups(telegram_bot, tg_user, notify=True):
+    """Kick a user from all known Telegram groups and unlink their profile.
 
-    Sends a notification to the user's Telegram chat before kicking.
+    Sends a notification to the user's Telegram chat before kicking (unless
+    ``notify`` is False), then clears the Telegram linkage so the profile is no
+    longer tracked (and the periodic validation stops re-notifying/re-kicking
+    on every cycle).
     """
     from django.utils.translation import gettext, override as translation_override
 
     # Send notification before kicking
-    if tg_user.telegram_chat_id:
+    if notify and tg_user.telegram_chat_id:
         try:
             # Get user locale from their AA profile
             lang = 'en'
@@ -186,8 +189,9 @@ def _kick_user_from_all_groups(telegram_bot, tg_user):
             with translation_override(lang):
                 text = gettext(
                     'You have been removed from the alliance Telegram groups '
-                    'because you are no longer a member of the alliance. '
-                    'If you return, you will be re-invited automatically.'
+                    'and your Telegram account has been unlinked from Alliance '
+                    'Auth because you are no longer a member of the alliance. '
+                    'If you rejoin, link your account again to restore access.'
                 )
             telegram_bot.send_message(
                 chat_id=tg_user.telegram_chat_id,
@@ -219,3 +223,14 @@ def _kick_user_from_all_groups(telegram_bot, tg_user):
                 'Error kicking user %s from group %s: %s',
                 tg_user.user.username, group.name, e,
             )
+
+    # Unlink the Telegram profile so the user is no longer tracked and must
+    # re-link through the portal if they rejoin the alliance.
+    tg_user.telegram_chat_id = ''
+    tg_user.telegram_user_id = None
+    tg_user.telegram_username = ''
+    tg_user.is_active = False
+    tg_user.save(update_fields=[
+        'telegram_chat_id', 'telegram_user_id', 'telegram_username', 'is_active',
+    ])
+    logger.info('Unlinked Telegram for user %s', tg_user.user.username)

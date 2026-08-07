@@ -18,9 +18,10 @@ messages to Telegram channels.
 - **Auto-invite** — linked users receive Telegram group invitations via one-time
   invite links sent through DM. Periodic invite sync ensures users get invited
   to newly-added groups automatically.
-- **Auto-kick on unlink / alliance leave** — when a user unlinks their account,
-  leaves the alliance, or their character is updated and no longer matches, they
-  are kicked from all Telegram groups.
+- **Auto-kick + auto-unlink on alliance leave** — when a user leaves the
+  alliance or their character no longer matches, they are kicked from all
+  Telegram groups and their Telegram account is automatically unlinked from the
+  portal. They must link again after returning to the alliance.
 - **Discord → Telegram forwarding** (optional) — forward messages from Discord
   channels to Telegram based on configurable rules with keyword filtering.
   Supports forum topics via `chat_id:thread_id` format.
@@ -28,11 +29,6 @@ messages to Telegram channels.
   only the Telegram token is configured, only Telegram features are activated.
 - **Localized bot messages** — bot responses adapt to the user's AA language
   setting (EN, RU, DE, FR, ZH, JA, KO).
-- **DTB Admins group** — auto-created Alliance Auth group with `manage_dtb_rules`,
-  `access_dtb`, and `view_forward_history` permissions. Join requires approval;
-  leave is automatic (raw SQL bypass).
-- **Members group** — auto-created group with `request_groups` permission so
-  users can browse and join AA groups.
 - **Group auto-discovery** — groups are automatically registered when the bot
   sends a message to them, from ForwardRule targets on startup, and from
   incoming Telegram updates.
@@ -90,10 +86,12 @@ python manage.py collectstatic --noinput
 python manage.py dtb_setup
 ```
 
-`dtb_setup` creates:
-- **DTB Admins** auth group with DTB management permissions (requestable, requires approval).
-- **Members** auth group with `request_groups` permission (public).
-- Validates user membership in configured alliance (if `alliance_id` is set).
+`dtb_setup` saves settings, syncs known Telegram groups, and validates user
+membership in the configured alliance (if `alliance_id` is set).
+
+> **Note**: DTB does not create or modify Alliance Auth groups. Grant the
+> `aa_discord_telegram_bridge.manage_dtb_rules` permission to the users or
+> groups who should manage DTB via your normal AA group management.
 
 Optional arguments:
 
@@ -216,7 +214,7 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 
 | Command | Description |
 |---|---|
-| `dtb_setup` | First-time setup: create groups, validate config, sync groups |
+| `dtb_setup` | First-time setup: set tokens/alliance_id, sync groups, validate config |
 | `dtb_setup --alliance-id X --tg-token Y` | Setup with inline config |
 | `dtb_add_group <chat_id>` | Manually add a Telegram group by chat_id |
 | `dtb_add_group <chat_id> --name "Name"` | Add with custom name |
@@ -227,9 +225,9 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 
 | Permission | Description | Grant to |
 |---|---|---|
-| `dtb.access_dtb` | Shows the DTB block on `/services/` | All alliance members |
-| `dtb.manage_dtb_rules` | Access to admin dashboard, rules, groups, settings | DTB admins |
-| `dtb.view_forward_history` | View the forwarding history log | Optionally to directors+ |
+| `aa_discord_telegram_bridge.access_dtb` | Shows the DTB block on `/services/` | All alliance members |
+| `aa_discord_telegram_bridge.manage_dtb_rules` | Access to admin dashboard, rules, groups, settings | DTB admins |
+| `aa_discord_telegram_bridge.view_forward_history` | View the forwarding history log | Optionally to directors+ |
 
 ## User flow
 
@@ -254,14 +252,15 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
    - Discord channel ID, Telegram target (supports `chat_id:thread_id` for forum topics),
      optional keyword filter.
 4. Manage **Telegram groups** — toggle auto-invite per group.
-5. Manage **DTB Admins** group via `/groups/` — approve/reject join requests.
+5. Grant the `aa_discord_telegram_bridge.manage_dtb_rules` permission to admins
+   via your normal AA group management.
 
 ## Plugin structure
 
 ```
 aa_discord_telegram_bridge/
 ├── __init__.py
-├── apps.py              # AppConfig (post_migrate group setup)
+├── apps.py              # AppConfig (post_migrate periodic tasks)
 ├── models.py            # Django models (DTBSettings, TelegramUser, ForwardRule, etc.)
 ├── admin.py             # Django admin registration
 ├── views.py             # View functions (services, linking, admin)
@@ -269,7 +268,7 @@ aa_discord_telegram_bridge/
 ├── forms.py             # Django forms
 ├── auth_hooks.py        # Alliance Auth service hook + URL hook + menu
 ├── tasks.py             # Celery tasks (validation, kick, alliance check)
-├── signals.py           # Django signals (alliance membership, character update, group requests)
+├── signals.py           # Django signals (alliance membership, character update)
 ├── bot_runner.py        # Bot lifecycle, periodic token check, stale lock detection
 ├── discord_cog.py       # Discord forwarding cog (async-safe, embed support, dedup, keyword filter)
 ├── manager.py           # Telegram/Discord API managers with auto-group registration
@@ -299,8 +298,8 @@ aa_discord_telegram_bridge/
 
 ### Users cannot see the DTB block on /services/
 
-1. Check that the user has the `dtb.access_dtb` permission (via DTB Admins or
-   Members group).
+1. Check that the user has the `aa_discord_telegram_bridge.access_dtb`
+   permission (grant it to alliance members via your normal AA group management).
 
 ### Auto-invite does not send links
 

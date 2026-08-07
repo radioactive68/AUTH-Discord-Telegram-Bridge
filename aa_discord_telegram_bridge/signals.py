@@ -1,64 +1,10 @@
 import logging
-import threading
 
-from django.db import connection
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
-
-_dtb_rejecting = threading.local()
-
-DTB_GROUP_NAME = 'DTB Admins'
-
-
-@receiver(post_save, sender='groupmanagement.GroupRequest')
-def on_dtb_group_request(sender, instance, **kwargs):
-    """Handle DTB Admins group requests.
-
-    - Join requests from non-alliance members are auto-rejected.
-    - Join requests from alliance members: left pending for admin approval.
-    - Leave requests: auto-approved via raw SQL (bypasses Celery/AMQP issues).
-    """
-    if getattr(_dtb_rejecting, 'active', False):
-        return
-    if instance.group.name != DTB_GROUP_NAME:
-        return
-
-    if instance.leave_request:
-        _dtb_rejecting.active = True
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "DELETE FROM auth_user_groups WHERE user_id = %s AND group_id = %s",
-                    [instance.user.pk, instance.group.pk],
-                )
-            instance.delete()
-            logger.info(
-                'Auto-approved leave from DTB Admins for %s',
-                instance.user.username,
-            )
-        except Exception:
-            logger.exception(
-                'Failed to auto-leave DTB Admins for %s',
-                instance.user.username,
-            )
-        finally:
-            _dtb_rejecting.active = False
-        return
-
-    from .tasks import _user_in_alliance
-    if not _user_in_alliance(instance.user):
-        logger.info(
-            'Rejected DTB Admins request from %s: not in configured alliance',
-            instance.user.username,
-        )
-        _dtb_rejecting.active = True
-        try:
-            instance.delete()
-        finally:
-            _dtb_rejecting.active = False
 
 
 @receiver(post_save, sender=User)
