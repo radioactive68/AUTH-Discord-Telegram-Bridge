@@ -39,10 +39,10 @@
             <form method="post" action="{% url 'dtb:link_telegram' %}">
                 {% csrf_token %}
                 <div class="mb-2">
-                    <label for="id_telegram_username" class="form-label"><strong>{% translate "Step 2:" %}</strong> {% translate "enter your Telegram username" %}</label>
+                    <label for="id_telegram_username" class="form-label"><strong>{% translate "Step 2:" %}</strong> {% translate "enter your Telegram username or ID" %}</label>
                     <div class="input-group input-group-sm">
                         <input type="text" name="telegram_username" id="id_telegram_username"
-                                class="form-control" placeholder="{% translate 'Telegram @username' %}" required>
+                                class="form-control" placeholder="{% translate 'Telegram @username or ID' %}" required>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-link"></i> {% translate "Link Account" %}
                         </button>

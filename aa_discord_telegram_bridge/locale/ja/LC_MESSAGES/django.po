@@ -481,8 +481,8 @@ msgstr "ステップ 2："
 
 
 
-msgid "enter your Telegram username"
-msgstr "Telegramのusernameを入力"
+msgid "enter your Telegram username or ID"
+msgstr "TelegramのusernameまたはIDを入力"
 
 msgid "Link Account"
 msgstr "アカウントをリンク"
@@ -550,10 +550,8 @@ msgstr ""
 "連携後、アライアンスのTelegramグループへの招待リンクが送信されます"
 
 #: services_overview.html:122
-msgid "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
-msgstr ""
-"以下にTelegramユーザー名を入力して「アカウントを連携」をクリックしてください。"
-"アライアンスのTelegramグループへの招待リンクが送信されます。"
+msgid "Enter your Telegram username or ID below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
+msgstr "下に Telegram username または ID を入力して Link Account をクリックしてください。アライアンスの Telegram グループへの招待リンクが届きます。"
 
 msgid "Admin Tools:"
 msgstr "管理ツール:"
@@ -674,5 +672,7 @@ msgstr "こんにちは！\n"
 "2. ユーザー名がない場合は上記の ID を入力します\n"
 "3. Link Account をクリックします"
 
-msgid "Telegram @username"
-msgstr "Telegram @username"
+msgid "Telegram @username or ID"
+msgstr "Telegram @username または ID"
+msgid "Telegram Username or ID"
+msgstr "Telegram username または ID"

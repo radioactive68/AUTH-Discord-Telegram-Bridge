@@ -685,8 +685,8 @@ msgstr "步骤 2："
 
 
 #: services_ctrl.html:61
-msgid "enter your Telegram username"
-msgstr "输入您的 Telegram username"
+msgid "enter your Telegram username or ID"
+msgstr "输入您的 Telegram username 或 ID"
 
 #: services_ctrl.html:66
 #: services_overview.html:100
@@ -770,9 +770,8 @@ msgstr ""
 "绑定后，您将收到联盟Telegram群组的邀请链接"
 
 #: services_overview.html:122
-msgid "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
-msgstr ""
-"在下方输入您的Telegram用户名并点击「关联账号」。您将收到联盟Telegram群组的邀请链接。"
+msgid "Enter your Telegram username or ID below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
+msgstr "在下方输入您的 Telegram username 或 ID，然后点击 Link Account。您将收到联盟 Telegram 群的邀请链接。"
 
 #: services_overview.html:128
 msgid "Admin Tools:"
@@ -915,5 +914,7 @@ msgstr "你好！\n"
 "2. 如果没有用户名，请输入上面的数字 ID\n"
 "3. 点击 Link Account"
 
-msgid "Telegram @username"
-msgstr "Telegram @username"
+msgid "Telegram @username or ID"
+msgstr "Telegram @username 或 ID"
+msgid "Telegram Username or ID"
+msgstr "Telegram username 或 ID"

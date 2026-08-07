@@ -691,8 +691,8 @@ msgstr "Schritt 2:"
 
 
 #: services_ctrl.html:61
-msgid "enter your Telegram username"
-msgstr "geben Sie Ihren Telegram-Username ein"
+msgid "enter your Telegram username or ID"
+msgstr "geben Sie Ihren Telegram-Username oder Ihre ID ein"
 
 #: services_ctrl.html:66
 #: services_overview.html:100
@@ -781,11 +781,8 @@ msgstr ""
 "Nach dem Verlinken erhalten Sie einen Einladungslink zu den Alliance-Telegram-Gruppen"
 
 #: services_overview.html:122
-msgid "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
-msgstr ""
-"Geben Sie Ihren Telegram-Benutzernamen ein und klicken Sie auf "
-"\"Konto verbinden\". Sie erhalten einen Einladungslink zu den "
-"Alliance-Telegram-Gruppen."
+msgid "Enter your Telegram username or ID below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
+msgstr "Geben Sie unten Ihren Telegram-Username oder Ihre ID ein und klicken Sie auf „Link Account“. Sie erhalten einen Einladungslink in die Telegram-Gruppe(n) der Allianz."
 
 #: services_overview.html:128
 msgid "Admin Tools:"
@@ -938,5 +935,7 @@ msgstr "Hallo!\n"
 "2. Wenn du keinen Benutzernamen hast - gib die ID oben ein\n"
 "3. Klicke auf Link Account"
 
-msgid "Telegram @username"
-msgstr "Telegram @username"
+msgid "Telegram @username or ID"
+msgstr "Telegram @username oder ID"
+msgid "Telegram Username or ID"
+msgstr "Telegram-Username oder ID"

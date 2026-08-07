@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.8
+- Link Account form now says "username or ID" (label, placeholder and step 2
+  instructions) so users registering by numeric ID are not confused.
+
 ## 1.4.7
 - Link Telegram by numeric user ID: users without a @username can register by
   entering the numeric ID the bot shows in the /start reply. The pending link

@@ -690,8 +690,8 @@ msgstr "단계 2:"
 
 
 #: services_ctrl.html:61
-msgid "enter your Telegram username"
-msgstr "Telegram username을 입력하세요"
+msgid "enter your Telegram username or ID"
+msgstr "Telegram username 또는 ID를 입력하세요"
 
 #: services_ctrl.html:66
 #: services_overview.html:100
@@ -776,10 +776,8 @@ msgstr ""
 "연동 후, 얼라이언스 Telegram 그룹 초대 링크가 전송됩니다"
 
 #: services_overview.html:122
-msgid "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
-msgstr ""
-"아래에 Telegram 사용자 이름을 입력하고 '계정 연결'을 클릭하세요. "
-"얼라이언스 Telegram 그룹 초대 링크가 전송됩니다."
+msgid "Enter your Telegram username or ID below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
+msgstr "아래에 Telegram username 또는 ID를 입력하고 Link Account를 클릭하세요. 얼라이언스 Telegram 그룹 초대 링크를 받게 됩니다."
 
 #: services_overview.html:128
 msgid "Admin Tools:"
@@ -923,5 +921,7 @@ msgstr "안녕하세요!\n"
 "2. 사용자 이름이 없으면 위의 ID를 입력하세요\n"
 "3. Link Account를 클릭하세요"
 
-msgid "Telegram @username"
-msgstr "Telegram @username"
+msgid "Telegram @username or ID"
+msgstr "Telegram @username 또는 ID"
+msgid "Telegram Username or ID"
+msgstr "Telegram username 또는 ID"

@@ -699,8 +699,8 @@ msgstr "Шаг 2:"
 
 
 #: services_ctrl.html:61
-msgid "enter your Telegram username"
-msgstr "введите ваше имя пользователя в Telegram"
+msgid "enter your Telegram username or ID"
+msgstr "введите ваш Telegram username или ID"
 
 #: services_ctrl.html:66
 #: services_overview.html:100
@@ -786,10 +786,8 @@ msgstr ""
 "После привязки вы получите ссылку-приглашение в Telegram группу(ы) альянса"
 
 #: services_overview.html:122
-msgid "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
-msgstr ""
-"Введите ваш Telegram username ниже и нажмите «Привязать аккаунт». Вы получите "
-"ссылку-приглашение в Telegram группу(ы) альянса."
+msgid "Enter your Telegram username or ID below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram."
+msgstr "Введите ваш Telegram username или ID ниже и нажмите «Привязать аккаунт». Вы получите ссылку-приглашение в Telegram группу(ы) альянса."
 
 #: services_overview.html:128
 msgid "Admin Tools:"
@@ -931,5 +929,7 @@ msgstr "Привет!\n"
 "2. Если username нет - введите числовой ID выше\n"
 "3. Нажмите Link Account"
 
-msgid "Telegram @username"
-msgstr "Telegram @username"
+msgid "Telegram @username or ID"
+msgstr "Telegram @username или ID"
+msgid "Telegram Username or ID"
+msgstr "Telegram username или ID"

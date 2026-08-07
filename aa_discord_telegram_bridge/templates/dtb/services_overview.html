@@ -76,7 +76,7 @@
                     <p>
                         <small class="text-muted">
                             <strong>{% translate "Step 2:" %}</strong>
-                            {% translate "Enter your Telegram username below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram." %}
+                            {% translate "Enter your Telegram username or ID below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram." %}
                         </small>
                     </p>
 
@@ -84,7 +84,7 @@
                         {% csrf_token %}
                         <div class="input-group">
                             <input type="text" name="telegram_username" id="id_telegram_username"
-                                    class="form-control" placeholder="{% translate 'Telegram @username' %}" required>
+                                    class="form-control" placeholder="{% translate 'Telegram @username or ID' %}" required>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-link"></i> {% translate "Link Account" %}
                             </button>
