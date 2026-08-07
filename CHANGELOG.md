@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.3
+- Ship translation catalogs (`locale/**`) in the installed package — previously
+  `pip install` dropped them, so bot messages always fell back to English.
+
 ## 1.4.2
 - Combine a Discord message's text and embeds into a single Telegram message
   (previously content and each embed were sent as separate messages).
