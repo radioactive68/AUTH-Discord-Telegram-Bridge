@@ -93,7 +93,7 @@ class DiscordForwarderCog(commands.Cog):
 
         for rule in rules:
             if rule.discord_channel_id == channel_id:
-                combined = message.content or ''
+                combined = message.clean_content or ''
                 for embed in message.embeds:
                     embed_text = self._embed_to_text(embed)
                     if embed_text:

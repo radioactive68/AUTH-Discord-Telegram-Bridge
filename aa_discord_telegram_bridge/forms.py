@@ -71,7 +71,7 @@ class TelegramUserLinkForm(forms.Form):
         max_length=100,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': _('@username or username'),
+            'placeholder': _('Telegram @username'),
         }),
         label=_('Telegram Username'),
     )

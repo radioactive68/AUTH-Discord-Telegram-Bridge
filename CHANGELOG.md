@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.4
+- Human-readable Discord mentions in forwarded messages: `<@id>`, `<@&id>`,
+  `<#id>` are resolved to nicknames/role/channel names (`clean_content`).
+- New users without a Telegram @username get a clear step-by-step /start reply
+  telling them to create a username in Telegram Settings first.
+- Services page: username field placeholder is now "Telegram @username" and the
+  Link Account button sits right next to the field (input-group), same as on
+  the DTB page.
+
 ## 1.4.3
 - Ship translation catalogs (`locale/**`) in the installed package — previously
   `pip install` dropped them, so bot messages always fell back to English.

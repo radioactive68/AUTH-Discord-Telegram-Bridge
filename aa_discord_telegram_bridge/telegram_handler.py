@@ -426,10 +426,14 @@ def _process_plain_start(user_id, chat_id, username, tg_lang='en'):
         else:
             with translation_override(tg_lang):
                 text = gettext(
-                    'Hello! To link your account, open Alliance Auth -> '
-                    'Discord-Telegram Bridge -> Link Account and enter your '
-                    'Telegram username. (You need a Telegram @username set in '
-                    'your profile to link.)'
+                    'Hello!\n'
+                    'To link your account you need a Telegram @username, but '
+                    'your account does not have one set yet.\n\n'
+                    '1. Open Telegram -> Settings -> Username\n'
+                    '2. Create a username (for example @yourname)\n'
+                    '3. Press /start here again\n'
+                    '4. Open Alliance Auth -> Discord-Telegram Bridge -> '
+                    'Link Account and enter your @username.'
                 )
             bot.send_message(chat_id=chat_id, text=text)
         return
