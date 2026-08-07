@@ -1,5 +1,4 @@
 ﻿import logging
-from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
@@ -93,23 +92,25 @@ def link_telegram(request):
 
     form = TelegramUserLinkForm(request.POST)
     if form.is_valid():
-        username = form.cleaned_data['telegram_username'].lstrip('@')
+        identifier = form.cleaned_data['telegram_username'].strip().lstrip('@')
 
-        # Clean up stale pending requests.
-        TelegramLinkRequest.objects.filter(
-            created_at__lt=timezone.now() - timedelta(minutes=15)
-        ).delete()
-
-        # Auto-link if the user already started the bot from this Telegram account.
-        pending = TelegramLinkRequest.objects.filter(
-            username__iexact=username,
-            created_at__gte=timezone.now() - timedelta(minutes=15),
-        ).order_by('-created_at').first()
+        # Auto-link if the user already started the bot from this Telegram
+        # account. Match by username, or by numeric Telegram ID when the user
+        # has no username set. There is no expiry window: a pending request
+        # stays valid until it is used.
+        if identifier.isdigit():
+            pending = TelegramLinkRequest.objects.filter(
+                telegram_user_id=identifier,
+            ).order_by('-created_at').first()
+        else:
+            pending = TelegramLinkRequest.objects.filter(
+                username__iexact=identifier,
+            ).order_by('-created_at').first()
 
         if pending and pending.telegram_user_id:
             profile.telegram_user_id = pending.telegram_user_id
             profile.telegram_chat_id = pending.chat_id
-            profile.telegram_username = pending.username or username
+            profile.telegram_username = pending.username or ''
             profile.is_active = True
             profile.save()
 
@@ -126,59 +127,21 @@ def link_telegram(request):
             except Exception:
                 logger.exception('DTB: error finalizing auto-link')
 
-            messages.success(
-                request,
-                _('Telegram account @%(username)s linked successfully!') % {'username': profile.telegram_username}
-            )
+            if profile.telegram_username:
+                messages.success(
+                    request,
+                    _('Telegram account @%(username)s linked successfully!') % {'username': profile.telegram_username}
+                )
+            else:
+                messages.success(request, _('Telegram account linked successfully!'))
             return redirect('dtb:services_overview')
 
-        # Fallback: generate a linking code and DM it to the user.
-        from django.conf import settings
-        bot = TelegramBotManager()
-        is_ok, msg = bot.test_connection()
-
-        if not is_ok:
-            messages.error(request, _('Telegram bot connection failed: %(msg)s') % {'msg': msg})
-            return redirect('dtb:services_overview')
-
-        # Generate a linking code
-        import hashlib
-        import time
-        code = hashlib.sha256(
-            f'{request.user.id}:{settings.SECRET_KEY}:{time.time()}'.encode()
-        ).hexdigest()[:8].upper()
-
-        # Store code in session for verification
-        request.session['dtb_link_code'] = code
-        request.session['dtb_link_username'] = username
-        request.session['dtb_link_time'] = time.time()
-
-        # Try to send a DM to the user via Telegram
-        result = bot.send_message(
-            chat_id=username,
-            text=(
-                f'Your Alliance Auth linking code: <b>{code}</b>\n\n'
-                f'Go back to Auth and enter this code to complete linking.'
-            ),
+        # No pending /start found for this identifier.
+        messages.error(
+            request,
+            _('No pending link found for "%(identifier)s". Open the bot, press /start, then click Link Account again.') % {'identifier': identifier}
         )
-
-        if result.get('ok'):
-            messages.info(
-                request,
-                _('A verification code has been sent to @%(username)s. '
-                'Enter it below to complete linking.') % {'username': username}
-            )
-            return render(request, 'dtb/verify_link.html', {
-                'username': username,
-            })
-        else:
-            messages.error(
-                request,
-                _('Could not send message to @%(username)s. '
-                'Make sure you have started a chat with the bot first, '
-                'and that the username is correct.') % {'username': username}
-            )
-            return redirect('dtb:services_overview')
+        return redirect('dtb:services_overview')
 
     messages.error(request, _('Invalid username. Please try again.'))
     return redirect('dtb:services_overview')

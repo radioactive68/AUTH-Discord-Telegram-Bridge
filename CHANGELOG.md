@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.7
+- Link Telegram by numeric user ID: users without a @username can register by
+  entering the numeric ID the bot shows in the /start reply. The pending link
+  request no longer expires after 15 minutes.
+- Removed the broken verification-code fallback (sendMessage to a @username)
+  and replaced it with a clear "press /start first" message.
+- Services pages now show users who are linked without a username (numeric ID
+  is displayed instead).
+
 ## 1.4.6
 - Settings page "Back" button now returns to the DTB admin dashboard
   (`/dtb/admin/`) instead of the rules list.

@@ -5,8 +5,10 @@
         <h5 class="mb-0"><i class="fab fa-telegram"></i> {% translate "Discord-Telegram Bridge" %}</h5>
     </div>
     <div class="card-body">
-        {% if profile.telegram_username %}
-            <p><strong>{% translate "Linked as:" %}</strong> @{{ profile.telegram_username }}</p>
+        {% if profile.telegram_user_id %}
+            <p><strong>{% translate "Linked as:" %}</strong>
+                {% if profile.telegram_username %}@{{ profile.telegram_username }}{% else %}{{ profile.telegram_user_id }}{% endif %}
+            </p>
             <p>
                 <strong>{% translate "Status:" %}</strong>
                 {% if profile.is_active %}
