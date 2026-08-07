@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.6
+- Settings page "Back" button now returns to the DTB admin dashboard
+  (`/dtb/admin/`) instead of the rules list.
+
 ## 1.4.5
 - Removed the leftover "Auto-start bot" row from the setup wizard status list
   (the `autostart_bot` field was removed in 1.3.0; the bot is managed via
