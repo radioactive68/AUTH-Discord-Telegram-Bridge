@@ -1,4 +1,6 @@
-﻿import logging
+import logging
+import subprocess
+import shlex
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
@@ -610,4 +612,33 @@ def admin_setup(request):
         'current_version': DTB_VERSION,
     }
     return render(request, 'dtb/admin_setup.html', ctx)
+
+
+@login_required
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+def admin_logs(request):
+    """View bot service logs (journalctl)."""
+    line_count = int(request.GET.get('lines', 100))
+    line_count = max(20, min(line_count, 500))
+    errors_only = request.GET.get('errors', '') == '1'
+    service_name = 'aa-dtb-bot'
+
+    cmd = f'journalctl -u {shlex.quote(service_name)} -n {line_count} --no-pager --no-hostname'
+    if errors_only:
+        cmd += ' -p err'
+
+    try:
+        result = subprocess.run(
+            cmd, shell=True, capture_output=True, text=True, timeout=10,
+        )
+        output = result.stdout.strip() if result.returncode == 0 else result.stderr.strip()
+    except Exception as e:
+        output = f'Error running journalctl: {e}'
+
+    return render(request, 'dtb/admin_logs.html', {
+        'log_output': output,
+        'line_count': line_count,
+        'errors_only': errors_only,
+        'service_name': service_name,
+    })
 

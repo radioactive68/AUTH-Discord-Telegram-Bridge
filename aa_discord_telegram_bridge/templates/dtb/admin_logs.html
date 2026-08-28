@@ -1,0 +1,51 @@
+{% extends 'allianceauth/base-bs5.html' %}
+{% load i18n %}
+
+{% block page_title %}{% translate "DTB Bot Logs" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2><i class="fas fa-scroll"></i> {% translate "DTB Bot Logs" %}</h2>
+        <hr>
+        <a href="{% url 'dtb:admin_index' %}" class="btn btn-secondary btn-sm mb-3">
+            <i class="fas fa-arrow-left"></i> {% translate "Back" %}
+        </a>
+
+        <form method="get" class="mb-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <label class="form-label mb-0" for="lines">{% translate "Lines:" %}</label>
+                </div>
+                <div class="col-auto">
+                    <input type="number" name="lines" id="lines" class="form-control form-control-sm"
+                           value="{{ line_count }}" min="20" max="500" step="20">
+                </div>
+                <div class="col-auto">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="errors" id="errors" value="1"
+                               {% if errors_only %}checked{% endif %}>
+                        <label class="form-check-label" for="errors">{% translate "Errors only" %}</label>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye"></i> {% translate "View" %}
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <a href="{% url 'dtb:admin_logs' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-redo"></i> {% translate "Reset" %}
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        {% if log_output %}
+            <pre class="bg-dark text-light p-3 rounded" style="max-height: 70vh; overflow-y: auto; font-size: 0.8rem; white-space: pre-wrap; word-break: break-word;">{{ log_output }}</pre>
+        {% else %}
+            <div class="alert alert-info">{% translate "No log output. The service may not exist on this server." %}</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

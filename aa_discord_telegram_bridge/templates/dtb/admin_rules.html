@@ -1,4 +1,4 @@
-﻿{% extends 'allianceauth/base-bs5.html' %}
+{% extends 'allianceauth/base-bs5.html' %}
 {% load i18n %}
 
 {% block page_title %}{% translate "Manage Forward Rules" %}{% endblock %}
@@ -8,7 +8,7 @@
     <div class="col-md-12">
         <h2>{% translate "Manage Forward Rules" %}</h2>
         <hr>
-        <a href="{% url 'dtb:services_overview' %}" class="btn btn-secondary btn-sm mb-3">
+        <a href="{% url 'dtb:admin_index' %}" class="btn btn-secondary btn-sm mb-3">
             <i class="fas fa-arrow-left"></i> {% translate "Back" %}
         </a>
         <a href="{% url 'dtb:admin_setup' %}" class="btn btn-info btn-sm mb-3">

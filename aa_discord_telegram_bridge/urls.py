@@ -27,5 +27,6 @@ urlpatterns = [
     path('admin/validate/', views.admin_validate_now, name='admin_validate_now'),
     path('admin/test/', views.admin_test_connection, name='admin_test_connection'),
     path('admin/settings/', views.admin_settings, name='admin_settings'),
+    path('admin/logs/', views.admin_logs, name='admin_logs'),
     path('admin/setup/', views.admin_setup, name='admin_setup'),
 ]

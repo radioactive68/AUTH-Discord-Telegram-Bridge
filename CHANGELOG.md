@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.9
+- Admin "Back" buttons on Rules and Groups pages now return to the admin
+  dashboard (`/dtb/admin/`) instead of the user services page.
+- New "Bot Logs" page in the admin dashboard (`/dtb/admin/logs/`) that shows
+  the `aa-dtb-bot` journalctl output, with line-count and errors-only options
+  and localisation for all 6 languages.
+
 ## 1.4.8
 - Link Account form now says "username or ID" (label, placeholder and step 2
   instructions) so users registering by numeric ID are not confused.
