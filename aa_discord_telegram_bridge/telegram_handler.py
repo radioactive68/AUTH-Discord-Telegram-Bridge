@@ -3,6 +3,7 @@ import html
 import logging
 import time
 
+from django.db import connections, close_old_connections
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -255,7 +256,14 @@ def run_telegram_polling():
     offset = None
     logger.info('DTB: Telegram polling started.')
 
-    sync_groups_from_updates()
+    # The polling thread runs forever in the background. Django DB
+    # connections are per-thread and go stale (MySQL drops idle ones), which
+    # causes "Lost connection to MySQL server during query". Close old
+    # connections periodically so each DB access gets a fresh connection.
+    try:
+        sync_groups_from_updates()
+    finally:
+        close_old_connections()
 
     while True:
         try:
@@ -266,6 +274,15 @@ def run_telegram_polling():
                         _dispatch_update(update)
                     except Exception:
                         logger.exception('DTB: error dispatching Telegram update')
+                    finally:
+                        # Force-close the thread's DB connections after every
+                        # update dispatch so a stale connection can never
+                        # break the next one.
+                        for conn in connections.all():
+                            try:
+                                conn.close()
+                            except Exception:
+                                pass
                     offset = update.get('update_id', 0) + 1
             else:
                 desc = resp.get('description', '')

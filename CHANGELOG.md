@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.10
+- Telegram polling thread now force-closes its DB connections after every
+  update dispatch, fixing "Lost connection to MySQL server during query" in
+  the long-running background thread. Without this, `/start` and other
+  updates would occasionally fail (and the reply be lost) once the MySQL
+  idle connection went stale.
+
 ## 1.4.9
 - Admin "Back" buttons on Rules and Groups pages now return to the admin
   dashboard (`/dtb/admin/`) instead of the user services page.
