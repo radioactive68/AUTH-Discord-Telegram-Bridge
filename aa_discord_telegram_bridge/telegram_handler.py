@@ -328,17 +328,22 @@ def _process_linking_code(code, chat_id, user_id, telegram_username, tg_lang='en
                         profile.is_active = True
                         profile.save()
 
-                        # Send confirmation
+                        # Send confirmation first, then invite links (the
+                        # "successfully linked" message refers to the account
+                        # pairing; Telegram does not reliably tell the bot when
+                        # a user actually joins a group via an invite link).
                         bot = TelegramBotManager()
-                        _invite_to_groups(bot, user_id, chat_id=chat_id)
                         _send_localized(
                             chat_id, user_id,
                             lambda: gettext(
                                 'Successfully linked!\n\n'
                                 'You will now receive notifications from Alliance Auth.\n'
+                                'If you are not yet a member of the Telegram group(s),\n'
+                                'invite links follow below — tap one to join.\n'
                                 'Use /stop to disable notifications.'
                             ),
                         )
+                        _invite_to_groups(bot, user_id, chat_id=chat_id)
 
                         logger.info(
                             'User %s linked Telegram account @%s (chat_id: %s)',

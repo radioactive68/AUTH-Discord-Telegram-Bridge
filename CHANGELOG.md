@@ -1,6 +1,13 @@
 # Changelog
 
 ## 1.6.1
+- **Link flow wording/order**: the "Successfully linked!" confirmation is now
+  sent before the group invite links and mentions that invite links follow
+  (a bot cannot reliably know when a user actually joins via an invite link).
+- **l10n fix**: multi-line strings in the `.po` files were stored with literal
+  `\\n` instead of newline escapes, so those translations never matched and
+  users outside the English/zh locales saw the English fallback. Fixed for the
+  link-confirmation message.
 - **Dependency fix**: `pyproject.toml` now declares `py-cord>=2.0` instead of
   `discord.py>=2.0`. The two distributions share the `discord/` namespace;
   a `discord.py` requirement clobbered `py-cord` and broke

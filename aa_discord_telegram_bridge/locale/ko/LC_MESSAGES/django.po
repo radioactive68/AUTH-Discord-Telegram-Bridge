@@ -899,8 +899,8 @@ msgstr "Telegram 연결은 구성된 얼라이언스의 멤버만 사용할 수 
 msgid "Discord-Telegram Bridge"
 msgstr "Discord-Telegram Bridge"
 
-msgid "Successfully linked!\\n\\nYou will now receive notifications from Alliance Auth.\\nUse /stop to disable notifications."
-msgstr "링크가 완료되었습니다!\\n\\n이제 Alliance Auth에서 알림을 받으실 수 있습니다.\\n/stop으로 알림을 비활성화할 수 있습니다."
+msgid "Successfully linked!\n\nYou will now receive notifications from Alliance Auth.\nIf you are not yet a member of the Telegram group(s),\ninvite links follow below — tap one to join.\nUse /stop to disable notifications."
+msgstr "링크가 완료되었습니다!\n\n이제 Alliance Auth에서 알림을 받으실 수 있습니다.\n아직 Telegram 그룹에 가입하지 않으셨다면,\n아래에 초대 링크가 이어서 전송됩니다 — 누르면 가입됩니다.\n/stop으로 알림을 비활성화할 수 있습니다."
 
 #, python-format
 msgid "Hello! To link your account:\\n1. Open Alliance Auth -> Discord-Telegram Bridge\\n2. Click \"Link Account\"\\n3. Enter your Telegram username: @%(username)s\\n4. Click Link - you will receive an invite to the alliance Telegram group(s)\\n\\nI will send a confirmation here once it is done."

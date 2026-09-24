@@ -892,8 +892,8 @@ msgstr "Telegram 绑定仅对已配置联盟的成员可用。"
 msgid "Discord-Telegram Bridge"
 msgstr "Discord-Telegram Bridge"
 
-msgid "Successfully linked!\n\nYou will now receive notifications from Alliance Auth.\nUse /stop to disable notifications."
-msgstr "绑定成功！\n\n您现在将收到来自 Alliance Auth 的通知。\n使用 /stop 停止通知。"
+msgid "Successfully linked!\n\nYou will now receive notifications from Alliance Auth.\nIf you are not yet a member of the Telegram group(s),\ninvite links follow below — tap one to join.\nUse /stop to disable notifications."
+msgstr "绑定成功！\n\n您现在将收到来自 Alliance Auth 的通知。\n如果您还不是 Telegram 群的成员，\n下方将附带邀请链接——点击即可加入。\n使用 /stop 停止通知。"
 
 #, python-format
 msgid "Hello! To link your account:\n1. Open Alliance Auth -> Discord-Telegram Bridge\n2. Click \"Link Account\"\n3. Enter your Telegram username: @%(username)s\n4. Click Link - you will receive an invite to the alliance Telegram group(s)\n\nI will send a confirmation here once it is done."

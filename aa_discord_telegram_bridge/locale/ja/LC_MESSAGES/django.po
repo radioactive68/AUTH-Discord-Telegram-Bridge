@@ -651,8 +651,8 @@ msgstr "Telegramリンクは設定されたアライアンスのメンバーの�
 msgid "Discord-Telegram Bridge"
 msgstr "Discord-Telegram Bridge"
 
-msgid "Successfully linked!\\n\\nYou will now receive notifications from Alliance Auth.\\nUse /stop to disable notifications."
-msgstr "リンクが完了しました！\\n\\nAlliance Auth からの通知を受け取るようになりました。\\n/stop で通知を停止できます。"
+msgid "Successfully linked!\n\nYou will now receive notifications from Alliance Auth.\nIf you are not yet a member of the Telegram group(s),\ninvite links follow below — tap one to join.\nUse /stop to disable notifications."
+msgstr "リンクが完了しました！\n\nAlliance Auth からの通知を受け取れるようになりました。\nまだ Telegram グループに参加していない場合、\n下に招待リンクが続けて届きます — タップして参加してください。\n/stop で通知を停止できます。"
 
 msgid "Hello! To link your account:\\n1. Open Alliance Auth -> Discord-Telegram Bridge\\n2. Click \"Link Account\"\\n3. Enter your Telegram username: @%(username)s\\n4. Click Link - you will receive an invite to the alliance Telegram group(s)\\n\\nI will send a confirmation here once it is done."
 msgstr "こんにちは！アカウントをリンクするには：\\n1. Alliance Auth -> Discord-Telegram Bridge を開く\\n2. 「Link Account」をクリック\\n3. Telegram ユーザー名を入力：@%(username)s\\n4. Link をクリック - アライアンスのTelegramグループへの招待が届きます\\n\\n完了後、ここで確認メッセージを送信します。"
