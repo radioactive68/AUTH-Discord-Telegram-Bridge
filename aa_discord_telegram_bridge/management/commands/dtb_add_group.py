@@ -12,7 +12,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         from aa_discord_telegram_bridge.models import TelegramGroup
 
-        chat_id = options['chat_id']
+        # Strip forum-thread suffixes so a supergroup never gets registered
+        # multiple times under different strings (e.g. -100...:2 or /2 vs
+        # the base id). The base chat id is the only thing stored.
+        chat_id = options['chat_id'].replace('/', ':').split(':')[0].strip()
         name = options['name']
         chat_type = options['type']
 

@@ -73,6 +73,7 @@
                     <th>{% translate "Status" %}</th>
                     <th>{% translate "Auto-invite" %}</th>
                     <th>{% translate "Added" %}</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -103,10 +104,21 @@
                         </form>
                     </td>
                     <td>{{ group.added_at|date:"Y-m-d" }}</td>
+                    <td class="text-end">
+                        <form method="post" action="{% url 'dtb:admin_groups' %}"
+                              onsubmit="return confirm('{% translate "Delete this group?" %}')">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_group">
+                            <input type="hidden" name="group_id" value="{{ group.id }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" title="{% translate 'Delete' %}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center text-muted">
+                    <td colspan="7" class="text-center text-muted">
                         {% translate "No Telegram groups tracked yet." %}
                     </td>
                 </tr>

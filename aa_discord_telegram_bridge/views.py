@@ -431,6 +431,18 @@ def admin_groups(request):
                 pass
             return redirect('dtb:admin_groups')
 
+        elif action == 'delete_group':
+            group_id = request.POST.get('group_id')
+            group = TelegramGroup.objects.filter(id=group_id).first()
+            if group:
+                name = group.name or group.telegram_chat_id
+                group.delete()
+                messages.success(
+                    request,
+                    _('Group "%(name)s" deleted.') % {'name': name},
+                )
+            return redirect('dtb:admin_groups')
+
         elif action == 'scan':
             bot = TelegramBotManager()
             verified = 0

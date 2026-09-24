@@ -140,7 +140,7 @@ def sync_groups_from_updates():
 
     # 1. Register groups from ForwardRule targets
     for rule in ForwardRule.objects.filter(is_enabled=True):
-        target = rule.telegram_target.split(':')[0].strip()
+        target = rule.telegram_target.replace('/', ':').split(':')[0].strip()
         if target and not TelegramGroup.objects.filter(telegram_chat_id=target).exists():
             try:
                 result = bot.get_chat(target)
