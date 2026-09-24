@@ -61,7 +61,7 @@ git clone https://github.com/radioactive68/AUTH-Discord-Telegram-Bridge.git dtb
 pip install -e dtb --no-deps
 
 # Dependencies (if not already installed)
-pip install discord.py asgiref
+pip install py-cord asgiref
 ```
 
 > **Note**: `--no-deps` avoids pulling in `mysqlclient` which is only needed
@@ -325,7 +325,9 @@ Groups are auto-registered when:
 
 ### Discord forwarding does not work
 
-1. Ensure `discord.py` is installed: `pip install discord.py`
+1. Ensure `py-cord` is installed: `pip install py-cord` (or that
+   `allianceauth-discordbot` is installed — it provides the same `discord`
+   package).
 2. Check the Discord bot token in DTB Settings.
 3. Ensure the Discord bot is invited to your server with "Send Messages" and
    "Read Message History" permissions.

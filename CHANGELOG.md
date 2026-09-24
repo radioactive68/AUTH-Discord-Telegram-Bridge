@@ -1,6 +1,16 @@
 # Changelog
 
 ## 1.6.1
+- **Dependency fix**: `pyproject.toml` now declares `py-cord>=2.0` instead of
+  `discord.py>=2.0`. The two distributions share the `discord/` namespace;
+  a `discord.py` requirement clobbered `py-cord` and broke
+  `allianceauth-discordbot`'s authbot (`ImportError: ApplicationContext`) on
+  standard AA installs.
+- **cog load fix**: `await bot.add_cog(...)` crashed under py-cord (its
+  `add_cog` is synchronous and returns `None`), aborting `on_ready` before the
+  heartbeat task started — the Discord forwarder stayed dead and the status
+  page showed "Stopped". The add is now awaited only when the call returns a
+  coroutine, so both discord.py and py-cord work.
 - **py-cord compatibility**: the Discord cog is now loaded from `on_ready`
   instead of overriding `setup_hook`. py-cord (installed when
   `allianceauth-discordbot` is present) never calls `setup_hook`, so on such
