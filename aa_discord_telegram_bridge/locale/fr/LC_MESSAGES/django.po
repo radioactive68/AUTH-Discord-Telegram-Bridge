@@ -719,6 +719,8 @@ msgid "User %(name)s kicked from Telegram groups and unlinked."
 msgstr "Utilisateur %(name)s expulsé des groupes Telegram et compte dissocié."
 msgid "Kick failed: %(error)s"
 msgstr "Échec de l'expulsion : %(error)s"
+msgid "Failed to kick %(name)s from any group. Profile kept linked; will retry automatically."
+msgstr "Échec de l'expulsion de %(name)s de tous les groupes. Le profil reste lié ; nouvelle tentative automatique."
 msgid "Linked Telegram accounts"
 msgstr "Comptes Telegram liés"
 

@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.6.1
+- **py-cord compatibility**: the Discord cog is now loaded from `on_ready`
+  instead of overriding `setup_hook`. py-cord (installed when
+  `allianceauth-discordbot` is present) never calls `setup_hook`, so on such
+  installs the forwarder cog never loaded. Works with both discord.py and
+  py-cord.
+- **Bot token redaction**: Telegram/Discord API error strings (which can
+  stringify the API URL containing the bot token) are scrubbed before they
+  are written to log lines or stored in the `error_message` columns of
+  `ConnectionStatus` / `ForwardHistory`.
+- **Kick = ban + immediate unban**: removed users are no longer banned
+  permanently — they can rejoin the groups (previously they sat banned in
+  every group until they re-linked).
+- **No unlink on failed kick**: the Telegram profile is only unlinked when a
+  kick actually succeeded (or there are no groups). If every ban fails, the
+  profile stays linked so the periodic validation retries, instead of
+  Alliance Auth believing the user was unlinked while they are still present
+  in the groups.
+- Admin Chat Members page and the bot's `/stop` now report when no group
+  kick succeeded.
+
 ## 1.6.0
 - Chat Members page no longer blocks while fetching data: the page renders
   instantly from the DB and Telegram display names, bot flags and group-admin

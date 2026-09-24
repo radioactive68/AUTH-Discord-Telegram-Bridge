@@ -800,11 +800,17 @@ def admin_member_kick(request, user_pk):
     profile = get_object_or_404(TelegramUser, user=user_pk)
     bot = TelegramBotManager()
     try:
-        _kick_user_from_all_groups(bot, profile, notify=False)
-        messages.success(
-            request,
-            _('User %(name)s kicked from Telegram groups and unlinked.') % {'name': profile.user.username},
-        )
+        kicked = _kick_user_from_all_groups(bot, profile, notify=False)
+        if kicked:
+            messages.success(
+                request,
+                _('User %(name)s kicked from Telegram groups and unlinked.') % {'name': profile.user.username},
+            )
+        else:
+            messages.warning(
+                request,
+                _('Failed to kick %(name)s from any group. Profile kept linked; will retry automatically.') % {'name': profile.user.username},
+            )
     except Exception as e:
         messages.error(request, _('Kick failed: %(error)s') % {'error': str(e)})
     return redirect('dtb:admin_members')

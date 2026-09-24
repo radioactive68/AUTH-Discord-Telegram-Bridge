@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import timedelta
 
 from celery import shared_task
@@ -8,7 +9,7 @@ from django.contrib.auth.models import User
 from .models import (
     TelegramUser, ConnectionStatus, TelegramGroup, DTBSettings,
 )
-from .manager import TelegramBotManager, DiscordBotManager
+from .manager import TelegramBotManager, DiscordBotManager, redact_secrets
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +26,10 @@ def test_connections(self):
             'is_connected': is_ok,
             'last_checked': timezone.now(),
             'last_success': timezone.now() if is_ok else None,
-            'error_message': '' if is_ok else msg,
+            'error_message': '' if is_ok else redact_secrets(msg),
         },
     )
-    logger.info('Telegram connection test: %s - %s', is_ok, msg)
+    logger.info('Telegram connection test: %s - %s', is_ok, redact_secrets(msg))
 
     # Discord
     bot = DiscordBotManager()
@@ -39,10 +40,10 @@ def test_connections(self):
             'is_connected': is_ok,
             'last_checked': timezone.now(),
             'last_success': timezone.now() if is_ok else None,
-            'error_message': '' if is_ok else msg,
+            'error_message': '' if is_ok else redact_secrets(msg),
         },
     )
-    logger.info('Discord connection test: %s - %s', is_ok, msg)
+    logger.info('Discord connection test: %s - %s', is_ok, redact_secrets(msg))
 
 
 def _user_in_alliance(user):
@@ -145,10 +146,11 @@ def validate_all_telegram_users(self):
 
             # A deactivated Django user always loses Telegram access
             if not user.is_active:
-                _kick_user_from_all_groups(telegram_bot, tg_user)
+                kicked = _kick_user_from_all_groups(telegram_bot, tg_user)
                 tg_user.is_active = False
                 tg_user.save()
-                kicked_count += 1
+                if kicked:
+                    kicked_count += 1
                 continue
 
             # Trusted Alliance Auth administrators are always authorized
@@ -160,10 +162,11 @@ def validate_all_telegram_users(self):
                     character__alliance_id__isnull=False
                 ).exists()
                 if not has_ownership:
-                    _kick_user_from_all_groups(telegram_bot, tg_user)
+                    kicked = _kick_user_from_all_groups(telegram_bot, tg_user)
                     tg_user.is_active = False
                     tg_user.save()
-                    kicked_count += 1
+                    if kicked:
+                        kicked_count += 1
                     continue
 
                 # Check alliance membership
@@ -172,10 +175,11 @@ def validate_all_telegram_users(self):
                         'User %s no longer in alliance, kicking from Telegram',
                         user.username,
                     )
-                    _kick_user_from_all_groups(telegram_bot, tg_user)
+                    kicked = _kick_user_from_all_groups(telegram_bot, tg_user)
                     tg_user.is_active = False
                     tg_user.save()
-                    kicked_count += 1
+                    if kicked:
+                        kicked_count += 1
                     continue
 
             # User is in good standing: ensure the profile is active.
@@ -189,7 +193,7 @@ def validate_all_telegram_users(self):
         except Exception as e:
             logger.error(
                 'Error validating Telegram user %s: %s',
-                tg_user.user.username, e,
+                tg_user.user.username, redact_secrets(str(e)),
             )
 
     logger.info(
@@ -205,15 +209,26 @@ def validate_all_telegram_users(self):
 def _kick_user_from_all_groups(telegram_bot, tg_user, notify=True):
     """Kick a user from all known Telegram groups and unlink their profile.
 
-    Sends a notification to the user's Telegram chat before kicking (unless
-    ``notify`` is False), then clears the Telegram linkage so the profile is no
-    longer tracked (and the periodic validation stops re-notifying/re-kicking
-    on every cycle).
+    Uses Telegram's kick semantics — ``banChatMember`` followed shortly by
+    ``unbanChatMember`` — so the user is removed from the group but is NOT
+    banned permanently: they can still rejoin (e.g. when they come back to
+    the alliance).
+
+    The Telegram linkage is only cleared when at least one group kick
+    actually succeeded (or there are no groups to kick). If every kick
+    failed the profile stays linked, so the periodic validation keeps
+    retrying — otherwise Alliance Auth would believe the user was unlinked
+    while they are still present in the Telegram groups.
+
+    Returns True if the user was actually removed (or there was nothing to
+    do), False if every kick attempt failed.
     """
     from django.utils.translation import gettext, override as translation_override
 
+    groups = TelegramGroup.objects.filter(is_active=True)
+
     # Send notification before kicking
-    if notify and tg_user.telegram_chat_id:
+    if notify and groups and tg_user.telegram_chat_id:
         try:
             # Get user locale from their AA profile
             lang = 'en'
@@ -236,29 +251,58 @@ def _kick_user_from_all_groups(telegram_bot, tg_user, notify=True):
         except Exception:
             pass  # Best effort — user may have blocked the bot
 
-    groups = TelegramGroup.objects.filter(is_active=True)
+    kicked_any = False
     for group in groups:
+        user_id = tg_user.telegram_user_id
         try:
             result = telegram_bot.ban_chat_member(
                 chat_id=group.telegram_chat_id,
-                user_id=tg_user.telegram_user_id,
+                user_id=user_id,
             )
             if result.get('ok'):
-                logger.info(
-                    'Kicked user %s from Telegram group %s',
-                    tg_user.user.username, group.name,
-                )
+                # Immediately lift the ban so the user can rejoin later.
+                # The short pause lets Telegram record the ban first.
+                time.sleep(1)
+                try:
+                    unban_result = telegram_bot.unban_chat_member(
+                        chat_id=group.telegram_chat_id,
+                        user_id=user_id,
+                    )
+                except Exception as e:
+                    unban_result = {'ok': False, 'description': redact_secrets(str(e))}
+                if unban_result.get('ok'):
+                    kicked_any = True
+                    logger.info(
+                        'Kicked user %s from Telegram group %s',
+                        tg_user.user.username, group.name,
+                    )
+                else:
+                    logger.warning(
+                        'Kicked but could not lift the ban for user %s in group %s: %s',
+                        tg_user.user.username, group.name,
+                        redact_secrets(unban_result.get('description', 'unknown')),
+                    )
             else:
                 logger.warning(
                     'Failed to kick user %s from group %s: %s',
                     tg_user.user.username, group.name,
-                    result.get('description', 'unknown'),
+                    redact_secrets(result.get('description', 'unknown')),
                 )
         except Exception as e:
             logger.error(
                 'Error kicking user %s from group %s: %s',
-                tg_user.user.username, group.name, e,
+                tg_user.user.username, group.name, redact_secrets(str(e)),
             )
+
+    if not groups:
+        kicked_any = True
+    elif not kicked_any:
+        logger.error(
+            'Could not kick user %s from any Telegram group; keeping the '
+            'profile linked so validation can retry.',
+            tg_user.user.username,
+        )
+        return False
 
     # Unlink the Telegram profile so the user is no longer tracked and must
     # re-link through the portal if they rejoin the alliance.
@@ -270,3 +314,4 @@ def _kick_user_from_all_groups(telegram_bot, tg_user, notify=True):
         'telegram_chat_id', 'telegram_user_id', 'telegram_username', 'is_active',
     ])
     logger.info('Unlinked Telegram for user %s', tg_user.user.username)
+    return True

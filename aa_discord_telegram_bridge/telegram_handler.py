@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.utils.translation import override as translation_override, gettext
 
 from .models import TelegramUser, TelegramLinkRequest
-from .manager import TelegramBotManager
+from .manager import TelegramBotManager, redact_secrets
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +157,7 @@ def sync_groups_from_updates():
                         )
                         logger.info('DTB: registered group from rule %s: %s', rule.name, target)
             except Exception as e:
-                logger.warning('DTB: could not register group %s: %s', target, e)
+                logger.warning('DTB: could not register group %s: %s', target, redact_secrets(str(e)))
 
     # 2. Register groups from getUpdates
     try:
@@ -183,7 +183,7 @@ def sync_groups_from_updates():
                             )
             logger.info('DTB: group sync complete, total groups: %d', TelegramGroup.objects.count())
     except Exception as e:
-        logger.error('DTB: group sync failed: %s', e)
+        logger.error('DTB: group sync failed: %s', redact_secrets(str(e)))
 
 
 def sync_invites_for_all_users():
@@ -285,7 +285,7 @@ def run_telegram_polling():
                                 pass
                     offset = update.get('update_id', 0) + 1
             else:
-                desc = resp.get('description', '')
+                desc = redact_secrets(resp.get('description', ''))
                 if 'Conflict' in desc or 'webhook' in desc.lower():
                     logger.warning(
                         'DTB: Telegram webhook is set elsewhere (conflict). '
@@ -299,7 +299,7 @@ def run_telegram_polling():
                     logger.warning('DTB: getUpdates failed: %s', desc)
                 time.sleep(5)
         except Exception as e:
-            logger.error('DTB: Telegram polling error: %s', e)
+            logger.error('DTB: Telegram polling error: %s', redact_secrets(str(e)))
             time.sleep(5)
 
 
@@ -522,15 +522,22 @@ def _process_unlink(chat_id, user_id):
         profile.save()
 
         bot = TelegramBotManager()
+        removed = False
         try:
             from .tasks import _kick_user_from_all_groups
-            _kick_user_from_all_groups(bot, profile)
+            removed = _kick_user_from_all_groups(bot, profile)
         except Exception:
             logger.exception('DTB: error kicking user from groups on /stop')
 
-        bot.send_message(
-            chat_id=chat_id,
-            text='🔕 Notifications disabled and removed from groups.\nUse /start to re-enable.',
-        )
+        if removed:
+            bot.send_message(
+                chat_id=chat_id,
+                text='🔕 Notifications disabled and removed from groups.\nUse /start to re-enable.',
+            )
+        else:
+            bot.send_message(
+                chat_id=chat_id,
+                text='🔕 Notifications disabled. Could not remove you from all groups; retrying automatically.',
+            )
     except TelegramUser.DoesNotExist:
         pass

@@ -716,6 +716,8 @@ msgid "User %(name)s kicked from Telegram groups and unlinked."
 msgstr "ユーザー%(name)sをTelegramグループからキックし、リンクを解除しました。"
 msgid "Kick failed: %(error)s"
 msgstr "キックに失敗しました: %(error)s"
+msgid "Failed to kick %(name)s from any group. Profile kept linked; will retry automatically."
+msgstr "%(name)s をどのグループからもキックできませんでした。プロフィールはリンクされたままです。自動的に再試行されます。"
 msgid "Linked Telegram accounts"
 msgstr "リンクされたTelegramアカウント"
 

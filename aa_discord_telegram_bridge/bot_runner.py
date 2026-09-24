@@ -93,41 +93,49 @@ def run_bot():
 
         bot = commands.Bot(command_prefix='!', intents=intents)
 
-        async def setup_hook():
-            from .discord_cog import DiscordForwarderCog
-            await bot.add_cog(DiscordForwarderCog(bot))
-            print('DTB cog added!', flush=True)
-
-            async def _heartbeat():
-                from .models import BotStatus
-                from asgiref.sync import sync_to_async
-                import os as _os
-                invite_counter = 0
-                while True:
-                    try:
-                        await sync_to_async(BotStatus.update_heartbeat)(_os.getpid())
-                    except Exception:
-                        pass
-                    invite_counter += 1
-                    if invite_counter >= 120:
-                        invite_counter = 0
-                        try:
-                            from .telegram_handler import sync_invites_for_all_users
-                            await sync_to_async(sync_invites_for_all_users)()
-                        except Exception:
-                            pass
-                    await asyncio.sleep(30)
-
-            bot.loop.create_task(_heartbeat())
-            print('DTB heartbeat task started.', flush=True)
+        cog_loaded = False
 
         @bot.event
         async def on_ready():
+            nonlocal cog_loaded
+
+            # Load the cog from on_ready instead of overriding setup_hook so
+            # the code works with both discord.py and py-cord (py-cord, used
+            # by Alliance Auth installs with allianceauth-discordbot, never
+            # calls setup_hook and therefore never loaded the cog before).
+            if not cog_loaded:
+                cog_loaded = True
+                from .discord_cog import DiscordForwarderCog
+                await bot.add_cog(DiscordForwarderCog(bot))
+                print('DTB cog added!', flush=True)
+
+                async def _heartbeat():
+                    from .models import BotStatus
+                    from asgiref.sync import sync_to_async
+                    import os as _os
+                    invite_counter = 0
+                    while True:
+                        try:
+                            await sync_to_async(BotStatus.update_heartbeat)(_os.getpid())
+                        except Exception:
+                            pass
+                        invite_counter += 1
+                        if invite_counter >= 120:
+                            invite_counter = 0
+                            try:
+                                from .telegram_handler import sync_invites_for_all_users
+                                await sync_to_async(sync_invites_for_all_users)()
+                            except Exception:
+                                pass
+                        await asyncio.sleep(30)
+
+                bot.loop.create_task(_heartbeat())
+                print('DTB heartbeat task started.', flush=True)
+
             print(f'Logged in as {bot.user} (ID: {bot.user.id})', flush=True)
             print(f'Guilds: {[(g.name, g.id) for g in bot.guilds]}', flush=True)
             print(f'DTB cog active, listening for messages...', flush=True)
 
-        bot.setup_hook = setup_hook
         print(f'Token: {token[:10]}...', flush=True)
 
         # Start Telegram update polling (handles /start, linking, join requests)

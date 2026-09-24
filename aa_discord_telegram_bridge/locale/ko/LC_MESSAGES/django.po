@@ -965,6 +965,8 @@ msgid "User %(name)s kicked from Telegram groups and unlinked."
 msgstr "사용자 %(name)s를 Telegram 그룹에서 추방하고 연결을 해제했습니다."
 msgid "Kick failed: %(error)s"
 msgstr "추방 실패: %(error)s"
+msgid "Failed to kick %(name)s from any group. Profile kept linked; will retry automatically."
+msgstr "모든 그룹에서 %(name)s을(를) 추방하지 못했습니다. 프로필 연결은 유지되며 자동으로 재시도됩니다."
 msgid "Linked Telegram accounts"
 msgstr "연결된 Telegram 계정"
 

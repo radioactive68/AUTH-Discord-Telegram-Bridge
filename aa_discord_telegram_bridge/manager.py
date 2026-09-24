@@ -16,6 +16,37 @@ def _get_dtb_settings():
         return None
 
 
+def redact_secrets(text):
+    """Replace configured bot tokens inside ``text`` with a redaction marker.
+
+    Telegram errors often stringify the API URL, which contains the bot
+    token; those error strings end up in logs and in the ``error_message``
+    DB columns. This helper strips any configured token before such text
+    is logged or stored.
+    """
+    if not text:
+        return text
+    result = str(text)
+    try:
+        tokens = set()
+        s = _get_dtb_settings()
+        if s is not None:
+            for attr in ('telegram_bot_token', 'discord_bot_token'):
+                tok = getattr(s, attr, '') or ''
+                if len(tok) >= 8:
+                    tokens.add(tok)
+        for attr in ('DTB_TELEGRAM_BOT_TOKEN', 'DTB_DISCORD_BOT_TOKEN'):
+            tok = getattr(settings, attr, '') or ''
+            if len(tok) >= 8:
+                tokens.add(tok)
+        for tok in tokens:
+            if tok in result:
+                result = result.replace(tok, '***REDACTED***')
+    except Exception:
+        pass
+    return result
+
+
 class TelegramBotManager:
     """Manager for interacting with Telegram Bot API."""
 
@@ -38,12 +69,16 @@ class TelegramBotManager:
             resp.raise_for_status()
             result = resp.json()
             if not result.get('ok'):
-                logger.error('Telegram API error: %s', result)
-                return {'ok': False, 'description': result.get('description', 'Unknown error')}
+                logger.error('Telegram API error: %s', redact_secrets(result))
+                return {
+                    'ok': False,
+                    'description': redact_secrets(result.get('description', 'Unknown error')),
+                }
             return result
         except requests.RequestException as e:
-            logger.error('Telegram API request failed: %s', e)
-            return {'ok': False, 'description': str(e)}
+            err = redact_secrets(str(e))
+            logger.error('Telegram API request failed: %s', err)
+            return {'ok': False, 'description': err}
 
     def get_me(self) -> dict:
         """Get bot info."""
@@ -218,8 +253,9 @@ class DiscordBotManager:
             resp.raise_for_status()
             return resp.json()
         except requests.RequestException as e:
-            logger.error('Discord API request failed: %s', e)
-            return {'error': str(e)}
+            err = redact_secrets(str(e))
+            logger.error('Discord API request failed: %s', err)
+            return {'error': err}
 
     def get_guild(self, guild_id: str) -> dict:
         return self._request('GET', f'/guilds/{guild_id}')

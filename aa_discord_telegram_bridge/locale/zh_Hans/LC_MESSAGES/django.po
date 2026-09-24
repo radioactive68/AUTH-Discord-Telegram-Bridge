@@ -958,6 +958,8 @@ msgid "User %(name)s kicked from Telegram groups and unlinked."
 msgstr "用户%(name)s已从Telegram群组中踢出并取消关联。"
 msgid "Kick failed: %(error)s"
 msgstr "踢出失败：%(error)s"
+msgid "Failed to kick %(name)s from any group. Profile kept linked; will retry automatically."
+msgstr "未能将%(name)s从任何群组中踢出。账户关联保持保留，将自动重试。"
 msgid "Linked Telegram accounts"
 msgstr "已关联的Telegram账户"
 
