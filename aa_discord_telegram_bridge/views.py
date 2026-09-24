@@ -683,8 +683,14 @@ def admin_logs(request):
             cmd += ['-p', 'err']
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         if result.returncode == 0 and result.stdout.strip():
-            source = f'journalctl -u {service_name}'
-            output = result.stdout.strip()
+            candidate = result.stdout.strip()
+            if 'No entries' in candidate and len(candidate) < 100:
+                # Unit has no journal records (or doesn't exist at all) --
+                # fall through to the plain-file fallback below.
+                pass
+            else:
+                source = f'journalctl -u {service_name}'
+                output = candidate
         elif result.stderr.strip():
             output = result.stderr.strip()
     except (OSError, subprocess.TimeoutExpired) as e:
