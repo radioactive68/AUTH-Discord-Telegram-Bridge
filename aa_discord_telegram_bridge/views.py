@@ -641,29 +641,88 @@ def admin_setup(request):
 @login_required
 @permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_logs(request):
-    """View bot service logs (journalctl)."""
+    """View bot service logs.
+
+    Tries systemd journal first (``journalctl -u aa-dtb-bot``); if no such
+    unit exists (e.g. the bot runs under supervisor, or on systems without
+    journald) it falls back to a plain log file so the page still works.
+    """
+    import os
+    import subprocess
+
     line_count = int(request.GET.get('lines', 100))
     line_count = max(20, min(line_count, 500))
     errors_only = request.GET.get('errors', '') == '1'
     service_name = 'aa-dtb-bot'
 
-    cmd = f'journalctl -u {shlex.quote(service_name)} -n {line_count} --no-pager --no-hostname'
-    if errors_only:
-        cmd += ' -p err'
-
+    # Candidate paths for supervisor / plain-file deployments.
+    candidate_paths = []
     try:
-        result = subprocess.run(
-            cmd, shell=True, capture_output=True, text=True, timeout=10,
-        )
-        output = result.stdout.strip() if result.returncode == 0 else result.stderr.strip()
-    except Exception as e:
+        from django.conf import settings as _s
+        configured = getattr(_s, 'DTB_BOT_LOG_FILE', '') or ''
+    except Exception:
+        configured = ''
+    if configured:
+        candidate_paths.append(configured)
+    candidate_paths += [
+        '/var/log/supervisor/dtb-bot.log',
+        '/var/log/myauth/dtb-bot.log',
+        '/var/log/dtb-bot.log',
+        '/var/log/aa-dtb-bot.log',
+    ]
+
+    output = ''
+    source = None
+
+    # 1) systemd journal
+    try:
+        cmd = ['journalctl', '-u', service_name, '-n', str(line_count),
+               '--no-pager', '--no-hostname']
+        if errors_only:
+            cmd += ['-p', 'err']
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        if result.returncode == 0 and result.stdout.strip():
+            source = f'journalctl -u {service_name}'
+            output = result.stdout.strip()
+    except (OSError, subprocess.TimeoutExpired) as e:
         output = f'Error running journalctl: {e}'
+
+    # 2) fallback: tail a plain log file
+    if source is None:
+        for path in candidate_paths:
+            if os.path.isfile(path):
+                try:
+                    with open(path, 'r', errors='replace') as f:
+                        lines = f.readlines()
+                except OSError as e:
+                    output = f'Cannot read log file {path}: {e}'
+                    continue
+                if errors_only:
+                    lines = [
+                        l for l in lines
+                        if 'error' in l.lower() or 'exception' in l.lower() or 'traceback' in l.lower()
+                    ]
+                tail = [l for l in lines[-line_count:]]
+                if tail:
+                    source = path
+                    output = ''.join(tail).strip()
+                    break
+
+    if source is not None:
+        output = f'# {source}\n{output}'
+    elif not output:
+        output = (
+            'No supported log source found. Tried: '
+            f'journalctl -u {service_name}'
+            + (''.join(f', {p}' for p in candidate_paths))
+        )
 
     return render(request, 'dtb/admin_logs.html', {
         'log_output': output,
         'line_count': line_count,
         'errors_only': errors_only,
         'service_name': service_name,
+        'log_source': source,
     })
 
 

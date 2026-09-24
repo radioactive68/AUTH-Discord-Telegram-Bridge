@@ -38,6 +38,13 @@
                         <i class="fas fa-redo"></i> {% translate "Reset" %}
                     </a>
                 </div>
+                <div class="col-auto ms-auto">
+                    {% if log_source %}
+                        <span class="text-muted small">
+                            <i class="fas fa-database"></i> {{ log_source }}
+                        </span>
+                    {% endif %}
+                </div>
             </div>
         </form>
 

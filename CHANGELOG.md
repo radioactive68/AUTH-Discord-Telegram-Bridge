@@ -20,6 +20,11 @@
   in the groups.
 - Admin Chat Members page and the bot's `/stop` now report when no group
   kick succeeded.
+- Bot Logs page now falls back to reading a plain log file (supervisor-style
+  deployments) when no `aa-dtb-bot` systemd unit exists, instead of showing
+  an empty page. Configure the path via the `DTB_BOT_LOG_FILE` Django
+  setting; by default it probes common locations like
+  `/var/log/supervisor/dtb-bot.log`.
 
 ## 1.6.0
 - Chat Members page no longer blocks while fetching data: the page renders
