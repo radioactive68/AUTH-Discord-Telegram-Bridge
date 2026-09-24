@@ -6,7 +6,10 @@
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <h2><i class="fas fa-users"></i> {% translate "DTB Chat Members" %}</h2>
+        <h2>
+            <i class="fas fa-users"></i> {% translate "DTB Chat Members" %}
+            <span class="badge bg-secondary">{{ members_count }}</span>
+        </h2>
         <hr>
         <a href="{% url 'dtb:admin_index' %}" class="btn btn-secondary btn-sm mb-3">
             <i class="fas fa-arrow-left"></i> {% translate "Back" %}
@@ -16,6 +19,17 @@
             {% translate "List of all Telegram accounts linked to Alliance Auth (including old/archived users)." %}
         </div>
 
+        <div id="memberProgressWrap" class="mb-3{% if not members %} d-none{% endif %}">
+            <div class="d-flex justify-content-between mb-1">
+                <span id="memberProgressLabel">{% translate "Loading Telegram info" %}: <span id="memberProgressCount">0 / {{ members_count }}</span></span>
+                <span id="memberBotCount" class="text-muted d-none">{% translate "Bots" %}: <span id="memberBotCountNum">0</span></span>
+            </div>
+            <div class="progress" style="height: 12px;">
+                <div id="memberProgressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                     style="width: 0%"></div>
+            </div>
+        </div>
+
         {% if members %}
         <div class="table-responsive">
             <table class="table table-striped table-hover align-middle">
@@ -23,39 +37,44 @@
                     <tr>
                         <th>{% translate "Telegram" %}</th>
                         <th>{% translate "Portal" %}</th>
-                        <th>{% translate "Character Name" %}</th>
+                        <th>{% translate "Telegram Name" %}</th>
                         <th>{% translate "Status" %}</th>
                         <th></th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="memberRows">
                     {% for m in members %}
-                    <tr>
+                    <tr data-user-pk="{{ m.user_pk }}" data-tg-username="{{ m.tg_username|escape }}" data-tg-user-id="{{ m.tg_user_id }}">
                         <td>
                             {% if m.tg_username %}
                                 <span class="text-primary">@{{ m.tg_username }}</span><br>
-                            {% elif m.tg_name %}
-                                <span class="text-primary">{{ m.tg_name }}</span><br>
                             {% else %}
                                 <span class="text-muted"><em>{% translate "no username" %}</em></span><br>
                             {% endif %}
                             <small class="text-muted">{{ m.tg_user_id }}</small>
+                            <span class="member-bot-badge d-none badge bg-info ms-1">{% translate "bot" %}</span>
                         </td>
                         <td>
-                            <strong>{{ m.portal_name }}</strong><br>
+                            <strong>{{ m.portal_name }}</strong>
+                            {% if m.is_dtb_admin %}<span class="badge bg-warning text-dark ms-1" title="{% translate 'DTB admin' %}">DTB</span>{% endif %}
+                            <br>
                             <small class="text-muted">
                                 {% if m.char_name %}{{ m.char_name }}<br>{% endif %}
                                 {% if m.alliance_ticker %}[{{ m.alliance_ticker }}]{% endif %}
                                 {% if m.corp_name %}{{ m.corp_name }}{% endif %}
                             </small>
                         </td>
-                        <td>{{ m.tg_name }}</td>
+                        <td class="member-name-cell">
+                            <span class="text-muted"><i class="fas fa-spinner fa-spin"></i></span>
+                        </td>
                         <td>
                             {% if m.is_active %}
                                 <span class="badge bg-success">{% translate "Registered" %}</span>
                             {% else %}
                                 <span class="badge bg-secondary">{% translate "Unlinked" %}</span>
                             {% endif %}
+                            <br>
+                            <span class="member-tg-admin-badge d-none badge bg-info mt-1">{% translate "TG admin" %}</span>
                         </td>
                         <td class="text-end">
                             <form method="post" action="{% url 'dtb:admin_member_kick' m.user_pk %}"
@@ -76,4 +95,80 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_javascript %}
+<script>
+(function () {
+    'use strict';
+    const rows = Array.prototype.slice.call(document.querySelectorAll('#memberRows tr[data-user-pk]'));
+    if (!rows.length) return;
+
+    const tbody = document.getElementById('memberRows');
+    const bar = document.getElementById('memberProgressBar');
+    const countLabel = document.getElementById('memberProgressCount');
+    const botCountEl = document.getElementById('memberBotCount');
+    let loaded = 0;
+    let bots = 0;
+
+    function makeUrl(pk) {
+        return '{% url "dtb:admin_member_info" 0 %}'.replace('/0/', '/' + pk + '/');
+    }
+
+    function setProgress() {
+        const pct = Math.round((loaded / rows.length) * 100);
+        bar.style.width = pct + '%';
+        countLabel.textContent = loaded + ' / ' + rows.length;
+        const botNum = document.getElementById('memberBotCountNum');
+        botNum.textContent = bots;
+        botCountEl.classList.remove('d-none');
+        if (loaded === rows.length) {
+            bar.classList.remove('progress-bar-animated');
+        }
+    }
+
+    function loadRow(tr) {
+        const pk = tr.getAttribute('data-user-pk');
+        return fetch(makeUrl(pk))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                const nameCell = tr.querySelector('.member-name-cell');
+                if (data.name) {
+                    nameCell.textContent = data.name;
+                } else {
+                    nameCell.innerHTML = '<span class="text-muted">—</span>';
+                }
+                if (data.is_bot) {
+                    bots++;
+                    tr.querySelector('.member-bot-badge').classList.remove('d-none');
+                    tbody.appendChild(tr);
+                }
+                if (data.is_tg_admin && data.admin_groups && data.admin_groups.length) {
+                    const badge = tr.querySelector('.member-tg-admin-badge');
+                    badge.textContent = 'TG admin: ' + data.admin_groups.join(', ');
+                    badge.classList.remove('d-none');
+                }
+            })
+            .catch(function () {
+                const nameCell = tr.querySelector('.member-name-cell');
+                nameCell.innerHTML = '<span class="text-muted">—</span>';
+            })
+            .then(function () {
+                loaded++;
+                setProgress();
+                pump();
+            });
+    }
+
+    // Bounded concurrency (4 at a time) to avoid hammering the Telegram API.
+    let next = 0;
+    function pump() {
+        while (next < rows.length && (next - loaded) < 4) {
+            const i = next++;
+            loadRow(rows[i]);
+        }
+    }
+    pump();
+})();
+</script>
 {% endblock %}

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.0
+- Chat Members page no longer blocks while fetching data: the page renders
+  instantly from the DB and Telegram display names, bot flags and group-admin
+  status are loaded lazily per member via an AJAX endpoint, with a progress
+  bar ("X / N") and bounded concurrency to avoid hammering the Telegram API.
+- The page header now shows the total member count, a live "Bots: X" counter,
+  DTB admin badges (from `manage_dtb_rules`), TG admin badges (group
+  `creator`/`administrator`), and bots are sorted to the end of the list.
+  Localised for all 6 languages.
+
 ## 1.5.1
 - The DTB block on the Alliance Auth services page now uses a strict
   membership check: it is hidden for non-alliance users (previously any

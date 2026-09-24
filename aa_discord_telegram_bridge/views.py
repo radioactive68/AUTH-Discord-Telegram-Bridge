@@ -697,51 +697,62 @@ def _member_character_info(user):
     return ('', '', '')
 
 
-def _fetch_tg_member_info(bot, telegram_user_id, chat_id=None):
-    """Fetch Telegram name (first+last) for a user. Returns '' if unknown.
+def _fetch_tg_member_details(bot, tg_user, group_chats):
+    """Fetch Telegram display name, bot flag and group-admin status for a user.
 
     Tries the user's own chat first (if known), then each tracked group.
+    Returns ``(name, is_bot, admin_groups)`` and never raises.
     """
-    from .models import TelegramGroup
+    name = tg_user.telegram_username or ''
+    is_bot = False
+    admin_groups = []
+
     candidate_chats = []
-    if chat_id:
-        candidate_chats.append(chat_id)
-    candidate_chats.extend(
-        TelegramGroup.objects.filter(is_active=True)
-        .values_list('telegram_chat_id', flat=True)
-    )
+    if tg_user.telegram_chat_id:
+        candidate_chats.append((tg_user.telegram_chat_id, None))
+    for g in group_chats:
+        candidate_chats.append((g.telegram_chat_id, g.name))
+
     seen = set()
-    for cid in candidate_chats:
+    for cid, gname in candidate_chats:
         if cid in seen:
             continue
         seen.add(cid)
         try:
-            res = bot.get_chat_member(cid, telegram_user_id)
-            if res.get('ok'):
-                user = (res.get('result') or {}).get('user', {})
-                first = (user or {}).get('first_name', '') or ''
-                last = (user or {}).get('last_name', '') or ''
-                return f'{first} {last}'.strip()
+            res = bot.get_chat_member(cid, tg_user.telegram_user_id)
+            if not res.get('ok'):
+                continue
+            result = res.get('result') or {}
+            user = result.get('user') or {}
+            first = (user.get('first_name') or '').strip()
+            last = (user.get('last_name') or '').strip()
+            if first or last:
+                name = f'{first} {last}'.strip()
+            if user.get('is_bot'):
+                is_bot = True
+            status = result.get('status')
+            if gname and status in ('creator', 'administrator'):
+                admin_groups.append(gname)
         except Exception:
             continue
-    return ''
+    return name, is_bot, admin_groups
 
 
 @login_required
 @permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_members(request):
-    """List all linked Telegram users (portal nickname, TG name, status) with kick."""
+    """List all linked Telegram users (portal nickname, status, kick).
+
+    Renders instantly from the DB; Telegram display names, bot flags and
+    group-admin status are fetched lazily per member via ``admin_member_info``
+    (AJAX) so the page never blocks on the Telegram API.
+    """
     members = []
-    bot = TelegramBotManager()
     profiles = TelegramUser.objects.select_related('user').exclude(
         telegram_user_id__isnull=True,
     ).order_by('-is_active', 'user__username')
     for p in profiles:
         char_name, alliance_ticker, corp_name = _member_character_info(p.user)
-        tg_name = p.telegram_username or ''
-        fetched = _fetch_tg_member_info(bot, p.telegram_user_id, p.telegram_chat_id or None)
-        if fetched:
-            tg_name = fetched
         members.append({
             'user_pk': p.user.pk,
             'portal_name': p.user.username,
@@ -749,13 +760,30 @@ def admin_members(request):
             'alliance_ticker': alliance_ticker,
             'corp_name': corp_name,
             'tg_username': p.telegram_username or '',
-            'tg_name': tg_name,
             'tg_user_id': p.telegram_user_id,
             'is_active': p.is_active,
+            'is_dtb_admin': _has_dtb_permission(p.user),
         })
     return render(request, 'dtb/admin_members.html', {
         'members': members,
         'members_count': len(members),
+    })
+
+
+@login_required
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+def admin_member_info(request, user_pk):
+    """AJAX: return Telegram name, bot flag and group-admin status for a user."""
+    from .models import TelegramGroup
+    profile = get_object_or_404(TelegramUser, user=user_pk)
+    bot = TelegramBotManager()
+    group_chats = list(TelegramGroup.objects.filter(is_active=True))
+    name, is_bot, admin_groups = _fetch_tg_member_details(bot, profile, group_chats)
+    return JsonResponse({
+        'name': name,
+        'is_bot': is_bot,
+        'is_tg_admin': bool(admin_groups),
+        'admin_groups': admin_groups,
     })
 
 
