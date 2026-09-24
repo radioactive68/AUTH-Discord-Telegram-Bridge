@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.11
+- Restrict access: the `/dtb/` services page now returns 403 unless the user
+  is a member of the configured alliance OR has the DTB admin permission
+  (`manage_dtb_rules`). The legacy `verify_link` flow enforces the same
+  guard. Admin pages/buttons were already permission-gated.
+
 ## 1.4.10
 - Telegram polling thread now force-closes its DB connections after every
   update dispatch, fixing "Lost connection to MySQL server during query" in

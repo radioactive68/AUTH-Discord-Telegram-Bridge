@@ -42,10 +42,21 @@ def _is_configured():
 
 @login_required
 def services_overview(request):
-    """Main user page: show Telegram block with link/unlink controls."""
+    """Main user page: show Telegram block with link/unlink controls.
+
+    Restricted to members of the configured alliance and DTB admins.
+    Everyone else gets 403.
+    """
     from .tasks import _user_in_alliance
-    profile, created = TelegramUser.objects.get_or_create(user=request.user)
+
+    is_admin = _has_dtb_permission(request.user)
     in_alliance = _user_in_alliance(request.user)
+
+    if not in_alliance and not is_admin:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden(_('Permission denied.'))
+
+    profile, created = TelegramUser.objects.get_or_create(user=request.user)
 
     bot_link = None
     bot_username = None
@@ -153,6 +164,15 @@ def link_telegram(request):
 @require_POST
 def verify_link(request):
     """Verify the linking code."""
+    if not _is_configured():
+        messages.error(request, _('DTB is not configured. Admin must set alliance_id.'))
+        return redirect('dtb:services_overview')
+
+    from .tasks import _user_in_alliance
+    if not _user_in_alliance(request.user) and not _has_dtb_permission(request.user):
+        messages.error(request, _('You must be a member of the configured alliance to link Telegram.'))
+        return redirect('dtb:services_overview')
+
     profile, created = TelegramUser.objects.get_or_create(user=request.user)
     code = request.POST.get('code', '').strip().upper()
     expected = request.session.get('dtb_link_code')
