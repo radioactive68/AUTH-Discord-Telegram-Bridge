@@ -76,7 +76,18 @@ class TelegramBotManager:
                 }
             return result
         except requests.RequestException as e:
-            err = redact_secrets(str(e))
+            detail = str(e)
+            resp = getattr(e, 'response', None)
+            if resp is not None:
+                try:
+                    body = resp.json()
+                    if isinstance(body, dict):
+                        desc = body.get('description')
+                        if desc:
+                            detail = str(desc)
+                except Exception:
+                    pass
+            err = redact_secrets(detail)
             logger.error('Telegram API request failed: %s', err)
             return {'ok': False, 'description': err}
 
