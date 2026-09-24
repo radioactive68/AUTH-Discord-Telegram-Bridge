@@ -1,4 +1,5 @@
 import html
+import inspect
 import logging
 import re
 
@@ -120,4 +121,6 @@ class DiscordForwarderCog(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(DiscordForwarderCog(bot))
+    result = bot.add_cog(DiscordForwarderCog(bot))
+    if inspect.isawaitable(result):
+        await result

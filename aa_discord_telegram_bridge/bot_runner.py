@@ -1,5 +1,6 @@
 import asyncio
 import html
+import inspect
 import logging
 import os
 import tempfile
@@ -106,7 +107,11 @@ def run_bot():
             if not cog_loaded:
                 cog_loaded = True
                 from .discord_cog import DiscordForwarderCog
-                await bot.add_cog(DiscordForwarderCog(bot))
+                # py-cord's add_cog is synchronous (returns None), discord.py's
+                # is a coroutine. Await only when needed so both libraries work.
+                result = bot.add_cog(DiscordForwarderCog(bot))
+                if inspect.isawaitable(result):
+                    result = await result
                 print('DTB cog added!', flush=True)
 
                 async def _heartbeat():
