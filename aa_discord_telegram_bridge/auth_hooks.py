@@ -36,13 +36,13 @@ class DiscordTelegramBridgeService(ServicesHook):
 
     def service_active_for_user(self, user):
         """Check if service is available for user (alliance members)."""
-        from .tasks import _user_in_alliance
-        return _user_in_alliance(user)
+        from .tasks import _user_is_dtb_member
+        return _user_is_dtb_member(user)
 
     def show_service_ctrl(self, user):
         """Show service control only for alliance members."""
-        from .tasks import _user_in_alliance
-        return _user_in_alliance(user)
+        from .tasks import _user_is_dtb_member
+        return _user_is_dtb_member(user)
 
     def render_services_ctrl(self, request):
         from django.template.loader import render_to_string

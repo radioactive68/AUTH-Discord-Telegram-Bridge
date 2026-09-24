@@ -47,10 +47,10 @@ def services_overview(request):
     Restricted to members of the configured alliance and DTB admins.
     Everyone else gets 403.
     """
-    from .tasks import _user_in_alliance
+    from .tasks import _user_is_dtb_member
 
     is_admin = _has_dtb_permission(request.user)
-    in_alliance = _user_in_alliance(request.user)
+    in_alliance = _user_is_dtb_member(request.user)
 
     if not in_alliance and not is_admin:
         from django.http import HttpResponseForbidden
@@ -92,8 +92,8 @@ def link_telegram(request):
         messages.error(request, _('DTB is not configured. Admin must set alliance_id.'))
         return redirect('dtb:services_overview')
 
-    from .tasks import _user_in_alliance
-    if not _user_in_alliance(request.user):
+    from .tasks import _user_is_dtb_member
+    if not _user_is_dtb_member(request.user):
         messages.error(request, _('You must be a member of the configured alliance to link Telegram.'))
         return redirect('dtb:services_overview')
 
@@ -168,8 +168,8 @@ def verify_link(request):
         messages.error(request, _('DTB is not configured. Admin must set alliance_id.'))
         return redirect('dtb:services_overview')
 
-    from .tasks import _user_in_alliance
-    if not _user_in_alliance(request.user) and not _has_dtb_permission(request.user):
+    from .tasks import _user_is_dtb_member
+    if not _user_is_dtb_member(request.user):
         messages.error(request, _('You must be a member of the configured alliance to link Telegram.'))
         return redirect('dtb:services_overview')
 

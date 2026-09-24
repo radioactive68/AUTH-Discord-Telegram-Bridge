@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.1
+- The DTB block on the Alliance Auth services page now uses a strict
+  membership check: it is hidden for non-alliance users (previously any
+  `is_staff`/`is_superuser` account skipped the alliance check and saw the
+  block). DTB admins (`manage_dtb_rules`) still always see it. The same
+  strict gate now applies to `/dtb/`, `link_telegram` and `verify_link`.
+
 ## 1.5.0
 - New "Chat Members" page in the admin dashboard (`/dtb/admin/members/`)
   listing every Telegram account linked to Alliance Auth (including old /

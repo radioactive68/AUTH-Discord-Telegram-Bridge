@@ -77,6 +77,42 @@ def _user_in_alliance(user):
     return False
 
 
+def _user_is_dtb_member(user):
+    """Strict check used for showing the DTB block on the services page.
+
+    Unlike :func:`_user_in_alliance`, the superuser/staff shortcut is NOT
+    applied: non-alliance users must not see the service on the services
+    page, matching every other alliance-only service. DTB admins
+    (``manage_dtb_rules``) always pass.
+    """
+    from django.conf import settings
+
+    if user.has_perm('aa_discord_telegram_bridge.manage_dtb_rules'):
+        return True
+
+    try:
+        from .models import DTBSettings
+        s = DTBSettings.load()
+        alliance_id = s.alliance_id
+    except Exception:
+        alliance_id = getattr(settings, 'DTB_ALLIANCE_ID', None)
+    if alliance_id is None:
+        return False
+
+    ownerships = None
+    if hasattr(user, 'character_ownerships'):
+        ownerships = user.character_ownerships.all()
+    elif hasattr(user, 'character_ownership'):
+        ownerships = [user.character_ownership]
+    if not ownerships:
+        return False
+    for ownership in ownerships:
+        char = getattr(ownership, 'character', None)
+        if char and getattr(char, 'alliance_id', None) == alliance_id:
+            return True
+    return False
+
+
 @shared_task(bind=True, max_retries=3)
 def validate_all_telegram_users(self):
     """Periodic task: validate all Telegram users are still in valid state.
