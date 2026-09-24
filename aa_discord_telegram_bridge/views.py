@@ -662,3 +662,118 @@ def admin_logs(request):
         'service_name': service_name,
     })
 
+
+def _member_character_info(user):
+    """Return (character_name, alliance_ticker, corp_name) for a user's main char."""
+    try:
+        profile = getattr(user, 'profile', None)
+        main = getattr(profile, 'main_character', None)
+        if main:
+            return (
+                getattr(main, 'character_name', '') or '',
+                getattr(main, 'alliance_ticker', '') or '',
+                getattr(main, 'corporation_name', '') or '',
+            )
+    except Exception:
+        pass
+    # Fallback: first character ownership
+    try:
+        ownerships = None
+        if hasattr(user, 'character_ownerships'):
+            ownerships = user.character_ownerships.all()
+        elif hasattr(user, 'character_ownership'):
+            ownerships = [user.character_ownership]
+        if ownerships:
+            for ownership in ownerships:
+                char = getattr(ownership, 'character', None)
+                if char:
+                    return (
+                        getattr(char, 'character_name', '') or '',
+                        getattr(char, 'alliance_ticker', '') or '',
+                        getattr(char, 'corporation_name', '') or '',
+                    )
+    except Exception:
+        pass
+    return ('', '', '')
+
+
+def _fetch_tg_member_info(bot, telegram_user_id, chat_id=None):
+    """Fetch Telegram name (first+last) for a user. Returns '' if unknown.
+
+    Tries the user's own chat first (if known), then each tracked group.
+    """
+    from .models import TelegramGroup
+    candidate_chats = []
+    if chat_id:
+        candidate_chats.append(chat_id)
+    candidate_chats.extend(
+        TelegramGroup.objects.filter(is_active=True)
+        .values_list('telegram_chat_id', flat=True)
+    )
+    seen = set()
+    for cid in candidate_chats:
+        if cid in seen:
+            continue
+        seen.add(cid)
+        try:
+            res = bot.get_chat_member(cid, telegram_user_id)
+            if res.get('ok'):
+                user = (res.get('result') or {}).get('user', {})
+                first = (user or {}).get('first_name', '') or ''
+                last = (user or {}).get('last_name', '') or ''
+                return f'{first} {last}'.strip()
+        except Exception:
+            continue
+    return ''
+
+
+@login_required
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+def admin_members(request):
+    """List all linked Telegram users (portal nickname, TG name, status) with kick."""
+    members = []
+    bot = TelegramBotManager()
+    profiles = TelegramUser.objects.select_related('user').exclude(
+        telegram_user_id__isnull=True,
+    ).order_by('-is_active', 'user__username')
+    for p in profiles:
+        char_name, alliance_ticker, corp_name = _member_character_info(p.user)
+        tg_name = p.telegram_username or ''
+        fetched = _fetch_tg_member_info(bot, p.telegram_user_id, p.telegram_chat_id or None)
+        if fetched:
+            tg_name = fetched
+        members.append({
+            'user_pk': p.user.pk,
+            'portal_name': p.user.username,
+            'char_name': char_name,
+            'alliance_ticker': alliance_ticker,
+            'corp_name': corp_name,
+            'tg_username': p.telegram_username or '',
+            'tg_name': tg_name,
+            'tg_user_id': p.telegram_user_id,
+            'is_active': p.is_active,
+        })
+    return render(request, 'dtb/admin_members.html', {
+        'members': members,
+        'members_count': len(members),
+    })
+
+
+@login_required
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@require_POST
+def admin_member_kick(request, user_pk):
+    """Kick a linked user from all Telegram groups and unlink their profile."""
+    from .tasks import _kick_user_from_all_groups
+    profile = get_object_or_404(TelegramUser, user=user_pk)
+    bot = TelegramBotManager()
+    try:
+        _kick_user_from_all_groups(bot, profile, notify=False)
+        messages.success(
+            request,
+            _('User %(name)s kicked from Telegram groups and unlinked.') % {'name': profile.user.username},
+        )
+    except Exception as e:
+        messages.error(request, _('Kick failed: %(error)s') % {'error': str(e)})
+    return redirect('dtb:admin_members')
+

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0
+- New "Chat Members" page in the admin dashboard (`/dtb/admin/members/`)
+  listing every Telegram account linked to Alliance Auth (including old /
+  archived users): Telegram username + ID, portal username with main
+  character name / alliance ticker / corporation, live Telegram display name
+  (fetched via `getChatMember`) and registration status. Each row has a
+  "Kick" button that removes the user from all bot-managed Telegram groups
+  and unlinks their account. Localised for all 6 languages.
+
 ## 1.4.11
 - Restrict access: the `/dtb/` services page now returns 403 unless the user
   is a member of the configured alliance OR has the DTB admin permission
