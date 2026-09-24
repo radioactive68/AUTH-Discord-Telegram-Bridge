@@ -194,7 +194,9 @@ def sync_invites_for_all_users():
     """
     from .models import TelegramUser, TelegramGroup
     linked = TelegramUser.objects.filter(is_active=True, telegram_user_id__isnull=False)
-    groups = TelegramGroup.objects.filter(is_active=True, auto_invite=True)
+    groups = TelegramGroup.objects.filter(is_active=True, auto_invite=True)\
+        .exclude(telegram_chat_id__contains='/')\
+        .exclude(telegram_chat_id__contains=':')
     if not linked.exists() or not groups.exists():
         return
 
@@ -359,7 +361,9 @@ def _invite_to_groups(bot, telegram_user_id, chat_id=None):
     invite link and sends it to the user via DM if a chat_id is available.
     """
     from .models import TelegramGroup
-    for group in TelegramGroup.objects.filter(is_active=True, auto_invite=True):
+    for group in TelegramGroup.objects.filter(is_active=True, auto_invite=True)\
+            .exclude(telegram_chat_id__contains='/')\
+            .exclude(telegram_chat_id__contains=':'):
         try:
             member = bot.get_chat_member(group.telegram_chat_id, telegram_user_id)
             if member.get('ok'):

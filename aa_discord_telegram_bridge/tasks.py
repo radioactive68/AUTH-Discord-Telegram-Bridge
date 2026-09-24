@@ -225,7 +225,9 @@ def _kick_user_from_all_groups(telegram_bot, tg_user, notify=True):
     """
     from django.utils.translation import gettext, override as translation_override
 
-    groups = TelegramGroup.objects.filter(is_active=True)
+    groups = TelegramGroup.objects.filter(is_active=True)\
+        .exclude(telegram_chat_id__contains='/')\
+        .exclude(telegram_chat_id__contains=':')
 
     # Send notification before kicking
     if notify and groups and tg_user.telegram_chat_id:
@@ -326,7 +328,9 @@ def _kick_telegram_id_from_all_groups(telegram_bot, user_id):
 
     Returns ``(kicked_any, error_msg)``.
     """
-    groups = list(TelegramGroup.objects.filter(is_active=True))
+    groups = list(TelegramGroup.objects.filter(is_active=True)\
+              .exclude(telegram_chat_id__contains='/')\
+              .exclude(telegram_chat_id__contains=':'))
     if not groups:
         return False, 'No active Telegram groups to kick from.'
 

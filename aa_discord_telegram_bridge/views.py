@@ -864,7 +864,10 @@ def admin_members(request):
     # regular members, but getChatAdministrators always works for groups the
     # bot is in, so admins (and admin bots) are always shown.
     bot = TelegramBotManager()
-    for g in TelegramGroup.objects.filter(is_active=True).order_by('name'):
+    for g in TelegramGroup.objects.filter(is_active=True)\
+            .exclude(telegram_chat_id__contains='/')\
+            .exclude(telegram_chat_id__contains=':')\
+            .order_by('name'):
         try:
             res = bot.get_chat_administrators(g.telegram_chat_id)
         except Exception:
@@ -937,7 +940,9 @@ def admin_member_info(request, user_pk):
     from .models import TelegramGroup
     profile = get_object_or_404(TelegramUser, user=user_pk)
     bot = TelegramBotManager()
-    group_chats = list(TelegramGroup.objects.filter(is_active=True))
+    group_chats = list(TelegramGroup.objects.filter(is_active=True)\
+                       .exclude(telegram_chat_id__contains='/')\
+                       .exclude(telegram_chat_id__contains=':'))
     name, is_bot, admin_groups = _fetch_tg_member_details(bot, profile, group_chats)
     return JsonResponse({
         'name': name,
