@@ -73,12 +73,11 @@
                     </div>
                     {% endif %}
 
-                    <p>
-                        <small class="text-muted">
-                            <strong>{% translate "Step 2:" %}</strong>
-                            {% translate "Enter your Telegram username or ID below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram." %}
-                        </small>
-                    </p>
+                    <div class="alert py-2" style="background-color: #618e93; color: #fff;">
+                        <i class="fas fa-pen-nib"></i>
+                        <strong>{% translate "Step 2:" %}</strong>
+                        {% translate "Enter your Telegram username or ID below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram." %}
+                    </div>
 
                     <form method="post" action="{% url 'dtb:link_telegram' %}">
                         {% csrf_token %}

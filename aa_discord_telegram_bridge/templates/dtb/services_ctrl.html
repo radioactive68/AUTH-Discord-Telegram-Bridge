@@ -36,10 +36,14 @@
             </div>
             {% endif %}
 
+            <div class="alert py-2 mb-2" style="background-color: #618e93; color: #fff;">
+                <i class="fas fa-pen-nib"></i>
+                <strong>{% translate "Step 2:" %}</strong> {% translate "enter your Telegram username or ID" %}
+            </div>
+
             <form method="post" action="{% url 'dtb:link_telegram' %}">
                 {% csrf_token %}
                 <div class="mb-2">
-                    <label for="id_telegram_username" class="form-label"><strong>{% translate "Step 2:" %}</strong> {% translate "enter your Telegram username or ID" %}</label>
                     <div class="input-group input-group-sm">
                         <input type="text" name="telegram_username" id="id_telegram_username"
                                 class="form-control" placeholder="{% translate 'Telegram @username or ID' %}" required>
