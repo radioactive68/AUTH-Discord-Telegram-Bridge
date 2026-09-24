@@ -17,6 +17,7 @@
 
         <div class="alert alert-secondary py-2">
             {% translate "List of all Telegram accounts linked to Alliance Auth (including old/archived users)." %}
+            {% translate "Administrators of the tracked Telegram groups appear below even when they never linked — marked &quot;Telegram only&quot;. Regular members cannot be listed through the Telegram Bot API." %}
         </div>
 
         <div id="memberProgressWrap" class="mb-3{% if not members %} d-none{% endif %}">
@@ -44,7 +45,7 @@
                 </thead>
                 <tbody id="memberRows">
                     {% for m in members %}
-                    <tr data-user-pk="{{ m.user_pk }}" data-tg-username="{{ m.tg_username|escape }}" data-tg-user-id="{{ m.tg_user_id }}">
+                    <tr{% if m.linked %} data-user-pk="{{ m.user_pk }}"{% endif %} data-tg-user-id="{{ m.tg_user_id }}">
                         <td>
                             {% if m.tg_username %}
                                 <span class="text-primary">@{{ m.tg_username }}</span><br>
@@ -52,38 +53,68 @@
                                 <span class="text-muted"><em>{% translate "no username" %}</em></span><br>
                             {% endif %}
                             <small class="text-muted">{{ m.tg_user_id }}</small>
-                            <span class="member-bot-badge d-none badge bg-info ms-1">{% translate "bot" %}</span>
+                            {% if m.linked %}
+                                <span class="member-bot-badge d-none badge bg-info ms-1">{% translate "bot" %}</span>
+                            {% else %}
+                                {% if m.is_bot %}
+                                    <span class="badge bg-info ms-1">{% translate "bot" %}</span>
+                                {% endif %}
+                            {% endif %}
                         </td>
                         <td>
-                            <strong>{{ m.portal_name }}</strong>
-                            {% if m.is_dtb_admin %}<span class="badge bg-warning text-dark ms-1" title="{% translate 'DTB admin' %}">DTB</span>{% endif %}
-                            <br>
-                            <small class="text-muted">
-                                {% if m.char_name %}{{ m.char_name }}<br>{% endif %}
-                                {% if m.alliance_ticker %}[{{ m.alliance_ticker }}]{% endif %}
-                                {% if m.corp_name %}{{ m.corp_name }}{% endif %}
-                            </small>
+                            {% if m.linked %}
+                                <strong>{{ m.portal_name }}</strong>
+                                {% if m.is_dtb_admin %}<span class="badge bg-warning text-dark ms-1" title="{% translate 'DTB admin' %}">DTB</span>{% endif %}
+                                <br>
+                                <small class="text-muted">
+                                    {% if m.char_name %}{{ m.char_name }}<br>{% endif %}
+                                    {% if m.alliance_ticker %}[{{ m.alliance_ticker }}]{% endif %}
+                                    {% if m.corp_name %}{{ m.corp_name }}{% endif %}
+                                </small>
+                            {% else %}
+                                <span class="badge bg-secondary">{% translate "Telegram only" %}</span>
+                            {% endif %}
                         </td>
                         <td class="member-name-cell">
-                            <span class="text-muted"><i class="fas fa-spinner fa-spin"></i></span>
+                            {% if m.linked %}
+                                <span class="text-muted"><i class="fas fa-spinner fa-spin"></i></span>
+                            {% else %}
+                                {{ m.tg_name }}
+                            {% endif %}
                         </td>
                         <td>
-                            {% if m.is_active %}
-                                <span class="badge bg-success">{% translate "Registered" %}</span>
+                            {% if m.linked %}
+                                {% if m.is_active %}
+                                    <span class="badge bg-success">{% translate "Registered" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% translate "Unlinked" %}</span>
+                                {% endif %}
+                                <br>
+                                <span class="member-tg-admin-badge d-none badge bg-info mt-1">{% translate "TG admin" %}</span>
                             {% else %}
-                                <span class="badge bg-secondary">{% translate "Unlinked" %}</span>
+                                {% if m.is_tg_admin %}
+                                    <span class="badge bg-info mt-1">{% translate "TG admin" %}: {{ m.admin_groups|join:", " }}</span>
+                                {% endif %}
                             {% endif %}
-                            <br>
-                            <span class="member-tg-admin-badge d-none badge bg-info mt-1">{% translate "TG admin" %}</span>
                         </td>
                         <td class="text-end">
-                            <form method="post" action="{% url 'dtb:admin_member_kick' m.user_pk %}"
-                                  onsubmit="return confirm('{% translate "Kick this user from all Telegram groups and unlink their account?" %}')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-user-slash"></i> {% translate "Kick" %}
-                                </button>
-                            </form>
+                            {% if m.linked %}
+                                <form method="post" action="{% url 'dtb:admin_member_kick' m.user_pk %}"
+                                      onsubmit="return confirm('{% translate "Kick this user from all Telegram groups and unlink their account?" %}')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-user-slash"></i> {% translate "Kick" %}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{% url 'dtb:admin_tg_kick' m.tg_user_id %}"
+                                      onsubmit="return confirm('{% translate "Remove this Telegram user from all tracked groups?" %}')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-user-slash"></i> {% translate "Kick" %}
+                                    </button>
+                                </form>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

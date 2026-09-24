@@ -17,7 +17,7 @@ from .models import (
     ConnectionStatus, TelegramGroup, BotStatus, TelegramLinkRequest,
 )
 from .forms import ForwardRuleForm, TelegramUserLinkForm, DTBSettingsForm
-from .manager import TelegramBotManager, DiscordBotManager
+from .manager import TelegramBotManager, DiscordBotManager, redact_secrets
 from .telegram_handler import _invite_to_groups
 
 logger = logging.getLogger(__name__)
@@ -607,7 +607,6 @@ def admin_setup(request):
                 messages.success(request, _('Forwarding rule added.'))
                 return redirect('dtb:admin_setup')
         elif action == 'test':
-            from .manager import TelegramBotManager, DiscordBotManager
             test_results = {}
             for svc, mgr in (('telegram', TelegramBotManager()),
                              ('discord', DiscordBotManager())):
@@ -813,33 +812,110 @@ def _fetch_tg_member_details(bot, tg_user, group_chats):
 @login_required
 @permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_members(request):
-    """List all linked Telegram users (portal nickname, status, kick).
+    """List Telegram users: portal-linked accounts plus group administrators.
 
-    Renders instantly from the DB; Telegram display names, bot flags and
-    group-admin status are fetched lazily per member via ``admin_member_info``
-    (AJAX) so the page never blocks on the Telegram API.
+    Portal-linked accounts render instantly from the DB; Telegram display
+    names, bot flags and group-admin status are fetched lazily per linked
+    member via ``admin_member_info`` (AJAX). Administrators of the tracked
+    Telegram groups are appended at the bottom so admins are visible even
+    when nobody has linked an account yet. Bots are shown too (flagged).
     """
     members = []
+    seen_ids = set()
     profiles = TelegramUser.objects.select_related('user').exclude(
         telegram_user_id__isnull=True,
     ).order_by('-is_active', 'user__username')
     for p in profiles:
+        uid = p.telegram_user_id
+        if uid is None:
+            continue
+        seen_ids.add(str(uid))
         char_name, alliance_ticker, corp_name = _member_character_info(p.user)
         members.append({
             'user_pk': p.user.pk,
+            'tg_user_id': str(uid),
             'portal_name': p.user.username,
             'char_name': char_name,
             'alliance_ticker': alliance_ticker,
             'corp_name': corp_name,
             'tg_username': p.telegram_username or '',
-            'tg_user_id': p.telegram_user_id,
+            'tg_name': '',
             'is_active': p.is_active,
             'is_dtb_admin': _has_dtb_permission(p.user),
+            'linked': True,
+            'is_tg_admin': False,
+            'admin_groups': [],
         })
+
+    # Append administrators of tracked Telegram groups that are not linked
+    # to any portal account. The Telegram Bot API has no way to enumerate
+    # regular members, but getChatAdministrators always works for groups the
+    # bot is in, so admins (and admin bots) are always shown.
+    bot = TelegramBotManager()
+    for g in TelegramGroup.objects.filter(is_active=True).order_by('name'):
+        try:
+            res = bot.get_chat_administrators(g.telegram_chat_id)
+        except Exception:
+            continue
+        if not res.get('ok'):
+            continue
+        for admin in res.get('result') or []:
+            info = admin.get('user') or {}
+            uid = info.get('id')
+            if uid is None or str(uid) in seen_ids:
+                continue
+            seen_ids.add(str(uid))
+            name = f"{info.get('first_name') or ''} {info.get('last_name') or ''}".strip()
+            username = info.get('username') or ''
+            members.append({
+                'user_pk': None,
+                'tg_user_id': str(uid),
+                'portal_name': '',
+                'char_name': None,
+                'alliance_ticker': None,
+                'corp_name': None,
+                'tg_username': username,
+                'tg_name': name or username or str(uid),
+                'is_active': False,
+                'is_dtb_admin': False,
+                'linked': False,
+                'is_tg_admin': True,
+                'admin_groups': [g.name],
+                'is_bot': bool(info.get('is_bot')),
+            })
+
     return render(request, 'dtb/admin_members.html', {
         'members': members,
         'members_count': len(members),
+        'admin_groups_loaded': True,
     })
+
+
+@login_required
+@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@require_POST
+def admin_tg_kick(request, tg_id):
+    """Kick a Telegram user (no portal link) from all tracked groups."""
+    from .tasks import _kick_telegram_id_from_all_groups
+    bot = TelegramBotManager()
+    try:
+        kicked, err = _kick_telegram_id_from_all_groups(bot, tg_id)
+        if kicked:
+            messages.success(
+                request,
+                _('Removed Telegram user %(tg_id)s from all tracked groups.') % {'tg_id': tg_id},
+            )
+        else:
+            messages.error(
+                request,
+                _('Removal failed: %(error)s') % {'error': err or _('No active groups.')},
+            )
+    except Exception as e:
+        messages.error(
+            request,
+            _('Removal failed: %(error)s') % {'error': redact_secrets(str(e))},
+        )
+    return redirect('dtb:admin_members')
 
 
 @login_required

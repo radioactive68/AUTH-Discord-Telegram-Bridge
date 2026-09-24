@@ -315,3 +315,51 @@ def _kick_user_from_all_groups(telegram_bot, tg_user, notify=True):
     ])
     logger.info('Unlinked Telegram for user %s', tg_user.user.username)
     return True
+
+
+def _kick_telegram_id_from_all_groups(telegram_bot, user_id):
+    """Kick a Telegram user (with no portal link) from all tracked groups.
+
+    Uses the same ban+unban kick semantics as ``_kick_user_from_all_groups``,
+    so the user is removed without a permanent ban. The caller handles any
+    feedback; this only reports whether at least one kick succeeded.
+
+    Returns ``(kicked_any, error_msg)``.
+    """
+    groups = list(TelegramGroup.objects.filter(is_active=True))
+    if not groups:
+        return False, 'No active Telegram groups to kick from.'
+
+    kicked_any = False
+    for group in groups:
+        try:
+            result = telegram_bot.ban_chat_member(
+                chat_id=group.telegram_chat_id,
+                user_id=user_id,
+            )
+            if not result.get('ok'):
+                logger.warning(
+                    'Failed to kick Telegram user %s from group %s: %s',
+                    user_id, group.name,
+                    redact_secrets(result.get('description', 'unknown')),
+                )
+                continue
+            time.sleep(1)
+            try:
+                telegram_bot.unban_chat_member(
+                    chat_id=group.telegram_chat_id,
+                    user_id=user_id,
+                )
+            except Exception as e:
+                logger.warning(
+                    'Kicked but could not lift the ban for user %s in group %s: %s',
+                    user_id, group.name, redact_secrets(str(e)),
+                )
+            kicked_any = True
+            logger.info('Kicked Telegram user %s from group %s', user_id, group.name)
+        except Exception as e:
+            logger.error(
+                'Error kicking Telegram user %s from group %s: %s',
+                user_id, group.name, redact_secrets(str(e)),
+            )
+    return kicked_any, ''

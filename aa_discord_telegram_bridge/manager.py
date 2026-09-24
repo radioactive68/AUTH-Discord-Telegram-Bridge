@@ -168,6 +168,12 @@ class TelegramBotManager:
             'user_id': user_id,
         })
 
+    def get_chat_administrators(self, chat_id: str, timeout: int = 10) -> dict:
+        """Get the list of administrators (incl. creator) of a chat."""
+        return self._request('getChatAdministrators', {
+            'chat_id': chat_id,
+        }, timeout=timeout)
+
     def create_chat_invite_link(self, chat_id: str, name: str = '', member_limit: int = None) -> dict:
         """Create a one-time or limited invite link for a chat."""
         data = {'chat_id': chat_id}
