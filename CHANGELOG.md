@@ -9,6 +9,10 @@
   DTB admin badges (from `manage_dtb_rules`), TG admin badges (group
   `creator`/`administrator`), and bots are sorted to the end of the list.
   Localised for all 6 languages.
+- `unlink_telegram` now also requires the alliance-membership gate: users
+  outside the configured alliance (and non-DTB admins) can no longer POST to
+  the unlink endpoint; everything DTB-related is now hidden from
+  non-alliance users.
 
 ## 1.5.1
 - The DTB block on the Alliance Auth services page now uses a strict

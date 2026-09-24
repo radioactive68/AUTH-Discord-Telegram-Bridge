@@ -226,6 +226,10 @@ def verify_link(request):
 @require_POST
 def unlink_telegram(request):
     """Unlink Telegram account and kick from tracked groups."""
+    from .tasks import _user_is_dtb_member
+    if not _user_is_dtb_member(request.user):
+        return redirect('services:services')
+
     profile, created = TelegramUser.objects.get_or_create(user=request.user)
     chat_id = profile.telegram_chat_id
     tg_user_id = profile.telegram_user_id
