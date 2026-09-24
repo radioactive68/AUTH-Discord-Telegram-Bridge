@@ -665,6 +665,7 @@ def admin_logs(request):
     if configured:
         candidate_paths.append(configured)
     candidate_paths += [
+        '/home/allianceserver/myauth/log/dtb-bot.log',
         '/var/log/supervisor/dtb-bot.log',
         '/var/log/myauth/dtb-bot.log',
         '/var/log/dtb-bot.log',
