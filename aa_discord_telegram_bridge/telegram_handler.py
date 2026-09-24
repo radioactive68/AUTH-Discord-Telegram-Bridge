@@ -1,14 +1,12 @@
-import hashlib
 import html
 import logging
+import secrets
 import time
 
 from django.db import connections, close_old_connections
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.shortcuts import redirect
-from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.translation import override as translation_override, gettext
 
@@ -96,8 +94,8 @@ def _dispatch_update(data):
         parts = text.split()
         tg_lang = user_info.get('language_code', 'en')
         if len(parts) > 1:
-            code = parts[1].upper()
-            _process_linking_code(code, chat_id, user_id, username, tg_lang)
+            # The token is case-sensitive; never normalise it.
+            _process_linking_code(parts[1].strip(), chat_id, user_id, username, tg_lang)
         else:
             _process_plain_start(user_id, chat_id, username, tg_lang)
 
@@ -111,6 +109,19 @@ def _dispatch_update(data):
 def telegram_webhook(request):
     """Handle incoming Telegram updates via webhook."""
     import json
+
+    # Verify the secret token when the webhook was configured with one.
+    # Any caller without the token (i.e. anyone except Telegram itself) is
+    # rejected before the update is processed.
+    try:
+        from .models import DTBSettings
+        expected = DTBSettings.load().telegram_webhook_secret_token
+    except Exception:
+        expected = ''
+    if expected:
+        received = request.headers.get('X-Telegram-Bot-Api-Secret-Token', '')
+        if not secrets.compare_digest(received, expected):
+            return JsonResponse({'error': 'Invalid secret token'}, status=403)
 
     try:
         data = json.loads(request.body)
@@ -305,58 +316,115 @@ def run_telegram_polling():
             time.sleep(5)
 
 
-def _process_linking_code(code, chat_id, user_id, telegram_username, tg_lang='en'):
-    """Process a linking code from Telegram /start command."""
-    from django.contrib.sessions.models import Session
-    from django.utils import timezone
-    import json
+def cleanup_expired_link_requests():
+    """Delete link tokens that are no longer valid."""
+    try:
+        TelegramLinkRequest.objects.filter(
+            expires_at__isnull=False,
+            expires_at__lt=timezone.now(),
+        ).delete()
+    except Exception:
+        logger.exception('DTB: failed to clean up expired link requests')
 
-    # Search active sessions for matching code
-    active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
-    for session in active_sessions:
+
+def sync_telegram_webhook(s):
+    """Set or remove the Telegram webhook to match stored settings.
+
+    When a webhook URL is configured, generates (once) and stores a random
+    secret token and registers it with Telegram via setWebhook; every
+    subsequent Telegram call to the webhook endpoint is then authenticated.
+    When the URL is cleared, the webhook is removed so long polling resumes.
+    """
+    if not (s.telegram_bot_token or '').strip():
+        logger.warning('DTB: skipping webhook sync, no Telegram bot token set')
+        return
+
+    bot = TelegramBotManager()
+    url = (s.telegram_webhook_url or '').strip()
+
+    if url:
+        if not s.telegram_webhook_secret_token:
+            s.telegram_webhook_secret_token = secrets.token_urlsafe(32)
+            s.save(update_fields=['telegram_webhook_secret_token'])
         try:
-            data = session.get_decoded()
-            if data.get('dtb_link_code') == code:
-                user_id_auth = data.get('_auth_user_id')
-                if user_id_auth:
-                    try:
-                        user = User.objects.get(pk=user_id_auth)
-                        profile, _ = TelegramUser.objects.get_or_create(user=user)
-                        profile.telegram_chat_id = chat_id
-                        profile.telegram_user_id = user_id
-                        profile.telegram_username = telegram_username
-                        profile.is_active = True
-                        profile.save()
+            result = bot.set_webhook(url, secret_token=s.telegram_webhook_secret_token)
+            if result.get('ok'):
+                logger.info('DTB: Telegram webhook set to %s', url)
+            else:
+                logger.error(
+                    'DTB: setWebhook failed: %s',
+                    redact_secrets(result.get('description', '')),
+                )
+        except Exception as e:
+            logger.error('DTB: setWebhook error: %s', redact_secrets(str(e)))
+        return
 
-                        # Send confirmation first, then invite links (the
-                        # "successfully linked" message refers to the account
-                        # pairing; Telegram does not reliably tell the bot when
-                        # a user actually joins a group via an invite link).
-                        bot = TelegramBotManager()
-                        _send_localized(
-                            chat_id, user_id,
-                            lambda: gettext(
-                                'Successfully linked!\n\n'
-                                'You will now receive notifications from Alliance Auth.\n'
-                                'If you are not yet a member of the Telegram group(s),\n'
-                                'invite links follow below — tap one to join.\n'
-                                'Use /stop to disable notifications.'
-                            ),
-                        )
-                        _invite_to_groups(bot, user_id, chat_id=chat_id)
+    try:
+        bot.delete_webhook()
+        logger.info('DTB: Telegram webhook removed (URL cleared)')
+    except Exception as e:
+        logger.error('DTB: deleteWebhook error: %s', redact_secrets(str(e)))
 
-                        logger.info(
-                            'User %s linked Telegram account @%s (chat_id: %s)',
-                            user.username, telegram_username, chat_id,
-                        )
-                        return True
-                    except User.DoesNotExist:
-                        logger.error('Auth user %s not found for linking code', user_id_auth)
-        except Exception:
-            continue
 
-    logger.warning('Linking code %s not found in any active session', code)
-    return False
+def _process_linking_code(token, chat_id, user_id, telegram_username, tg_lang='en'):
+    """Complete linking when the user taps a deep link with a signed token.
+
+    The token was created by the portal (``link_telegram`` view) with a short
+    TTL and bound to a specific Auth user, so anyone in possession of the
+    in-browser link can only ever bind their *own* Telegram account.
+    """
+    cleanup_expired_link_requests()
+
+    try:
+        request = TelegramLinkRequest.objects.select_related('user').get(
+            token=token,
+            expires_at__isnull=False,
+            expires_at__gt=timezone.now(),
+            user__isnull=False,
+        )
+    except TelegramLinkRequest.DoesNotExist:
+        logger.warning('Unknown or expired link token used from Telegram chat %s', chat_id)
+        bot = TelegramBotManager()
+        _send_localized(
+            chat_id, user_id,
+            lambda: gettext(
+                'This link is no longer valid or has expired.\n'
+                'Open Alliance Auth -> Discord-Telegram Bridge and click '
+                '"Link Account" to generate a fresh one.'
+            ),
+        )
+        return False
+
+    user = request.user
+    profile, _ = TelegramUser.objects.get_or_create(user=user)
+    profile.telegram_chat_id = str(chat_id)
+    profile.telegram_user_id = user_id
+    profile.telegram_username = telegram_username or ''
+    profile.is_active = True
+    profile.save()
+
+    request.delete()
+
+    # Send confirmation first, then invite links (the "successfully linked"
+    # message refers to the pairing; invite links always follow separately).
+    bot = TelegramBotManager()
+    _send_localized(
+        chat_id, user_id,
+        lambda: gettext(
+            'Successfully linked!\n\n'
+            'You will now receive notifications from Alliance Auth.\n'
+            'If you are not yet a member of the Telegram group(s),\n'
+            'invite links follow below — tap one to join.\n'
+            'Use /stop to disable notifications.'
+        ),
+    )
+    _invite_to_groups(bot, user_id, chat_id=chat_id)
+
+    logger.info(
+        'User %s linked Telegram account @%s (chat_id: %s)',
+        user.username, telegram_username, chat_id,
+    )
+    return True
 
 
 def _invite_to_groups(bot, telegram_user_id, chat_id=None):
@@ -419,49 +487,41 @@ def _invite_to_groups(bot, telegram_user_id, chat_id=None):
 
 
 def _process_plain_start(user_id, chat_id, username, tg_lang='en'):
-    """Handle a bare /start command (no linking code).
+    """Handle a bare /start command (no linking token).
 
-    If the chat is already linked, this just re-verifies access.
-    Otherwise it records a pending link request so the portal can finish
-    linking without requiring the user to type a verification code.
+    If the chat is already linked, re-verifies access. Otherwise it just
+    points the user at the portal: the portal generates a signed one-time
+    link, so no pending request is stored here (and nobody can pre-register
+    another user's Telegram account).
     """
     try:
         profile = TelegramUser.objects.get(telegram_user_id=user_id)
     except TelegramUser.DoesNotExist:
-        # Not linked yet: remember this chat so the portal can auto-link.
-        TelegramLinkRequest.objects.update_or_create(
-            chat_id=str(chat_id),
-            defaults={
-                'telegram_user_id': str(user_id),
-                'username': username or '',
-                'created_at': timezone.now(),
-            },
-        )
         bot = TelegramBotManager()
-        if username:
-            with translation_override(tg_lang):
-                text = gettext(
-                    'Hello! To link your account:\n'
-                    '1. Open Alliance Auth -> Discord-Telegram Bridge\n'
-                    '2. Click "Link Account"\n'
-                    '3. Enter your Telegram username: @%(username)s\n'
-                    '4. Click Link - you will receive an invite to the alliance Telegram group(s)\n\n'
-                    'I will send a confirmation here once it is done.'
-                ) % {'username': username}
-            bot.send_message(chat_id=chat_id, text=text)
-        else:
-            with translation_override(tg_lang):
-                text = gettext(
-                    'Hello!\n'
-                    'To link your account, open Alliance Auth -> '
-                    'Discord-Telegram Bridge -> Link Account.\n\n'
-                    'Your Telegram ID is: %(user_id)s\n\n'
-                    '1. If you have a Telegram @username - enter it\n'
-                    '2. If you have no username - enter the numeric ID above\n'
-                    '3. Click Link Account'
-                ) % {'user_id': user_id}
-            bot.send_message(chat_id=chat_id, text=text)
+        with translation_override(tg_lang):
+            text = gettext(
+                'Hello!\n\n'
+                'To link your account:\n'
+                '1. Open Alliance Auth -> Discord-Telegram Bridge\n'
+                '2. Click "Link Account"\n'
+                '3. Then tap the ready-made link that the page shows you\n\n'
+                'The link is one-time and expires after a few minutes.'
+            )
+        bot.send_message(chat_id=chat_id, text=text)
         return
+
+    profile.telegram_chat_id = str(chat_id)
+    if username:
+        profile.telegram_username = username
+    profile.is_active = True
+    profile.save()
+
+    bot = TelegramBotManager()
+    _invite_to_groups(bot, user_id, chat_id=chat_id)
+    bot.send_message(
+        chat_id=chat_id,
+        text='✅ Verified! Your access to the alliance Telegram groups is confirmed.',
+    )
 
     profile.telegram_chat_id = str(chat_id)
     if username:

@@ -752,3 +752,81 @@ msgid "Group \"%(name)s\" deleted."
 msgstr "Groupe \"%(name)s\" supprimé."
 msgid "Delete this group?"
 msgstr "Supprimer ce groupe ?"
+
+msgid ""
+"This link is no longer valid or has expired.\n"
+"Open Alliance Auth -> Discord-Telegram Bridge and click "
+"\"Link Account\" to generate a fresh one."
+msgstr ""
+"This link is no longer valid or has expired.\n"
+"Open Alliance Auth -> Discord-Telegram Bridge and click "
+"\"Link Account\" to generate a fresh one."
+
+msgid ""
+"Hello!\n\n"
+"To link your account:\n"
+"1. Open Alliance Auth -> Discord-Telegram Bridge\n"
+"2. Click \"Link Account\"\n"
+"3. Then tap the ready-made link that the page shows you\n\n"
+"The link is one-time and expires after a few minutes."
+msgstr ""
+"Hello!\n\n"
+"To link your account:\n"
+"1. Open Alliance Auth -> Discord-Telegram Bridge\n"
+"2. Click \"Link Account\"\n"
+"3. Then tap the ready-made link that the page shows you\n\n"
+"The link is one-time and expires after a few minutes."
+
+msgid "Your one-time link is ready"
+msgstr "Your one-time link is ready"
+
+msgid "Tap the button below and your Telegram app will open the bot and link your account automatically."
+msgstr "Tap the button below and your Telegram app will open the bot and link your account automatically."
+
+msgid "Open in Telegram"
+msgstr "Open in Telegram"
+
+msgid "Expires in a few minutes and works only once."
+msgstr "Expires in a few minutes and works only once."
+
+msgid "Can't tap the button?"
+msgstr "Can't tap the button?"
+
+msgid "Open the bot manually"
+msgstr "Open the bot manually"
+
+msgid "and send this command:"
+msgstr "and send this command:"
+
+msgid "The bot could not be reached. Please use the manual command:"
+msgstr "The bot could not be reached. Please use the manual command:"
+
+msgid "Click the button below to generate a one-time link."
+msgstr "Click the button below to generate a one-time link."
+
+msgid "You can also open the bot"
+msgstr "You can also open the bot"
+
+msgid "and send /start to check your current status."
+msgstr "and send /start to check your current status."
+
+msgid "Generate link"
+msgstr "Generate link"
+
+msgid "Click the button below to generate a one-time link, then tap it in Telegram."
+msgstr "Click the button below to generate a one-time link, then tap it in Telegram."
+
+msgid "and send /start to check your status."
+msgstr "and send /start to check your status."
+
+msgid "Auth user requesting the link"
+msgstr "Auth user requesting the link"
+
+msgid "Random signed token the bot matches /start with"
+msgstr "Random signed token the bot matches /start with"
+
+msgid "When this link token stops being valid"
+msgstr "When this link token stops being valid"
+
+msgid "Secret token Telegram sends with every webhook update (generated automatically)"
+msgstr "Secret token Telegram sends with every webhook update (generated automatically)"

@@ -216,11 +216,17 @@ class TelegramBotManager:
             'chat_id': chat_id,
         })
 
-    def set_webhook(self, url: str) -> dict:
-        """Set webhook for receiving updates."""
-        return self._request('setWebhook', {
-            'url': url,
-        })
+    def set_webhook(self, url: str, secret_token: str = None) -> dict:
+        """Set webhook for receiving updates.
+
+        When ``secret_token`` is given, Telegram signs every request with an
+        ``X-Telegram-Bot-Api-Secret-Token`` header which the webhook view
+        verifies.
+        """
+        data = {'url': url}
+        if secret_token:
+            data['secret_token'] = secret_token
+        return self._request('setWebhook', data)
 
     def delete_webhook(self) -> dict:
         """Remove webhook."""

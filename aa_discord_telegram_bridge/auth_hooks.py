@@ -85,12 +85,14 @@ class DiscordTelegramBridgeService(ServicesHook):
     def validate_user(self, user):
         """Validate user should have service."""
         if self.service_active_for_user(user):
-            from .tasks import _user_in_alliance
+            from .tasks import _user_in_alliance, iter_user_ownerships
 
             # If user has no characters or left alliance, deactivate
-            has_ownership = user.character_ownerships.filter(
-                character__alliance_id__isnull=False
-            ).exists()
+            has_ownership = any(
+                ownership.character
+                and ownership.character.alliance_id is not None
+                for ownership in iter_user_ownerships(user)
+            )
             if not has_ownership or not _user_in_alliance(user):
                 self.delete_user(user, notify_user=True)
 

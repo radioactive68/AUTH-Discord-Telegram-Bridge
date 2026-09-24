@@ -1,6 +1,6 @@
 import logging
-import subprocess
-import shlex
+import secrets
+from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
@@ -16,9 +16,8 @@ from .models import (
     DTBSettings, DTB_VERSION, ForwardRule, TelegramUser, ForwardHistory,
     ConnectionStatus, TelegramGroup, BotStatus, TelegramLinkRequest,
 )
-from .forms import ForwardRuleForm, TelegramUserLinkForm, DTBSettingsForm
+from .forms import ForwardRuleForm, DTBSettingsForm
 from .manager import TelegramBotManager, DiscordBotManager, redact_secrets
-from .telegram_handler import _invite_to_groups
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +69,34 @@ def services_overview(request):
     except Exception:
         pass
 
+    # Surface an outstanding deep-link token (created by link_telegram) while
+    # the account is not yet linked. Revoked/expired tokens are dropped.
+    link_pending = None
+    pending = request.session.get('dtb_link_pending')
+    already_linked = bool(profile.is_active and profile.telegram_user_id)
+    if pending and not already_linked:
+        token = pending.get('token', '')
+        try:
+            expires_at = timezone.datetime.fromisoformat(pending.get('expires_at', ''))
+        except Exception:
+            expires_at = timezone.now()
+        if token and expires_at > timezone.now() and TelegramLinkRequest.objects.filter(
+                user=request.user, token=token).exists():
+            link_pending = {
+                'token': token,
+                'expires_at': expires_at,
+                'deep_link': f'https://t.me/{bot_username}?start={token}' if bot_username else None,
+            }
+        else:
+            request.session.pop('dtb_link_pending', None)
+    if already_linked:
+        request.session.pop('dtb_link_pending', None)
+
     return render(request, 'dtb/services_overview.html', {
         'profile': profile,
         'bot_username': bot_username,
         'bot_link': bot_link,
+        'link_pending': link_pending,
         'in_alliance': in_alliance,
         'is_configured': _is_configured(),
     })
@@ -82,11 +105,12 @@ def services_overview(request):
 @login_required
 @require_POST
 def link_telegram(request):
-    """Start Telegram linking process.
+    """Start Telegram linking: mint a short-lived signed token.
 
-    If the user already opened the bot and sent /start, a pending link
-    request exists and we link automatically — no code needed. Otherwise we
-    fall back to the verification-code flow.
+    The token is stored on a TelegramLinkRequest bound to the requesting
+    Auth user and rendered as a deep link (``t.me/<bot>?start=<token>``) on
+    the overview page. Only the Auth user who generated the link can
+    complete the pairing — nobody else can bind their accounts.
     """
     if not _is_configured():
         messages.error(request, _('DTB is not configured. Admin must set alliance_id.'))
@@ -103,122 +127,21 @@ def link_telegram(request):
         messages.warning(request, _('Telegram account is already linked. Unlink first.'))
         return redirect('dtb:services_overview')
 
-    form = TelegramUserLinkForm(request.POST)
-    if form.is_valid():
-        identifier = form.cleaned_data['telegram_username'].strip().lstrip('@')
+    # Revoke any previous outstanding tokens for this user so only the
+    # newest deep-link is ever valid.
+    TelegramLinkRequest.objects.filter(user=request.user).delete()
 
-        # Auto-link if the user already started the bot from this Telegram
-        # account. Match by username, or by numeric Telegram ID when the user
-        # has no username set. There is no expiry window: a pending request
-        # stays valid until it is used.
-        if identifier.isdigit():
-            pending = TelegramLinkRequest.objects.filter(
-                telegram_user_id=identifier,
-            ).order_by('-created_at').first()
-        else:
-            pending = TelegramLinkRequest.objects.filter(
-                username__iexact=identifier,
-            ).order_by('-created_at').first()
-
-        if pending and pending.telegram_user_id:
-            profile.telegram_user_id = pending.telegram_user_id
-            profile.telegram_chat_id = pending.chat_id
-            profile.telegram_username = pending.username or ''
-            profile.is_active = True
-            profile.save()
-
-            TelegramLinkRequest.objects.filter(chat_id=pending.chat_id).delete()
-
-            bot = TelegramBotManager()
-            try:
-                _invite_to_groups(bot, pending.telegram_user_id, chat_id=pending.chat_id)
-                bot.send_message(
-                    pending.chat_id,
-                    '✅ Linked! Your Telegram is now connected to Alliance Auth.\n'
-                    'I will forward important Discord pings here.',
-                )
-            except Exception:
-                logger.exception('DTB: error finalizing auto-link')
-
-            if profile.telegram_username:
-                messages.success(
-                    request,
-                    _('Telegram account @%(username)s linked successfully!') % {'username': profile.telegram_username}
-                )
-            else:
-                messages.success(request, _('Telegram account linked successfully!'))
-            return redirect('dtb:services_overview')
-
-        # No pending /start found for this identifier.
-        messages.error(
-            request,
-            _('No pending link found for "%(identifier)s". Open the bot, press /start, then click Link Account again.') % {'identifier': identifier}
-        )
-        return redirect('dtb:services_overview')
-
-    messages.error(request, _('Invalid username. Please try again.'))
-    return redirect('dtb:services_overview')
-
-
-@login_required
-@require_POST
-def verify_link(request):
-    """Verify the linking code."""
-    if not _is_configured():
-        messages.error(request, _('DTB is not configured. Admin must set alliance_id.'))
-        return redirect('dtb:services_overview')
-
-    from .tasks import _user_is_dtb_member
-    if not _user_is_dtb_member(request.user):
-        messages.error(request, _('You must be a member of the configured alliance to link Telegram.'))
-        return redirect('dtb:services_overview')
-
-    profile, created = TelegramUser.objects.get_or_create(user=request.user)
-    code = request.POST.get('code', '').strip().upper()
-    expected = request.session.get('dtb_link_code')
-    username = request.session.get('dtb_link_username')
-
-    if not expected or not username:
-        messages.error(request, _('Linking session expired. Please try again.'))
-        return redirect('dtb:services_overview')
-
-    if code != expected:
-        messages.error(request, _('Invalid code. Please try again.'))
-        return render(request, 'dtb/verify_link.html', {
-            'username': username,
-        })
-
-    # Code matches - we need to get the user's chat_id
-    profile.telegram_username = username
-    profile.is_active = True
-
-    # Try to find the chat_id from a pending link request (user sent /start to bot)
-    from .models import TelegramLinkRequest
-    pending = TelegramLinkRequest.objects.filter(
-        username__iexact=username,
-        created_at__gte=timezone.now() - timedelta(minutes=15),
-    ).order_by('-created_at').first()
-
-    if pending and pending.telegram_user_id:
-        profile.telegram_user_id = pending.telegram_user_id
-        profile.telegram_chat_id = pending.chat_id
-        profile.save()
-        TelegramLinkRequest.objects.filter(chat_id=pending.chat_id).delete()
-
-        bot = TelegramBotManager()
-        try:
-            from .telegram_handler import _invite_to_groups
-            _invite_to_groups(bot, pending.telegram_user_id, chat_id=pending.chat_id)
-        except Exception:
-            logger.exception('DTB: error inviting user to groups after code-link')
-    else:
-        profile.save()
-
-    # Clean up session
-    for key in ['dtb_link_code', 'dtb_link_username', 'dtb_link_time']:
-        request.session.pop(key, None)
-
-    messages.success(request, _('Telegram account @%(username)s linked successfully!') % {'username': username})
+    token = secrets.token_urlsafe(32)
+    expires_at = timezone.now() + timedelta(minutes=15)
+    TelegramLinkRequest.objects.create(
+        user=request.user,
+        token=token,
+        expires_at=expires_at,
+    )
+    request.session['dtb_link_pending'] = {
+        'token': token,
+        'expires_at': expires_at.isoformat(),
+    }
     return redirect('dtb:services_overview')
 
 
@@ -576,11 +499,15 @@ def admin_test_connection(request):
 def admin_settings(request):
     """Edit DTB plugin settings."""
     s = DTBSettings.load()
+    old_webhook_url = (s.telegram_webhook_url or '').strip()
 
     if request.method == 'POST':
         form = DTBSettingsForm(request.POST, instance=s)
         if form.is_valid():
             form.save()
+            new_webhook_url = (s.telegram_webhook_url or '').strip()
+            if new_webhook_url != old_webhook_url:
+                _sync_telegram_webhook(s)
             messages.success(request, _('Settings saved.'))
             return redirect('dtb:admin_settings')
     else:
@@ -590,6 +517,16 @@ def admin_settings(request):
         'form': form,
         'current_version': DTB_VERSION,
     })
+
+
+def _sync_telegram_webhook(s):
+    """Set or remove the Telegram webhook to match stored settings.
+
+    Delegates to the shared helper in :mod:`telegram_handler` (also used by
+    the Django admin's ``DTBSettingsAdmin.save_model``).
+    """
+    from .telegram_handler import sync_telegram_webhook
+    sync_telegram_webhook(s)
 
 
 @login_required
@@ -607,9 +544,13 @@ def admin_setup(request):
     if request.method == 'POST':
         action = request.POST.get('action', '')
         if action == 'save_tokens':
+            old_webhook_url = (s.telegram_webhook_url or '').strip()
             settings_form = DTBSettingsForm(request.POST, instance=s)
             if settings_form.is_valid():
                 settings_form.save()
+                new_webhook_url = (s.telegram_webhook_url or '').strip()
+                if new_webhook_url != old_webhook_url:
+                    _sync_telegram_webhook(s)
                 messages.success(request, _('Settings saved.'))
                 return redirect('dtb:admin_setup')
         elif action == 'add_rule':

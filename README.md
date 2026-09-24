@@ -9,9 +9,11 @@ messages to Telegram channels.
 
 ## Features
 
-- **Telegram account linking** — users send `/start` to the bot, receive a
-  verification code, and enter it on the `/services/` page to link their
-  Telegram account to their AA character.
+- **Telegram account linking** — one-time signed deep links. The user clicks
+  **Generate link** on the portal, taps the resulting
+  `t.me/<bot>?start=<token>` link and is auto-linked. Tokens are bound to the
+  requesting Auth user and expire after a few minutes; a bare `/start` never
+  creates a pending request, so nobody can bind someone else's Telegram account.
 - **Alliance membership enforcement** — configurable `alliance_id` ensures only
   members of the specified EVE alliance can stay in Telegram groups. Non-members
   are automatically rejected from join requests and kicked on character update.
@@ -116,7 +118,9 @@ Requires=network.target
 
 [Service]
 Type=simple
-User=root
+# Use the same user that owns the Auth project (NOT root); the venv must be
+# readable by it. Example: User=allianceserver
+User=allianceserver
 WorkingDirectory=/path/to/myproject
 Environment=DJANGO_SETTINGS_MODULE=myproject.settings
 ExecStart=/path/to/venv/bin/python manage.py dtb_run_bot
@@ -135,7 +139,17 @@ systemctl enable aa-dtb-bot
 systemctl start aa-dtb-bot
 ```
 
-### 5. Restart services
+### 5. Receiving Telegram updates: webhook vs long polling
+
+By default the bot long-polls Telegram for updates, which works on any box.
+Optionally, set the **Telegram webhook URL** (`/dtb/telegram/webhook/`) in the
+Django admin under *DTB Settings*. When the URL is configured (or changed,
+or removed), DTB automatically registers it with Telegram via `setWebhook`,
+generates a random `secret_token` and stores it in settings; every incoming
+webhook call is then verified against that token, so only real Telegram
+requests are processed. Webhook mode takes precedence over polling.
+
+### 6. Restart services
 
 ```bash
 # systemd
@@ -143,7 +157,7 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat
 # Bot is a separate service — starts with aa-dtb-bot
 ```
 
-### 6. Create the Telegram bot
+### 7. Create the Telegram bot
 
 1. Open Telegram and find [@BotFather](https://t.me/BotFather).
 2. Send `/newbot`.
@@ -233,16 +247,17 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 
 1. User opens `/services/` in Alliance Auth.
 2. Sees the "Discord-Telegram Bridge" block.
-3. Clicks **Link Telegram** — two linking methods:
-   - **Auto-link** (preferred): User first sends `/start` to the bot in Telegram,
-     then enters their Telegram username on the portal and clicks Link.
-     The account is linked instantly.
-   - **Code-based**: If the user hasn't sent `/start` yet, a verification code
-     is sent via Telegram DM. User enters the code on the portal to complete linking.
-4. After linking, the user is invited to all tracked Telegram groups
-   via one-time invite links.
+3. Clicks **Generate link** — the portal mints a one-time signed token
+   (valid ~15 minutes, bound to the Auth user) and shows a deep link
+   `t.me/<bot>?start=<token>` plus a manual fallback command.
+4. User taps the link (or types `/start <token>` in the bot) — the bot binds
+   the Telegram account *of the person who tapped it* to the requesting Auth
+   user, sends a confirmation, then invite links to all tracked Telegram groups.
 5. Clicking **Unlink** (or sending `/stop` to the bot) removes the link
    and kicks the user from all groups.
+
+A bare `/start` (no token) only confirms an already linked account or points
+the user back to the portal; it never stores a pending link request.
 
 ## Admin flow
 

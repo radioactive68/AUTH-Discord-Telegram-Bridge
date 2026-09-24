@@ -29,6 +29,10 @@ class DTBSettings(models.Model):
         max_length=500, blank=True, default='',
         help_text=_('Telegram webhook URL for receiving updates (for user linking)'),
     )
+    telegram_webhook_secret_token = models.CharField(
+        max_length=512, blank=True, default='',
+        help_text=_('Secret token Telegram sends with every webhook update (generated automatically)'),
+    )
 
     class Meta:
         verbose_name = _('DTB Settings')
@@ -184,10 +188,32 @@ class TelegramUser(models.Model):
 
 
 class TelegramLinkRequest(models.Model):
-    """Short-lived record created when a user sends /start to the bot.
-    Lets the portal auto-link the account without requiring a verification code."""
+    """Short-lived signed token that links an Auth user to their Telegram.
 
-    chat_id = models.CharField(max_length=64, unique=True)
+    The portal creates the request and shows the user a deep link
+    (``https://t.me/<bot>?start=<token>``); tapping it binds the account in
+    the bot. Tokens expire shortly after creation so they cannot be reused.
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='dtb_link_requests',
+        help_text=_('Auth user requesting the link'),
+    )
+    token = models.CharField(
+        max_length=128,
+        unique=True,
+        help_text=_('Random signed token the bot matches /start with'),
+    )
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=_('When this link token stops being valid'),
+    )
+    chat_id = models.CharField(max_length=64, blank=True, default='')
     telegram_user_id = models.CharField(max_length=64, blank=True, default='')
     username = models.CharField(max_length=64, blank=True, default='')
     created_at = models.DateTimeField(default=timezone.now)
@@ -197,7 +223,7 @@ class TelegramLinkRequest(models.Model):
         verbose_name_plural = _('Telegram Link Requests')
 
     def __str__(self):
-        return f'LinkRequest {self.chat_id} (@{self.username})'
+        return f'LinkRequest user={self.user_id} token={self.token[:8]}…'
 
 
 class ForwardHistory(models.Model):

@@ -64,30 +64,45 @@
                 {% else %}
                     <p>{% translate "Link your Telegram account to receive pings from Discord channels." %}</p>
 
-                    {% if bot_link %}
-                    <div class="alert alert-info py-2">
-                        <i class="fab fa-telegram"></i>
-                        <strong>{% translate "Step 1:" %}</strong>
-                        {% translate "send /start to the bot" %}
-                        <a href="{{ bot_link }}" target="_blank" rel="noopener" class="fw-bold text-white">@{{ bot_username }}</a>
-                    </div>
+                    {% if link_pending %}
+                        <div class="alert alert-success py-3">
+                            <h5 class="alert-heading"><i class="fas fa-link"></i> {% translate "Your one-time link is ready" %}</h5>
+                            {% if link_pending.deep_link %}
+                                <p>{% translate "Tap the button below and your Telegram app will open the bot and link your account automatically." %}</p>
+                                <a class="btn btn-success" href="{{ link_pending.deep_link }}" target="_blank" rel="noopener">
+                                    <i class="fab fa-telegram"></i> {% translate "Open in Telegram" %}
+                                </a>
+                                <p class="mt-2 mb-0"><small class="text-muted">
+                                    {% translate "Expires in a few minutes and works only once." %}
+                                </small></p>
+                                <hr>
+                                <p class="mb-1"><strong>{% translate "Can't tap the button?" %}</strong></p>
+                                <p class="mb-1">{% translate "Open the bot manually" %}
+                                    {% if bot_link %}<a href="{{ bot_link }}" target="_blank" rel="noopener">@{{ bot_username }}</a>{% endif %}
+                                    {% translate "and send this command:" %}</p>
+                                <code>/start {{ link_pending.token }}</code>
+                            {% else %}
+                                <p>{% translate "The bot could not be reached. Please use the manual command:" %}</p>
+                                <code>/start {{ link_pending.token }}</code>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p>{% translate "Click the button below to generate a one-time link." %}</p>
+                        {% if bot_link %}
+                        <div class="alert alert-info py-2">
+                            <i class="fab fa-telegram"></i>
+                            {% translate "You can also open the bot" %}
+                            <a href="{{ bot_link }}" target="_blank" rel="noopener" class="fw-bold text-white">@{{ bot_username }}</a>
+                            {% translate "and send /start to check your current status." %}
+                        </div>
+                        {% endif %}
                     {% endif %}
-
-                    <div class="alert py-2" style="background-color: #618e93; color: #fff;">
-                        <i class="fas fa-pen-nib"></i>
-                        <strong>{% translate "Step 2:" %}</strong>
-                        {% translate "Enter your Telegram username or ID below and click Link Account. You will receive an invite link to the alliance group(s) in Telegram." %}
-                    </div>
 
                     <form method="post" action="{% url 'dtb:link_telegram' %}">
                         {% csrf_token %}
-                        <div class="input-group">
-                            <input type="text" name="telegram_username" id="id_telegram_username"
-                                    class="form-control" placeholder="{% translate 'Telegram @username or ID' %}" required>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-link"></i> {% translate "Link Account" %}
-                            </button>
-                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-link"></i> {% translate "Generate link" %}
+                        </button>
                     </form>
                 {% endif %}
             </div>

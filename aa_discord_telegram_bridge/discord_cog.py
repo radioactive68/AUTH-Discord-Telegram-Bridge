@@ -1,7 +1,6 @@
-import html
 import inspect
 import logging
-import re
+from collections import deque
 
 import discord
 from asgiref.sync import sync_to_async
@@ -20,6 +19,9 @@ class DiscordForwarderCog(commands.Cog):
         self.bot = bot
         self._rules_cache = None
         self._rules_cache_time = 0
+        # LRU-ish set of recently forwarded (channel_id, message_id)
+        self._seen_messages = {}
+        self._seen_message_keys = deque()
 
     def _load_rules(self):
         """Sync helper to load rules from DB."""
@@ -48,16 +50,52 @@ class DiscordForwarderCog(commands.Cog):
         """Sync helper to create ForwardHistory record."""
         return ForwardHistory.objects.create(**kwargs)
 
-    async def _send_to_telegram(self, rule, channel_name, message_text, message_id, author_name):
+    @staticmethod
+    def _escape(value):
+        from django.utils.html import escape
+        return escape(str(value or ''))
+
+    def _embed_to_text(self, embed: discord.Embed) -> str:
+        """Render an embed with our own <b> tags around escaped text so the
+        markup Telegram prints is safe and never comes from Discord content."""
+        parts = []
+        if embed.title:
+            parts.append(f'<b>{self._escape(embed.title)}</b>')
+        if embed.description:
+            parts.append(self._escape(embed.description))
+        for field in embed.fields:
+            parts.append(f'<b>{self._escape(field.name)}:</b> {self._escape(field.value)}')
+        if embed.footer and embed.footer.text:
+            parts.append(f'---\n{self._escape(embed.footer.text)}')
+        return '\n'.join(parts)
+
+    @staticmethod
+    def _truncate(text, limit=4000):
+        if len(text) > limit:
+            return text[:limit] + '\n…(truncated)'
+        return text
+
+    def _build_telegram_text(self, rule, channel_name, clean_content, embeds, author_name):
+        """Compose the forwarded message: header + escaped text + embeds."""
+        header = f"<b>[{self._escape(rule.name)}]</b>\n\U0001f464 {self._escape(channel_name)}"
+
+        parts = []
+        if clean_content:
+            parts.append(self._escape(clean_content))
+        for embed in embeds:
+            embed_text = self._embed_to_text(embed)
+            if embed_text:
+                parts.append(embed_text)
+        body = '\n\n'.join(parts)
+        text = f'{header}\n\n{body}\n\n\U0001f464 {self._escape(author_name)}'
+        return self._truncate(text)
+
+    async def _send_to_telegram(self, rule, channel_name, message_text, message_id, author_name, embeds=None):
         """Send message to Telegram directly."""
         if not rule.matches_keywords(message_text):
             return
 
-        text = (
-            f'<b>[{html.escape(rule.name)}]</b>\n'
-            f'\U0001f464 {html.escape(str(author_name))}\n\n'
-            f'{html.escape(message_text)}'
-        )
+        text = self._build_telegram_text(rule, channel_name, message_text, embeds or [], author_name)
 
         target = TelegramBotManager.parse_target(rule.telegram_target)
         result = await sync_to_async(self._send_sync)(
@@ -94,30 +132,23 @@ class DiscordForwarderCog(commands.Cog):
 
         for rule in rules:
             if rule.discord_channel_id == channel_id:
-                combined = message.clean_content or ''
-                for embed in message.embeds:
-                    embed_text = self._embed_to_text(embed)
-                    if embed_text:
-                        if combined:
-                            combined += '\n\n'
-                        combined += embed_text
-                if combined:
-                    await self._send_to_telegram(
-                        rule, message.channel.name, combined,
-                        message.id, message.author.display_name,
-                    )
+                # Dedup: the same physical message may hit several rules
+                # (or re-fire after a reconnect); forward it once.
+                seen_key = (channel_id, str(message.id))
+                if seen_key in self._seen_messages:
+                    continue
+                self._seen_messages[seen_key] = None
+                self._seen_message_keys.append(seen_key)
+                while len(self._seen_message_keys) > 2000:
+                    self._seen_messages.pop(self._seen_message_keys.popleft(), None)
 
-    def _embed_to_text(self, embed: discord.Embed) -> str:
-        parts = []
-        if embed.title:
-            parts.append(f'<b>{embed.title}</b>')
-        if embed.description:
-            parts.append(embed.description)
-        for field in embed.fields:
-            parts.append(f'<b>{field.name}:</b> {field.value}')
-        if embed.footer and embed.footer.text:
-            parts.append(f'---\n{embed.footer.text}')
-        return '\n'.join(parts)
+                if message.clean_content or message.embeds:
+                    await self._send_to_telegram(
+                        rule, message.channel.name,
+                        message.clean_content or '',
+                        message.id, message.author.display_name,
+                        embeds=message.embeds,
+                    )
 
 
 async def setup(bot: commands.Bot):

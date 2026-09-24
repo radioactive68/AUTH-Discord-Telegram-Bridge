@@ -20,7 +20,7 @@ def _register_periodic_tasks():
     try:
         from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
-        schedule, _ = CrontabSchedule.objects.get_or_create(
+        validate_schedule, _ = CrontabSchedule.objects.get_or_create(
             minute='15',
             hour='*/6',
             day_of_week='*',
@@ -31,7 +31,23 @@ def _register_periodic_tasks():
             name='dtb_validate_telegram_users',
             defaults={
                 'task': 'aa_discord_telegram_bridge.tasks.validate_all_telegram_users',
-                'crontab': schedule,
+                'crontab': validate_schedule,
+                'enabled': True,
+            },
+        )
+
+        test_schedule, _ = CrontabSchedule.objects.get_or_create(
+            minute='5',
+            hour='*',
+            day_of_week='*',
+            day_of_month='*',
+            month_of_year='*',
+        )
+        PeriodicTask.objects.get_or_create(
+            name='dtb_test_connections',
+            defaults={
+                'task': 'aa_discord_telegram_bridge.tasks.test_connections',
+                'crontab': test_schedule,
                 'enabled': True,
             },
         )

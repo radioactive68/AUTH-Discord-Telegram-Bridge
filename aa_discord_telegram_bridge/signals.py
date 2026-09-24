@@ -54,7 +54,14 @@ def on_character_update(sender, instance, **kwargs):
 
     try:
         ownership = instance.character_ownership
-        user = ownership.user
+    except AttributeError:
+        # Older/newer Alliance Auth geometry differs; the periodic
+        # validation task is the enforcement backstop for these cases.
+        return
+    user = getattr(ownership, 'user', None)
+    if user is None:
+        return
+    try:
         tg_profile = TelegramUser.objects.get(user=user)
 
         # Only act on users that have a linked Telegram account

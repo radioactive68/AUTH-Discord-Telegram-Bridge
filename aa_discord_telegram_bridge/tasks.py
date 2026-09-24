@@ -46,6 +46,25 @@ def test_connections(self):
     logger.info('Discord connection test: %s - %s', is_ok, redact_secrets(msg))
 
 
+def iter_user_ownerships(user):
+    """Yield a user's CharacterOwnership objects on any AA version.
+
+    Newer Alliance Auth exposes ``user.character_ownerships`` (a related
+    manager), older installs a single ``user.character_ownership``.
+    """
+    if hasattr(user, 'character_ownerships'):
+        try:
+            for ownership in user.character_ownerships.all():
+                yield ownership
+            return
+        except Exception:
+            pass
+    if hasattr(user, 'character_ownership'):
+        ownership = user.character_ownership
+        if ownership:
+            yield ownership
+
+
 def _user_in_alliance(user):
     """Check if user has at least one character in the configured alliance.
 
@@ -63,15 +82,7 @@ def _user_in_alliance(user):
     if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False):
         return True
     # Check via AA's CharacterOwnership -> EveCharacter.alliance_id
-    # related_name='character_ownerships' (newer AA) or 'character_ownership' (older)
-    ownerships = None
-    if hasattr(user, 'character_ownerships'):
-        ownerships = user.character_ownerships.all()
-    elif hasattr(user, 'character_ownership'):
-        ownerships = [user.character_ownership]
-    if not ownerships:
-        return False
-    for ownership in ownerships:
+    for ownership in iter_user_ownerships(user):
         char = getattr(ownership, 'character', None)
         if char and getattr(char, 'alliance_id', None) == alliance_id:
             return True
@@ -100,14 +111,7 @@ def _user_is_dtb_member(user):
     if alliance_id is None:
         return False
 
-    ownerships = None
-    if hasattr(user, 'character_ownerships'):
-        ownerships = user.character_ownerships.all()
-    elif hasattr(user, 'character_ownership'):
-        ownerships = [user.character_ownership]
-    if not ownerships:
-        return False
-    for ownership in ownerships:
+    for ownership in iter_user_ownerships(user):
         char = getattr(ownership, 'character', None)
         if char and getattr(char, 'alliance_id', None) == alliance_id:
             return True
@@ -158,9 +162,11 @@ def validate_all_telegram_users(self):
 
             if not authorized:
                 # Check if user has any character ownership
-                has_ownership = user.character_ownerships.filter(
-                    character__alliance_id__isnull=False
-                ).exists()
+                has_ownership = any(
+                    ownership.character
+                    and ownership.character.alliance_id is not None
+                    for ownership in iter_user_ownerships(user)
+                )
                 if not has_ownership:
                     kicked = _kick_user_from_all_groups(telegram_bot, tg_user)
                     tg_user.is_active = False

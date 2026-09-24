@@ -1,6 +1,39 @@
 # Changelog
 
 ## 1.6.1
+- **Secure one-time linking**: the "enter your Telegram username" and
+  verification-code flows are gone. Clicking **Generate link** now mints a
+  random, signed token bound to the requesting Auth user (15-minute TTL,
+  stored in `TelegramLinkRequest.token`/`expires_at`/`user`) and shows a
+  deep link `t.me/<bot>?start=<token>`. Only the person who taps it gets
+  linked — the old username/ID flow let any member claim another user's
+  Telegram account by knowing their @username. A bare `/start` no longer
+  stores a pending request (that was the auto-link race). Expired tokens are
+  purged automatically and reuse is rejected.
+- **Verified webhooks**: when a Telegram webhook URL is set (or changed /
+  removed) in Django admin, DTB auto-registers it with Telegram via
+  `setWebhook`, generates and stores a random `secret_token` and verifies
+  every incoming webhook request against it (`X-Telegram-Bot-Api-Secret-Token`),
+  closing the unauthenticated CSRF-exempt endpoint.
+- **Ownership fallback**: hard `user.character_ownerships` references
+  (validation task, auth hook, character-update signal) replaced with a
+  version-agnostic `iter_user_ownerships()`, so installs where AA exposes the
+  singular `character_ownership` no longer throw.
+- **Forwarder hardening**: Discord embed content is escaped before rendering
+  (no double-processing / raw-HTML injection), plain message text is escaped
+  once, messages over Telegram's 4096-char limit are truncated, and a recent
+  (channel, message_id) cache deduplicates forwards after reconnects.
+- **Connection status**: the `dtb_test_connections` hourly periodic task is
+  now auto-registered (previously `test_connections` was never scheduled, so
+  the status page showed stale data for installs that didn't schedule it).
+- **Dead code removed**: `verify_link` view/route/template and the
+  `TelegramUserLinkForm` flow are gone; unused imports (`hashlib`, `shlex`,
+  duplicate `subprocess`, `html`, `re`, session code plumbing) cleaned up.
+- **Tests added**: `tests.py` covers keyword matching, target parsing (incl.
+  forum topics), message rendering/escaping/truncation, the token link flow
+  (valid/expired/unknown/reused tokens), webhook secret auth, and the
+  no-pending-request property of a bare `/start`. Run with
+  `python manage.py test aa_discord_telegram_bridge`.
 - **Link flow wording/order**: the "Successfully linked!" confirmation is now
   sent before the group invite links and mentions that invite links follow
   (a bot cannot reliably know when a user actually joins via an invite link).

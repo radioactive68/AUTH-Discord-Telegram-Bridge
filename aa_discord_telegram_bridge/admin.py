@@ -18,6 +18,19 @@ class DTBSettingsAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def save_model(self, request, obj, form, change):
+        old_url = ''
+        if change:
+            try:
+                old_url = (DTBSettings.objects.get(pk=obj.pk).telegram_webhook_url or '').strip()
+            except DTBSettings.DoesNotExist:
+                pass
+        super().save_model(request, obj, form, change)
+        new_url = (obj.telegram_webhook_url or '').strip()
+        if new_url != old_url:
+            from .telegram_handler import sync_telegram_webhook
+            sync_telegram_webhook(obj)
+
 
 @admin.register(ForwardRule)
 class ForwardRuleAdmin(admin.ModelAdmin):
