@@ -684,6 +684,8 @@ def admin_logs(request):
         if result.returncode == 0 and result.stdout.strip():
             source = f'journalctl -u {service_name}'
             output = result.stdout.strip()
+        elif result.stderr.strip():
+            output = result.stderr.strip()
     except (OSError, subprocess.TimeoutExpired) as e:
         output = f'Error running journalctl: {e}'
 
