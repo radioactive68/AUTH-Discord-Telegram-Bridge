@@ -100,6 +100,7 @@
                         <td class="text-end">
                             {% if m.linked %}
                                 <form method="post" action="{% url 'dtb:admin_member_kick' m.user_pk %}"
+                                      class="member-kick-form"
                                       onsubmit="return confirm('{% translate "Kick this user from all Telegram groups and unlink their account?" %}')">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger btn-sm">
@@ -107,6 +108,7 @@
                                     </button>
                                 </form>
                             {% else %}
+                                {% if not m.is_tg_admin and not m.is_bot %}
                                 <form method="post" action="{% url 'dtb:admin_tg_kick' m.tg_user_id %}"
                                       onsubmit="return confirm('{% translate "Remove this Telegram user from all tracked groups?" %}')">
                                     {% csrf_token %}
@@ -114,6 +116,7 @@
                                         <i class="fas fa-user-slash"></i> {% translate "Kick" %}
                                     </button>
                                 </form>
+                                {% endif %}
                             {% endif %}
                         </td>
                     </tr>
@@ -178,6 +181,8 @@
                     const badge = tr.querySelector('.member-tg-admin-badge');
                     badge.textContent = 'TG admin: ' + data.admin_groups.join(', ');
                     badge.classList.remove('d-none');
+                    const kickForm = tr.querySelector('.member-kick-form');
+                    if (kickForm) kickForm.remove();
                 }
             })
             .catch(function () {
