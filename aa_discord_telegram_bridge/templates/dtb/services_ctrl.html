@@ -30,15 +30,8 @@
 
             <p>{% translate "Click the button below to generate a one-time link, then tap it in Telegram." %}</p>
 
-            <form method="post" action="{% url 'dtb:link_telegram' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="fas fa-link"></i> {% translate "Generate link" %}
-                </button>
-            </form>
-
             {% if bot_link %}
-            <p class="mt-2 mb-0">
+            <p class="mb-0">
                 <small class="text-muted">
                     {% translate "Bot:" %}
                     <a href="{{ bot_link }}" target="_blank" rel="noopener">@{{ bot_username }}</a>
@@ -49,8 +42,22 @@
         {% endif %}
     </div>
     <div class="card-footer text-center">
-        <a href="{% url 'dtb:services_overview' %}" class="btn btn-outline-primary btn-sm">
-            <i class="fas fa-external-link-alt"></i> {% translate "Open DTB" %}
-        </a>
+        {% if profile.telegram_user_id %}
+            <a href="{% url 'dtb:services_overview' %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-external-link-alt"></i> {% translate "Open DTB" %}
+            </a>
+        {% else %}
+            <div class="d-flex justify-content-between align-items-center gap-2">
+                <form method="post" action="{% url 'dtb:link_telegram' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-link"></i> {% translate "Generate link" %}
+                    </button>
+                </form>
+                <a href="{% url 'dtb:services_overview' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-external-link-alt"></i> {% translate "Open DTB" %}
+                </a>
+            </div>
+        {% endif %}
     </div>
 </div>
