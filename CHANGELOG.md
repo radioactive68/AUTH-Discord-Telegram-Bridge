@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.6.1
+## 1.6.2
 - **Secure one-time linking**: the "enter your Telegram username" and
   verification-code flows are gone. Clicking **Generate link** now mints a
   random, signed token bound to the requesting Auth user (15-minute TTL,
