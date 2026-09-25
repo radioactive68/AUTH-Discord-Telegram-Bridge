@@ -65,30 +65,26 @@
                     <p>{% translate "Link your Telegram account to receive pings from Discord channels." %}</p>
 
                     {% if link_pending %}
-                        <div class="card">
-                            <div class="card-body py-3">
-                                <h5 class="card-title mb-2"><i class="fas fa-link text-primary"></i>
-                                    {% translate "Your one-time link is ready" %}</h5>
-                                {% if link_pending.deep_link %}
-                                    <p>{% translate "Tap the button below and your Telegram app will open the bot and link your account automatically." %}</p>
-                                    <a class="btn btn-info" href="{{ link_pending.deep_link }}" target="_blank" rel="noopener">
-                                        <i class="fab fa-telegram"></i> {% translate "Open in Telegram" %}
-                                    </a>
-                                    <p class="mt-2 mb-0"><small class="text-muted">
-                                        {% translate "Expires in a few minutes and works only once." %}
-                                    </small></p>
-                                    <hr>
-                                    <p class="mb-1"><strong>{% translate "Can't tap the button?" %}</strong></p>
-                                    <p class="mb-1">{% translate "Open the bot manually" %}
-                                        {% if bot_link %}<a href="{{ bot_link }}" target="_blank" rel="noopener">@{{ bot_username }}</a>{% endif %}
-                                        {% translate "and send this command:" %}</p>
-                                    <code>/start {{ link_pending.token }}</code>
-                                {% else %}
-                                    <p>{% translate "The bot could not be reached. Please use the manual command:" %}</p>
-                                    <code>/start {{ link_pending.token }}</code>
-                                {% endif %}
-                            </div>
-                        </div>
+                        <h5 class="mt-2"><i class="fas fa-link text-primary"></i>
+                            {% translate "Your one-time link is ready" %}</h5>
+                        {% if link_pending.deep_link %}
+                            <p>{% translate "Tap the button below and your Telegram app will open the bot and link your account automatically." %}</p>
+                            <a class="btn btn-info" href="{{ link_pending.deep_link }}" target="_blank" rel="noopener">
+                                <i class="fab fa-telegram"></i> {% translate "Open in Telegram" %}
+                            </a>
+                            <p class="mt-2 mb-0"><small class="text-muted">
+                                {% translate "Expires in a few minutes and works only once." %}
+                            </small></p>
+                            <hr>
+                            <p class="mb-1"><strong>{% translate "Can't tap the button?" %}</strong></p>
+                            <p class="mb-1">{% translate "Open the bot manually" %}
+                                {% if bot_link %}<a href="{{ bot_link }}" target="_blank" rel="noopener">@{{ bot_username }}</a>{% endif %}
+                                {% translate "and send this command:" %}</p>
+                            <code>/start {{ link_pending.token }}</code>
+                        {% else %}
+                            <p>{% translate "The bot could not be reached. Please use the manual command:" %}</p>
+                            <code>/start {{ link_pending.token }}</code>
+                        {% endif %}
                     {% else %}
                         <p>{% translate "Click the button below to generate a one-time link." %}</p>
                         {% if bot_link %}
