@@ -99,14 +99,14 @@
                             {% translate "and send /start to check your current status." %}
                         </div>
                         {% endif %}
-                    {% endif %}
 
-                    <form method="post" action="{% url 'dtb:link_telegram' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-link"></i> {% translate "Generate link" %}
-                        </button>
-                    </form>
+                        <form method="post" action="{% url 'dtb:link_telegram' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-link"></i> {% translate "Generate link" %}
+                            </button>
+                        </form>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
