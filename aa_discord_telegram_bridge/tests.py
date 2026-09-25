@@ -75,12 +75,16 @@ class TestBuildTelegramText(SimpleTestCase):
 
     def test_plain_text_is_escaped(self):
         text = self.cog._build_telegram_text(
-            self.rule, 'ops-chat', '2 < 5 && 3 > 1', [], 'Alice'
+            self.rule, '2 < 5 && 3 > 1', [], 'Alice'
         )
         self.assertIn('2 &lt; 5 &amp;&amp; 3 &gt; 1', text)
         self.assertIn(self.cog._escape('Alice'), text)
         self.assertIn('<b>[', text)  # rule header
-        self.assertIn(self.cog._escape('ops-chat'), text)
+        # author sits directly under the header, before the content
+        self.assertLess(
+            text.index(self.cog._escape('Alice')),
+            text.index('2 &lt; 5'),
+        )
 
     def test_embed_bold_survives_but_content_is_escaped(self):
         from types import SimpleNamespace
@@ -89,7 +93,7 @@ class TestBuildTelegramText(SimpleTestCase):
             title='CTA <special>', description='undock & shoot', fields=[field],
             footer=SimpleNamespace(text='footer'),
         )
-        text = self.cog._build_telegram_text(self.rule, 'ops', '', [embed], 'Bob')
+        text = self.cog._build_telegram_text(self.rule, '', [embed], 'Bob')
         self.assertIn('<b>CTA &lt;special&gt;</b>', text)
         self.assertIn('undock &amp; shoot', text)
         self.assertIn('<b>Fleet &lt;comms&gt;:</b> all caps', text)
@@ -97,7 +101,7 @@ class TestBuildTelegramText(SimpleTestCase):
 
     def test_truncation(self):
         long = 'A' * 4200
-        text = self.cog._build_telegram_text(self.rule, 'ops', long, [], 'X')
+        text = self.cog._build_telegram_text(self.rule, long, [], 'X')
         self.assertLessEqual(len(text), 4000 + len('\n…(truncated)') + 20)
         self.assertIn('…(truncated)', text)
 

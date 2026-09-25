@@ -75,9 +75,9 @@ class DiscordForwarderCog(commands.Cog):
             return text[:limit] + '\n…(truncated)'
         return text
 
-    def _build_telegram_text(self, rule, channel_name, clean_content, embeds, author_name):
-        """Compose the forwarded message: header + escaped text + embeds."""
-        header = f"<b>[{self._escape(rule.name)}]</b>\n\U0001f464 {self._escape(channel_name)}"
+    def _build_telegram_text(self, rule, clean_content, embeds, author_name):
+        """Compose the forwarded message: header + author, then escaped text + embeds."""
+        header = f"<b>[{self._escape(rule.name)}]</b>\n\U0001f464 {self._escape(author_name)}"
 
         parts = []
         if clean_content:
@@ -87,7 +87,7 @@ class DiscordForwarderCog(commands.Cog):
             if embed_text:
                 parts.append(embed_text)
         body = '\n\n'.join(parts)
-        text = f'{header}\n\n{body}\n\n\U0001f464 {self._escape(author_name)}'
+        text = f'{header}\n\n{body}' if body else header
         return self._truncate(text)
 
     async def _send_to_telegram(self, rule, channel_name, message_text, message_id, author_name, embeds=None):
@@ -95,7 +95,7 @@ class DiscordForwarderCog(commands.Cog):
         if not rule.matches_keywords(message_text):
             return
 
-        text = self._build_telegram_text(rule, channel_name, message_text, embeds or [], author_name)
+        text = self._build_telegram_text(rule, message_text, embeds or [], author_name)
 
         target = TelegramBotManager.parse_target(rule.telegram_target)
         result = await sync_to_async(self._send_sync)(

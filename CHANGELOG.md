@@ -23,6 +23,10 @@
   (no double-processing / raw-HTML injection), plain message text is escaped
   once, messages over Telegram's 4096-char limit are truncated, and a recent
   (channel, message_id) cache deduplicates forwards after reconnects.
+- **Forwarded-message layout**: the author now appears directly under the rule
+  header (`[rule]` / author / text) as before — the hardening pass had moved
+  the author to the end of the message and added a redundant `👤 <channel>`
+  line; both reverted to the previous compact format.
 - **Connection status**: the `dtb_test_connections` hourly periodic task is
   now auto-registered (previously `test_connections` was never scheduled, so
   the status page showed stale data for installs that didn't schedule it).
