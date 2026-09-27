@@ -253,24 +253,29 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 > `access_perm` for you — it only *hands* the permission state to the service
 > hook, so DTB checks it itself in `permissions.user_can_use_dtb()`.
 >
-> DTB deliberately does **not** use `user.has_perm()`, for two reasons:
-> - Django answers `True` for every permission when the user is a superuser;
-> - on a **state-only** AA install (no Auth groups) the permission lives in the
->   state grant, and AA copies it onto the user only when it syncs states.
+> DTB asks one question per permission — `user.has_perm()` — and defers the
+> resolution to Alliance Auth, because **AA owns the permission model**: on a
+> state-only install the permission lives on a state and is resolved by AA's
+> `StateBackend`, without ever being written to `user.user_permissions` or a
+> Django group. DTB must not second-guess that by reading those tables itself.
 >
-> Instead `permissions.user_holds_perm()` resolves the permission from the real
-> grants, in this order: (1) permissions granted to the user directly,
-> (2) permissions of the user's groups, (3) permissions carried by an AA state
-> granted to the user — both the grant record and the state definition.
-> Consequences:
-> - a superuser sees nothing until `access_dtb` is granted to them too;
-> - `manage_dtb_rules` gives access to `/dtb/admin/…` only, not to the service
->   tile, linking or the Telegram groups.
+> What DTB does control: it checks **only its own** permission, and admin
+> rights never imply user access —
+> - `access_dtb` — the service: tile, pages, linking, Telegram groups;
+> - `manage_dtb_rules` — the `/dtb/admin/…` pages only.
+>
+> Two Django semantics worth knowing:
+> - an active Django superuser holds every permission implicitly, so the site
+>   owner sees the service without being granted anything — deliberate, since
+>   otherwise the periodic validation would kick their own linked Telegram
+>   account out of the bridge;
+> - an inactive user has no access at all, and is kicked and unlinked by the
+>   6-hourly validation.
 >
 > Hand the permissions out the way your install does it — either way works:
 > - **state-only install** (no Auth groups): add the permission to the state
->   (`Member`, `Corp Officer`, …), e.g. via *Change state*. DTB reads the state
->   grant directly, so access appears immediately — no state sync needed.
+>   (`Member`, `Corp Officer`, …) via the state editor. Members pick it up as
+>   soon as they hold that state.
 > - **group-based install**: add it to the Auth group that holds the members
 >   (`member`, `FC`, `leadership`) and include that group in the state-granting
 >   process, so new members get it automatically.
@@ -353,15 +358,14 @@ aa_discord_telegram_bridge/
 
 Access is permission-only and has to be granted explicitly — check, in order:
 
-1. `aa_discord_telegram_bridge.access_dtb` on the user, on one of their
-   groups, **or carried by one of their states** (the grant record or the state
-   itself). Being an alliance member, an AA role holder or a superuser is
-   **not** enough.
-2. `access_dtb` may be missing because it was never added to the state in the
-   *state-granting process* (or to the group that state assigns) — only adding
-   it to a group nobody is in does nothing.
-3. Remember you can see the DTB admin pages with `manage_dtb_rules` even
-   without `access_dtb`; the service tile needs the permission above.
+1. `aa_discord_telegram_bridge.access_dtb` must be granted to the user — via a
+   state they hold (`Member`, …), an Auth group, or directly. Being an alliance
+   member or an AA role holder is **not** enough on its own.
+2. Check *where* it is granted: on a state-only install it belongs on the state
+   itself (state editor → permissions); adding it to a group nobody holds, or to
+   a state the user does not have, grants nothing.
+3. Remember `manage_dtb_rules` opens `/dtb/admin/…` only — the service tile
+   needs `access_dtb`.
 
 The same check guards `/dtb/` (403) and the link endpoint.
 

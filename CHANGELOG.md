@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.7.4
+- **Access follows Alliance Auth again — state grants work on state-only
+  installs.** 1.7.2/1.7.3 stopped using `user.has_perm()` and read
+  `user.user_permissions` / groups / state grant tables directly. On a
+  state-only AA 5 install that was wrong: the permission is resolved by AA's
+  `StateBackend` and never appears in those tables, so members who *were*
+  granted `access_dtb` (e.g. on the `Member` state) lost the service tile and
+  got 403 on `/dtb/`. The gate asks `has_perm()` again, which is the canonical
+  question, and defers to whichever backends AA has configured.
+- The 1.7.2 "no implicit access" rule is narrowed to what actually matters:
+  `access_dtb` is still the **only** permission that opens the service —
+  `manage_dtb_rules` opens the admin pages and nothing else. An active Django
+  superuser keeps implicit access, deliberately: the site owner administers DTB,
+  and the periodic validation would otherwise kick their own linked Telegram
+  account out of the bridge. Inactive users have no access and are revoked.
+- Verified on the live portal: `Null Object InSpace` (state `Member`) regains
+  the tile, and a user without the grant still has none.
+
 ## 1.7.3
 - **State grants are read directly — access no longer depends on AA syncing
   states, and works on installs without Auth groups.** On a state-only AA

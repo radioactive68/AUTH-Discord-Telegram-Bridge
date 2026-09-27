@@ -145,15 +145,6 @@ class TestLinkingTokenFlow(TestCase):
         self.client = Client()
         self.client.force_login(self.user)
 
-    def _aa_state_models(self):
-        try:
-            from allianceauth.authentication.models import (
-                MemberState, StateMembership,
-            )
-        except ImportError:
-            self.skipTest('Alliance Auth state models not available')
-        return MemberState, StateMembership
-
     @mock.patch('aa_discord_telegram_bridge.telegram_handler._invite_to_groups')
     def test_link_view_mints_token(self, mock_invite):
         resp = self.client.post('/dtb/link/')
@@ -196,25 +187,62 @@ class TestLinkingTokenFlow(TestCase):
         self.assertTrue(hook.service_active_for_user(self.user))
         self.assertTrue(hook.show_service_ctrl(self.user))
 
-    def test_service_hidden_for_superuser_without_permission(self):
-        """Django's superuser bypass must not open the DTB service."""
+    def test_gate_follows_django_permission_backends(self):
+        """The gate asks has_perm(), so AA's own backends decide.
+
+        On a state-only install the permission lives on a state and is resolved
+        by ``StateBackend`` — never written to ``user.user_permissions``. A gate
+        that reads those tables itself would deny a legitimately granted member,
+        so the gate must defer to Django.
+        """
         from .auth_hooks import DiscordTelegramBridgeService
+        from .permissions import user_can_use_dtb
 
         self.user.user_permissions.clear()
-        self.user.is_superuser = True
-        self.user.is_staff = True
+        self.user.groups.clear()
+        self.user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user_can_use_dtb(self.user))
+
+        # what a state-based grant looks like from the outside
+        with mock.patch.object(
+            type(self.user), 'has_perm',
+            side_effect=lambda perm, obj=None: perm.endswith('.access_dtb'),
+        ):
+            self.assertTrue(user_can_use_dtb(self.user))
+            self.assertTrue(
+                DiscordTelegramBridgeService().service_active_for_user(self.user)
+            )
+
+    def test_inactive_user_has_no_service(self):
+        from .auth_hooks import DiscordTelegramBridgeService
+
+        self.user.is_active = False
         self.user.save()
         self.user = User.objects.get(pk=self.user.pk)
-
-        # Django itself would say yes — which is exactly why DTB does not use it
-        self.assertTrue(
-            self.user.has_perm('aa_discord_telegram_bridge.access_dtb')
-        )
 
         hook = DiscordTelegramBridgeService()
         self.assertFalse(hook.service_active_for_user(self.user))
         self.assertFalse(hook.show_service_ctrl(self.user))
-        self.assertEqual(self.client.get('/dtb/').status_code, 403)
+
+    def test_superuser_keeps_service_access(self):
+        """Django superusers hold every permission — deliberately kept.
+
+        The site owner administers DTB and must not be locked out of it: the
+        periodic validation would otherwise kick their own linked Telegram
+        account out of the bridge.
+        """
+        from .auth_hooks import DiscordTelegramBridgeService
+        from .permissions import user_can_use_dtb
+
+        self.user.user_permissions.clear()
+        self.user.is_superuser = True
+        self.user.save()
+        self.user = User.objects.get(pk=self.user.pk)
+
+        self.assertTrue(user_can_use_dtb(self.user))
+        hook = DiscordTelegramBridgeService()
+        self.assertTrue(hook.service_active_for_user(self.user))
+        self.assertTrue(hook.show_service_ctrl(self.user))
 
     def test_dtb_admin_permission_does_not_grant_service(self):
         """manage_dtb_rules opens the admin pages, not the service tile."""
@@ -248,51 +276,6 @@ class TestLinkingTokenFlow(TestCase):
         self.user = User.objects.get(pk=self.user.pk)
 
         self.assertTrue(
-            DiscordTelegramBridgeService().service_active_for_user(self.user)
-        )
-
-    def test_state_granted_permission_grants_service(self):
-        """State-only AA install: the permission lives in the state grant.
-
-        Grants are read from the state itself (added after the grant) as well
-        as from the grant record, so access never depends on AA's state sync.
-        """
-        from .auth_hooks import DiscordTelegramBridgeService
-        from .permissions import user_can_use_dtb
-
-        self.user.user_permissions.clear()
-        self.user.groups.clear()
-        self.user = User.objects.get(pk=self.user.pk)
-        self.assertFalse(user_can_use_dtb(self.user))
-
-        MemberState, StateMembership = self._aa_state_models()
-        state = MemberState.objects.create(name='Member')
-        StateMembership.objects.create(user=self.user, state=state)
-        state.permissions.add(Permission.objects.get(codename='access_dtb'))
-
-        self.user = User.objects.get(pk=self.user.pk)
-        self.assertTrue(user_can_use_dtb(self.user))
-        self.assertTrue(
-            DiscordTelegramBridgeService().service_active_for_user(self.user)
-        )
-
-    def test_state_permission_on_grant_record_grants_admin(self):
-        """manage_dtb_rules granted on the membership opens the admin pages."""
-        from .auth_hooks import DiscordTelegramBridgeService
-
-        self.user.user_permissions.clear()
-        self.user.groups.clear()
-        MemberState, StateMembership = self._aa_state_models()
-        state = MemberState.objects.create(name='Member')
-        membership = StateMembership.objects.create(user=self.user, state=state)
-        membership.state_perms.add(
-            Permission.objects.get(codename='manage_dtb_rules')
-        )
-
-        self.user = User.objects.get(pk=self.user.pk)
-        self.assertEqual(self.client.get('/dtb/admin/').status_code, 200)
-        # admin rights alone still do not open the user-facing service
-        self.assertFalse(
             DiscordTelegramBridgeService().service_active_for_user(self.user)
         )
 
