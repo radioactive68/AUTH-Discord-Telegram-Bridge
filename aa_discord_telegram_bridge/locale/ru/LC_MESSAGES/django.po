@@ -1112,14 +1112,8 @@ msgstr "Вы были удалены из групп альянса в Telegram,
 msgid "Kicks users who lost the access permission. | Also runs every 6 hours."
 msgstr "Кикает пользователей, у которых отняли право доступа. | Также выполняется каждые 6 часов."
 
-msgid "Access is permission-based: everyone holding the access_dtb permission (or manage_dtb_rules for DTB admins) may use the bridge. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above."
-msgstr "Доступ основан на правах: пользоваться мостом могут все, у кого есть право access_dtb (или manage_dtb_rules для админов DTB). Пользователи, у которых право исчезло, кикаются из всех отслеживаемых групп и отвязываются — автоматически при следующем запуске или сразу кнопкой выше."
-
 msgid "Access enforcement:"
 msgstr "Контроль доступа:"
-
-msgid "permission-based (access_dtb). Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
-msgstr "основан на правах (access_dtb). Пользователи, потерявшие право, кикаются из групп Telegram и отвязываются — при запуске раз в 6 часов или сразу со страницы «Группы»."
 
 msgid "linked account(s) pending revocation"
 msgstr "привязанных аккаунтов ожидают отзыва"
@@ -1132,3 +1126,9 @@ msgstr "Когда ваше право доступа отзывают, вы а�
 
 msgid "Validation complete: %(validated)s validated, %(revoked)s revoked, %(kicked)s kicked."
 msgstr "Проверка завершена: проверено — %(validated)s, отозвано — %(revoked)s, кикнуто — %(kicked)s."
+
+msgid "Access is permission-based: everyone holding the access_dtb permission may use the bridge. DTB admins (manage_dtb_rules) reach the admin pages, and superusers are not exempt either — the permission has to be granted explicitly. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above."
+msgstr "Доступ основан на правах: пользоваться мостом могут все, у кого есть право access_dtb. Админы DTB (manage_dtb_rules) попадают только в админские страницы, и суперюзеры не исключение — право нужно выдать явно. Пользователи, у которых право исчезло, кикаются из всех отслеживаемых групп и отвязываются — автоматически при следующем запуске или сразу кнопкой выше."
+
+msgid "strictly the access_dtb permission — no implicit access, not even for superusers. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
+msgstr "строго право access_dtb — никакого неявного доступа, даже для суперюзеров. Пользователи, потерявшие право, кикаются из групп Telegram и отвязываются — при запуске раз в 6 часов или сразу со страницы «Группы»."

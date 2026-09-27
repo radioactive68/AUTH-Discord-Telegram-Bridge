@@ -60,7 +60,7 @@
 
         <div class="alert alert-secondary small">
             <i class="fas fa-shield-alt"></i>
-            {% translate "Access is permission-based: everyone holding the access_dtb permission (or manage_dtb_rules for DTB admins) may use the bridge. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above." %}
+            {% translate "Access is permission-based: everyone holding the access_dtb permission may use the bridge. DTB admins (manage_dtb_rules) reach the admin pages, and superusers are not exempt either — the permission has to be granted explicitly. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above." %}
             {% translate "Note: Telegram Bot API cannot list existing group members, so people added manually by an admin who never linked Auth cannot be auto-removed." %}
         </div>
 

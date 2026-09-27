@@ -1104,14 +1104,8 @@ msgstr "You have been removed from the alliance Telegram groups and your Telegra
 msgid "Kicks users who lost the access permission. | Also runs every 6 hours."
 msgstr "Kicks users who lost the access permission. | Also runs every 6 hours."
 
-msgid "Access is permission-based: everyone holding the access_dtb permission (or manage_dtb_rules for DTB admins) may use the bridge. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above."
-msgstr "Access is permission-based: everyone holding the access_dtb permission (or manage_dtb_rules for DTB admins) may use the bridge. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above."
-
 msgid "Access enforcement:"
 msgstr "Access enforcement:"
-
-msgid "permission-based (access_dtb). Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
-msgstr "permission-based (access_dtb). Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
 
 msgid "linked account(s) pending revocation"
 msgstr "linked account(s) pending revocation"
@@ -1124,3 +1118,9 @@ msgstr "When your access permission is withdrawn, you are automatically removed 
 
 msgid "Validation complete: %(validated)s validated, %(revoked)s revoked, %(kicked)s kicked."
 msgstr "Validation complete: %(validated)s validated, %(revoked)s revoked, %(kicked)s kicked."
+
+msgid "Access is permission-based: everyone holding the access_dtb permission may use the bridge. DTB admins (manage_dtb_rules) reach the admin pages, and superusers are not exempt either — the permission has to be granted explicitly. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above."
+msgstr "Access is permission-based: everyone holding the access_dtb permission may use the bridge. DTB admins (manage_dtb_rules) reach the admin pages, and superusers are not exempt either — the permission has to be granted explicitly. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above."
+
+msgid "strictly the access_dtb permission — no implicit access, not even for superusers. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
+msgstr "strictly the access_dtb permission — no implicit access, not even for superusers. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."

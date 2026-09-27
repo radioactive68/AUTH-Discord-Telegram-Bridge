@@ -12,7 +12,7 @@ import json
 from datetime import timedelta
 from unittest import mock
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Group, Permission, User
 from django.test import Client, SimpleTestCase, TestCase
 from django.utils import timezone
 
@@ -186,6 +186,61 @@ class TestLinkingTokenFlow(TestCase):
         hook = DiscordTelegramBridgeService()
         self.assertTrue(hook.service_active_for_user(self.user))
         self.assertTrue(hook.show_service_ctrl(self.user))
+
+    def test_service_hidden_for_superuser_without_permission(self):
+        """Django's superuser bypass must not open the DTB service."""
+        from .auth_hooks import DiscordTelegramBridgeService
+
+        self.user.user_permissions.clear()
+        self.user.is_superuser = True
+        self.user.is_staff = True
+        self.user.save()
+        self.user = User.objects.get(pk=self.user.pk)
+
+        # Django itself would say yes — which is exactly why DTB does not use it
+        self.assertTrue(
+            self.user.has_perm('aa_discord_telegram_bridge.access_dtb')
+        )
+
+        hook = DiscordTelegramBridgeService()
+        self.assertFalse(hook.service_active_for_user(self.user))
+        self.assertFalse(hook.show_service_ctrl(self.user))
+        self.assertEqual(self.client.get('/dtb/').status_code, 403)
+
+    def test_dtb_admin_permission_does_not_grant_service(self):
+        """manage_dtb_rules opens the admin pages, not the service tile."""
+        from .auth_hooks import DiscordTelegramBridgeService
+
+        self.user.user_permissions.clear()
+        self.user.user_permissions.add(
+            Permission.objects.get(codename='manage_dtb_rules')
+        )
+        self.user = User.objects.get(pk=self.user.pk)
+
+        hook = DiscordTelegramBridgeService()
+        self.assertFalse(hook.service_active_for_user(self.user))
+        self.assertFalse(hook.show_service_ctrl(self.user))
+
+    def test_permission_via_group_grants_service(self):
+        """The way an admin hands out access: a group with the permission."""
+        from .auth_hooks import DiscordTelegramBridgeService
+
+        self.user.user_permissions.clear()
+        self.user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(
+            DiscordTelegramBridgeService().service_active_for_user(self.user)
+        )
+
+        group = Group.objects.create(name='member')
+        group.permissions.add(
+            Permission.objects.get(codename='access_dtb')
+        )
+        self.user.groups.add(group)
+        self.user = User.objects.get(pk=self.user.pk)
+
+        self.assertTrue(
+            DiscordTelegramBridgeService().service_active_for_user(self.user)
+        )
 
     def test_validation_revokes_access_lost(self):
         """Losing access_dtb kicks from the groups and deactivates."""

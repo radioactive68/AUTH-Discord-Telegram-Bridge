@@ -243,18 +243,23 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 | Permission | Description | Grant to |
 |---|---|---|
 | `aa_discord_telegram_bridge.access_dtb` | **Basic access** — required to see the DTB tile on `/services/` and to link Telegram | Your group/state with the members who may use the bridge (e.g. "member") |
-| `aa_discord_telegram_bridge.manage_dtb_rules` | Access to admin dashboard, rules, groups, settings | DTB admins (e.g. FC / leadership) |
+| `aa_discord_telegram_bridge.manage_dtb_rules` | Access to the DTB **admin pages** (dashboard, rules, groups, settings). Does *not* grant the service itself | DTB admins (e.g. FC / leadership) |
 | `aa_discord_telegram_bridge.view_forward_history` | View the forwarding history log | Optionally to directors+ |
 
-> **How access works:** pure permission check, no EVE data and no
-> `alliance_id`. Every app owns its permissions, so DTB checks **only its own**
-> three permissions above — it never looks at permissions of other apps (e.g.
-> Secure Groups). Alliance Auth does not enforce a service's `access_perm` for
-> you — it only *hands* the permission state to the service hook, so DTB
-> checks it itself in `tasks._user_can_use_dtb()`: the user needs `access_dtb`
-> **or** `manage_dtb_rules`. That single check drives the tile on `/services/`,
-> the DTB pages, linking/unlinking and the Telegram join-request approval.
-> Django superusers pass implicitly (they hold every permission).
+> **How access works:** strict permission check, no EVE data, no `alliance_id`,
+> and **no implicit access**. Every app owns its permissions, so DTB checks
+> **only its own** three permissions above — it never looks at permissions of
+> other apps (e.g. Secure Groups). Alliance Auth does not enforce a service's
+> `access_perm` for you — it only *hands* the permission state to the service
+> hook, so DTB checks it itself in `tasks._user_can_use_dtb()`.
+>
+> DTB deliberately does **not** use `user.has_perm()`, because Django answers
+> `True` for every permission when the user is a superuser. Instead
+> `tasks._user_holds_perm()` resolves the permission from the real grants
+> (user permissions or group permissions). Consequences:
+> - a superuser sees nothing until `access_dtb` is granted to them too;
+> - `manage_dtb_rules` gives access to `/dtb/admin/…` only, not to the service
+>   tile, linking or the Telegram groups.
 >
 > Hand the permissions out through your normal group/state management: add
 > `access_dtb` to the group that holds the members who may use the bridge and
@@ -337,13 +342,16 @@ aa_discord_telegram_bridge/
 
 ### Users cannot see the DTB block on /services/
 
-Access is permission-only — check, in this order:
+Access is permission-only and has to be granted explicitly — check, in order:
 
-1. `aa_discord_telegram_bridge.access_dtb`: granted directly to the user, or
-   via one of your groups/states (e.g. "member") which is part of the
-   state-granting process.
-2. `aa_discord_telegram_bridge.manage_dtb_rules`: DTB admins (Django
-   superusers pass implicitly).
+1. `aa_discord_telegram_bridge.access_dtb` on the user or on one of their
+   groups/states (e.g. "member"). Being an alliance member, an AA role holder
+   or a superuser is **not** enough.
+2. `access_dtb` may be missing because it was never added to the state in the
+   *state-granting process* — only adding it to a group is not enough if the
+   user's current state does not include that group.
+3. Remember you can see the DTB admin pages with `manage_dtb_rules` even
+   without `access_dtb`; the service tile needs the permission above.
 
 The same check guards `/dtb/` (403) and the link endpoint.
 

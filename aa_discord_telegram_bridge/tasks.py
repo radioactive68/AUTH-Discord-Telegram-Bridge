@@ -65,29 +65,53 @@ def iter_user_ownerships(user):
             yield ownership
 
 
+APP_LABEL = 'aa_discord_telegram_bridge'
+
+
+def _user_holds_perm(user, codename):
+    """Explicitly check one of DTB's own permissions — no implicit access.
+
+    ``user.has_perm()`` is unusable for this: Django returns True for *every*
+    permission when the user is a superuser, so the access permission would be
+    meaningless (a superuser would see the service — and keep Telegram access —
+    without ever being granted it). DTB therefore resolves the permission from
+    the actual grants, i.e. exactly what an Alliance Auth admin hands out to
+    their member / FC / leadership groups.
+    """
+    if not getattr(user, 'is_active', True):
+        return False
+    if user.user_permissions.filter(
+        content_type__app_label=APP_LABEL, codename=codename,
+    ).exists():
+        return True
+    return user.groups.filter(
+        permissions__content_type__app_label=APP_LABEL,
+        permissions__codename=codename,
+    ).exists()
+
+
 def _user_can_use_dtb(user):
     """Access gate for the DTB service entry and every DTB page.
 
     Alliance Auth does not enforce ``ServicesHook.access_perm`` for a service
     app: it only *hands* the permission state to the service, which has to
-    check it. DTB therefore checks **its own** permissions — every app owns
-    its permissions, so DTB never inspects permissions of other apps:
+    check it. DTB therefore checks **its own** permission — every app owns its
+    permissions, so DTB never inspects permissions of other apps:
 
     * ``access_dtb`` — basic access, granted to the group/state holding the
-      members who may use the bridge (e.g. "member");
-    * ``manage_dtb_rules`` — DTB admins (leadership/FC); Django superusers hold
-      every permission implicitly and pass as well.
+      members who may use the bridge (e.g. "member"). DTB admin rights
+      (``manage_dtb_rules``) do *not* imply it, and neither does being a Django
+      superuser: the permission has to be granted explicitly, to everyone who
+      should see the service — admins included, since they can administer DTB
+      without using the bridge themselves.
 
     The same check drives the tile on ``/services/``, the DTB pages, the
     link/unlink flow and the Telegram join-request gate, and its loss is what
     revokes the Telegram linkage (see ``validate_all_telegram_users``).
     """
-    from .permissions import PERM_ACCESS_DTB, PERM_MANAGE_RULES
+    from .permissions import PERM_ACCESS_DTB
 
-    return (
-        user.has_perm(PERM_ACCESS_DTB)
-        or user.has_perm(PERM_MANAGE_RULES)
-    )
+    return _user_holds_perm(user, PERM_ACCESS_DTB)
 
 
 def linked_profiles_without_access():

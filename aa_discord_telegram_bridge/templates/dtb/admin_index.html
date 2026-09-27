@@ -41,7 +41,7 @@
                 <div class="card">
                     <div class="card-body">
                         <strong>{% translate "Access enforcement:" %}</strong>
-                        {% translate "permission-based (access_dtb). Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page." %}
+                        {% translate "strictly the access_dtb permission — no implicit access, not even for superusers. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page." %}
                         {% if no_access_count %}
                             <br>
                             <span class="badge bg-warning text-dark">

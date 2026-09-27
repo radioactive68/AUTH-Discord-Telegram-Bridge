@@ -1118,14 +1118,8 @@ msgstr "Sie wurden aus den Allianz-Telegram-Gruppen entfernt und Ihr Telegram-Ko
 msgid "Kicks users who lost the access permission. | Also runs every 6 hours."
 msgstr "Kickt Benutzer, denen die Zugriffsberechtigung entzogen wurde. | Läuft auch alle 6 Stunden."
 
-msgid "Access is permission-based: everyone holding the access_dtb permission (or manage_dtb_rules for DTB admins) may use the bridge. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above."
-msgstr "Der Zugriff basiert auf Berechtigungen: wer die Berechtigung access_dtb hat (oder manage_dtb_rules für DTB-Admins), darf die Bridge nutzen. Benutzer ohne die Berechtigung werden aus allen verfolgten Gruppen gekickt und die Verknüpfung wird aufgelöst — automatisch beim nächsten Durchlauf oder sofort mit der Schaltfläche oben."
-
 msgid "Access enforcement:"
 msgstr "Zugriffskontrolle:"
-
-msgid "permission-based (access_dtb). Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
-msgstr "basiert auf Berechtigungen (access_dtb). Benutzer ohne die Berechtigung werden aus Telegram-Gruppen gekickt und die Verknüpfung wird aufgelöst — beim 6-stündigen Durchlauf oder sofort auf der Gruppenseite."
 
 msgid "linked account(s) pending revocation"
 msgstr "verknüpfte Konten mit ausstehendem Entzug"
@@ -1138,3 +1132,9 @@ msgstr "Wenn Ihre Zugriffsberechtigung entzogen wird, werden Sie automatisch aus
 
 msgid "Validation complete: %(validated)s validated, %(revoked)s revoked, %(kicked)s kicked."
 msgstr "Prüfung abgeschlossen: %(validated)s geprüft, %(revoked)s entzogen, %(kicked)s gekickt."
+
+msgid "Access is permission-based: everyone holding the access_dtb permission may use the bridge. DTB admins (manage_dtb_rules) reach the admin pages, and superusers are not exempt either — the permission has to be granted explicitly. Users whose permission is gone are kicked from all tracked groups and unlinked — automatically on the next run, or immediately with the button above."
+msgstr "Der Zugriff basiert auf Berechtigungen: wer die Berechtigung access_dtb hat, darf die Bridge nutzen. DTB-Admins (manage_dtb_rules) erreichen nur die Admin-Seiten, und Superuser sind ebenfalls nicht ausgenommen — die Berechtigung muss ausdrücklich vergeben werden. Benutzer ohne die Berechtigung werden aus allen verfolgten Gruppen gekickt und die Verknüpfung wird aufgelöst — automatisch beim nächsten Durchlauf oder sofort mit der Schaltfläche oben."
+
+msgid "strictly the access_dtb permission — no implicit access, not even for superusers. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
+msgstr "streng die Berechtigung access_dtb — kein impliziter Zugriff, auch nicht für Superuser. Benutzer ohne die Berechtigung werden aus Telegram-Gruppen gekickt und die Verknüpfung wird aufgelöst — beim 6-stündigen Durchlauf oder sofort auf der Gruppenseite."

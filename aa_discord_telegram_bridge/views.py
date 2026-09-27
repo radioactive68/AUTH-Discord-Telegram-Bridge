@@ -42,9 +42,9 @@ def _is_configured():
 def services_overview(request):
     """Main user page: show Telegram block with link/unlink controls.
 
-    Restricted to users holding a DTB access permission (``access_dtb``, or
-    DTB admin rights) — the same rule that decides whether the service tile
-    is rendered on /services/.
+    Restricted to users explicitly holding ``access_dtb`` — the same rule that
+    decides whether the service tile is rendered on /services/ (being a DTB
+    admin or a Django superuser is not enough).
     """
     from .tasks import _user_can_use_dtb
 

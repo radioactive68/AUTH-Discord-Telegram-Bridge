@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.7.2
+- **No implicit access any more — the permission has to be granted explicitly.**
+  The service was still visible to users who were never granted `access_dtb`,
+  because the gate was built on `user.has_perm()`: Django returns `True` for
+  *every* permission when the user is a Django superuser, and `manage_dtb_rules`
+  (admin rights) was accepted as access too. DTB now resolves its own
+  permission from the actual grants (`_user_holds_perm()` — direct user
+  permissions or group permissions, like the groups an AA admin uses for
+  member / FC / leadership), so:
+  - a superuser without `access_dtb` no longer sees the tile and gets 403 on
+    `/dtb/`;
+  - `manage_dtb_rules` opens the admin pages only, not the user-facing service;
+  - `validate_all_telegram_users` revokes (kicks + unlinks) superusers and DTB
+    admins whose `access_dtb` is gone, exactly like any other user.
+  Grant `access_dtb` to your own group/state (and to your own account if you
+  want to use the bridge yourself).
+- Tests added: superuser without the permission sees no service, DTB admin
+  rights alone do not grant it, a group holding the permission does.
+
 ## 1.7.1
 - **DTB checks only its own permissions again**: `1.7.0` also accepted
   `securegroups.access_sec_group` (permission of another app) as an access
