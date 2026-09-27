@@ -118,6 +118,27 @@ def _user_is_dtb_member(user):
     return False
 
 
+def _user_can_use_dtb(user):
+    """Access gate for the DTB service entry and every DTB page.
+
+    Alliance Auth does not enforce ``ServicesHook.access_perm`` for us: the
+    permission information is handed to the service, and the service has to
+    check it. So the tile on ``/services/``, the DTB pages and linking all
+    require ``access_dtb`` (the permission admins are expected to grant to
+    the group/state holding alliance members). On top of that the user must be
+    a member of the alliance configured in DTBSettings, since that is what
+    DTB grants Telegram access for. DTB admins (``manage_dtb_rules``) always
+    pass.
+    """
+    from .permissions import PERM_ACCESS_DTB, PERM_MANAGE_RULES
+
+    if user.has_perm(PERM_MANAGE_RULES):
+        return True
+    if not user.has_perm(PERM_ACCESS_DTB):
+        return False
+    return _user_is_dtb_member(user)
+
+
 @shared_task(bind=True, max_retries=3)
 def validate_all_telegram_users(self):
     """Periodic task: validate all Telegram users are still in valid state.

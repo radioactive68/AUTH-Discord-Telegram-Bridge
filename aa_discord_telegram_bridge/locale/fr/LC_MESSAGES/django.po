@@ -830,3 +830,6 @@ msgstr "When this link token stops being valid"
 
 msgid "Secret token Telegram sends with every webhook update (generated automatically)"
 msgstr "Secret token Telegram sends with every webhook update (generated automatically)"
+
+msgid "You need the Discord-Telegram Bridge access permission to link Telegram."
+msgstr "You need the Discord-Telegram Bridge access permission to link Telegram."

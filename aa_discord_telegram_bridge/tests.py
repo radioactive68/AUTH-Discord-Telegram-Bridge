@@ -130,6 +130,9 @@ class TestLinkingTokenFlow(TestCase):
         self.user = User.objects.create_user(
             username='linker', password='x', is_superuser=False, is_staff=False,
         )
+        self.user.user_permissions.add(
+            Permission.objects.get(codename='access_dtb')
+        )
         perm = Permission.objects.get(codename='manage_dtb_rules')
         self.user.user_permissions.add(perm)
         self.user.is_active = True
@@ -156,6 +159,20 @@ class TestLinkingTokenFlow(TestCase):
         # The token also lands in the session for the deep link page.
         session = self.client.session
         self.assertEqual(session.get('dtb_link_pending', {}).get('token'), request.token)
+
+    def test_link_view_denied_without_access_permission(self):
+        """Without access_dtb the service is not available to the user."""
+        self.user.user_permissions.clear()
+        self.user = User.objects.get(pk=self.user.pk)  # drop perm cache
+
+        from .auth_hooks import DiscordTelegramBridgeService
+
+        self.assertFalse(
+            DiscordTelegramBridgeService().service_active_for_user(self.user)
+        )
+        self.assertEqual(TelegramLinkRequest.objects.count(), 0)
+        self.client.post('/dtb/link/', follow=True)
+        self.assertEqual(TelegramLinkRequest.objects.count(), 0)
 
     @mock.patch('aa_discord_telegram_bridge.telegram_handler._invite_to_groups')
     def test_bot_binds_user_with_valid_token(self, mock_invite):

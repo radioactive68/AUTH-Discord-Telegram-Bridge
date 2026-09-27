@@ -1,15 +1,28 @@
 # Changelog
 
+## 1.6.4
+- **`access_dtb` is now enforced**: AA only *hands* a service's `access_perm`
+  to the service hook, it does not check it — so a user without the permission
+  still saw the Discord-Telegram Bridge tile (and could open the page) as long
+  as they had a character in the configured alliance. DTB now checks the
+  permission itself (`tasks._user_can_use_dtb()`), used by
+  `service_active_for_user()`, `show_service_ctrl()`, the DTB overview page and
+  the link/unlink views, so the tile, the pages and the linking flow all follow
+  the same rule: `access_dtb` **and** membership of the alliance from
+  `DTBSettings.alliance_id`; DTB admins (`manage_dtb_rules`) always pass.
+  Grant `access_dtb` to the group/state that holds the members who may use the
+  bridge — it is not assigned automatically, and the periodic validation task
+  unlinks users who do not hold it. Regression test added
+  (`test_link_view_denied_without_access_permission`).
+- Migration `0019` restores the `access_dtb` permission (removed again in
+  1.6.3 by mistake, see below).
+
 ## 1.6.3
 - **Dead permission removed**: `aa_discord_telegram_bridge.access_dtb` was
   declared in `DTBSettings.Meta.permissions` and set as `access_perm` on the
   service hook, but nothing ever checked it — AA's `ServicesHook` does not
-  enforce `access_perm` itself. Service visibility is (and always was) decided
-  by membership of the alliance configured in `DTBSettings.alliance_id` plus
-  `manage_dtb_rules` for admins, and the same check guards the DTB pages
-  themselves. The permission is now gone (migration `0018`), and the README
-  states explicitly that alliance membership *is* the access gate, so nobody
-  expects a permission that never did anything.
+  enforce `access_perm` itself. Removing it was wrong: the permission is the
+  intended "basic access" gate, restored and enforced in 1.6.4.
 
 ## 1.6.2
 - **Secure one-time linking**: the "enter your Telegram username" and

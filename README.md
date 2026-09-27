@@ -239,16 +239,23 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 
 | Permission | Description | Grant to |
 |---|---|---|
+| `aa_discord_telegram_bridge.access_dtb` | **Basic access** — required to see the DTB tile on `/services/` and to link Telegram | Group/state with the members who may use the bridge |
 | `aa_discord_telegram_bridge.manage_dtb_rules` | Access to admin dashboard, rules, groups, settings | DTB admins |
 | `aa_discord_telegram_bridge.view_forward_history` | View the forwarding history log | Optionally to directors+ |
 
-> **Who sees the service:** the DTB block on `/services/` (and the DTB page
-> itself) is shown to every member of the alliance configured in
-> *DTB Settings → alliance_id* — plus anyone holding
-> `manage_dtb_rules`. There is no separate "access" permission: membership in
-> the configured alliance *is* the access gate, so members can link their
-> Telegram account without an admin having to hand out permissions. The old,
-> never-enforced `access_dtb` permission was removed in 1.6.3.
+> **How access works:** Alliance Auth does not enforce a service's
+> `access_perm` for you — it only *hands* the permission state to the service
+> hook, so DTB checks `access_dtb` itself. Without it the tile is not rendered
+> and `/dtb/` returns 403. `access_dtb` alone is not enough either: the user
+> must also have a character in the alliance configured in *DTB Settings →
+> alliance_id*, because that alliance is what DTB grants Telegram access for.
+> DTB admins (`manage_dtb_rules`) always pass both checks.
+>
+> To hand out access, create a state/group (e.g. "Alliance members"), add
+> `access_dtb` to it, and include it in the state-granting process — then new
+> members receive the permission automatically. Users without the permission
+> are also removed from the bridge by the periodic validation task, so grant it
+> before they link.
 
 ## User flow
 
@@ -320,11 +327,12 @@ aa_discord_telegram_bridge/
 
 ### Users cannot see the DTB block on /services/
 
-1. The block is shown to members of the alliance set in *DTB Settings →
-   alliance_id* (and to DTB admins). Check that `alliance_id` is set and that
-   the user's EVE character is actually in that alliance in Auth.
-2. If the user has no characters at all, or none in the configured alliance,
-   the block is hidden by design — linking is alliance-only.
+1. Check the user holds `aa_discord_telegram_bridge.access_dtb` — it is not
+   granted automatically. Create a group/state with that permission and add it
+   to the state-granting process, or grant it to the user directly.
+2. Also check `alliance_id` in DTB Settings and that the user's EVE character
+   is actually in that alliance: both the permission *and* alliance membership
+   are required.
 
 ### Auto-invite does not send links
 

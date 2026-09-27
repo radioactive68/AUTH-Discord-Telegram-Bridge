@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-DTB_VERSION = '1.6.3'
+DTB_VERSION = '1.6.4'
 
 
 class DTBSettings(models.Model):
@@ -38,6 +38,7 @@ class DTBSettings(models.Model):
         verbose_name = _('DTB Settings')
         verbose_name_plural = _('DTB Settings')
         permissions = (
+            ('access_dtb', 'Can access Discord-Telegram Bridge'),
             ('manage_dtb_rules', 'Can manage DTB rules and settings'),
             ('view_forward_history', 'Can view forward history'),
         )

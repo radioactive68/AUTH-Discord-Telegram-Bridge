@@ -1090,3 +1090,6 @@ msgstr "Wann das Verknüpfungstoken abläuft"
 
 msgid "Secret token Telegram sends with every webhook update (generated automatically)"
 msgstr "Secret-Token, das Telegram mit jedem Webhook-Update sendet (automatisch generiert)"
+
+msgid "You need the Discord-Telegram Bridge access permission to link Telegram."
+msgstr "Sie benötigen die Discord-Telegram-Bridge-Zugriffsberechtigung, um Telegram zu verknüpfen."

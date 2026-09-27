@@ -43,15 +43,16 @@ def _is_configured():
 def services_overview(request):
     """Main user page: show Telegram block with link/unlink controls.
 
-    Restricted to members of the configured alliance and DTB admins.
-    Everyone else gets 403.
+    Restricted to holders of ``access_dtb`` who are members of the configured
+    alliance, plus DTB admins. Everyone else gets 403 — the same rules that
+    decide whether the service tile is rendered on /services/.
     """
-    from .tasks import _user_is_dtb_member
+    from .tasks import _user_can_use_dtb, _user_is_dtb_member
 
     is_admin = _has_dtb_permission(request.user)
     in_alliance = _user_is_dtb_member(request.user)
 
-    if not in_alliance and not is_admin:
+    if not _user_can_use_dtb(request.user):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden(_('Permission denied.'))
 
@@ -116,9 +117,9 @@ def link_telegram(request):
         messages.error(request, _('DTB is not configured. Admin must set alliance_id.'))
         return redirect('dtb:services_overview')
 
-    from .tasks import _user_is_dtb_member
-    if not _user_is_dtb_member(request.user):
-        messages.error(request, _('You must be a member of the configured alliance to link Telegram.'))
+    from .tasks import _user_can_use_dtb
+    if not _user_can_use_dtb(request.user):
+        messages.error(request, _('You need the Discord-Telegram Bridge access permission to link Telegram.'))
         return redirect('dtb:services_overview')
 
     profile, created = TelegramUser.objects.get_or_create(user=request.user)
@@ -149,8 +150,8 @@ def link_telegram(request):
 @require_POST
 def unlink_telegram(request):
     """Unlink Telegram account and kick from tracked groups."""
-    from .tasks import _user_is_dtb_member
-    if not _user_is_dtb_member(request.user):
+    from .tasks import _user_can_use_dtb
+    if not _user_can_use_dtb(request.user):
         return redirect('services:services')
 
     profile, created = TelegramUser.objects.get_or_create(user=request.user)
