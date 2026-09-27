@@ -547,7 +547,7 @@ class TestServiceHookStringification(TestCase):
     def test_removing_access_perm_from_state_persists(self):
         from allianceauth.authentication.models import State
 
-        state = State.objects.create(name='dtb-test-state')
+        state = State.objects.create(name='dtb-test-state', priority=1)
         state.permissions.add(self.perm)
         self.assertIn(self.perm, state.permissions.all())
 

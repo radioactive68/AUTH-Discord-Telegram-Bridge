@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.7.6
+- **Fixes removing `access_dtb` from a state or a group — it silently rolled
+  back.** `DiscordTelegramBridgeService.name` was a lazy gettext proxy, and
+  `allianceauth/services/signals.py` interpolates the service object into
+  f-strings when permissions are removed from a `Group` (line 86) or a `State`
+  (line 119). f-strings call `str()` eagerly, even with debug logging off, and
+  `ServicesHook.__str__` returns `self.name` unchanged, so the proxy raised
+  `TypeError: str returned non-string (type proxy)`. The admin UI wraps the
+  save in a transaction, so the whole change rolled back and never stuck —
+  every attempt in the log was the same traceback, and the one reported as
+  "saved" logged "No fields changed". `name` is now a plain `'dtb'` id, with
+  the display name kept in `title`, matching AA's own services.
+- The same f-string is used in `logger.exception` around `validate_user` and
+  `sync_nickname` (signals.py lines 63 and 229). It would raise a second
+  `TypeError` while handling a failure, hiding the real error message. Fixed by
+  the same change.
+- Added `TestServiceHookStringification`: `str(service)` must be a `str`, it
+  must survive `'%s' % svc` and f-string formatting, and removing `access_dtb`
+  from a `State` or a `Group` must actually persist.
+
 ## 1.7.5
 - **Tests finally match how AA 5 actually behaves** — the suite is green again
   (`31 passed, 3 skipped`). Three pre-existing problems, none of them in the

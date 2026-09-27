@@ -27,7 +27,15 @@ class DiscordTelegramBridgeService(ServicesHook):
 
     def __init__(self):
         ServicesHook.__init__(self)
-        self.name = _('Discord-Telegram Bridge')
+        # Must stay a plain str, never a lazy gettext proxy: AA's
+        # services/signals.py interpolates the service object into f-strings
+        # (group/state permission changes, logger.exception around
+        # validate_user), and f-strings call str() eagerly even when the log
+        # level is off. ServicesHook.__str__ returns self.name unchanged, so a
+        # proxy there raises TypeError inside the caller's transaction and the
+        # change silently rolls back. AA's own services put a short id here
+        # and the display name in title.
+        self.name = 'dtb'
         self.service_ctrl_template = 'dtb/services_ctrl.html'
         self.access_perm = PERM_ACCESS_DTB
 
