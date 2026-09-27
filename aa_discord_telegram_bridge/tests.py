@@ -547,14 +547,20 @@ class TestServiceHookStringification(TestCase):
     def test_removing_access_perm_from_state_persists(self):
         from allianceauth.authentication.models import State
 
-        state = State.objects.create(name='dtb-test-state', priority=1)
-        state.permissions.add(self.perm)
-        self.assertIn(self.perm, state.permissions.all())
+        # AA 5 points State.permissions at a proxy of auth.Permission, so the
+        # instance has to come from that model: handing Django the parent
+        # class raises "Permission instance expected".
+        perm_model = State._meta.get_field('permissions').related_model
+        perm = perm_model.objects.get(codename='access_dtb')
 
-        state.permissions.remove(self.perm)
+        state = State.objects.create(name='dtb-test-state', priority=1)
+        state.permissions.add(perm)
+        self.assertIn(perm, state.permissions.all())
+
+        state.permissions.remove(perm)
 
         state.refresh_from_db()
-        self.assertNotIn(self.perm, state.permissions.all())
+        self.assertNotIn(perm, state.permissions.all())
 
     def test_removing_access_perm_from_group_persists(self):
         group = Group.objects.create(name='dtb-test-group')
