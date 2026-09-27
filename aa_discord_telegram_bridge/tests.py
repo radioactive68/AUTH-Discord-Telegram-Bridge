@@ -512,3 +512,56 @@ class TestPlainStartDoesNotCreateRequest(TestCase):
             _process_plain_start(999888777, '100', 'nobody', 'en')
         self.assertEqual(TelegramLinkRequest.objects.count(), 0)
         self.assertFalse(TelegramUser.objects.filter(telegram_user_id=999888777).exists())
+
+
+class TestServiceHookStringification(TestCase):
+    """The service hook must survive ``str()`` — AA interpolates it into logs.
+
+    ``allianceauth/services/signals.py`` builds f-strings that contain the
+    service object whenever permissions are removed from a group or a state
+    (and again in ``logger.exception`` when ``validate_user`` raises). f-strings
+    call ``__format__``/``str()`` eagerly, so the message is built even with
+    debug logging off. ``ServicesHook.__str__`` returns ``self.name``
+    unchanged, and a lazy gettext proxy in ``name`` makes it raise
+    ``TypeError: str returned non-string (type proxy)``. That exception fires
+    inside the admin's transaction, so removing ``access_dtb`` from a state or
+    a group rolled back and silently never stuck.
+    """
+
+    def setUp(self):
+        from .auth_hooks import DiscordTelegramBridgeService
+
+        self.service = DiscordTelegramBridgeService()
+        self.perm = Permission.objects.get(codename='access_dtb')
+
+    def test_name_is_a_plain_string(self):
+        self.assertIsInstance(self.service.name, str)
+        self.assertIsInstance(str(self.service), str)
+        self.assertTrue(str(self.service).strip())
+
+    def test_str_survives_logger_formatting(self):
+        # What those f-strings actually do: '%s' % svc and f'{svc}'.
+        self.assertEqual('%s' % self.service, self.service.name)
+        self.assertEqual(f'{self.service}', self.service.name)
+
+    def test_removing_access_perm_from_state_persists(self):
+        from allianceauth.authentication.models import State
+
+        state = State.objects.create(name='dtb-test-state')
+        state.permissions.add(self.perm)
+        self.assertIn(self.perm, state.permissions.all())
+
+        state.permissions.remove(self.perm)
+
+        state.refresh_from_db()
+        self.assertNotIn(self.perm, state.permissions.all())
+
+    def test_removing_access_perm_from_group_persists(self):
+        group = Group.objects.create(name='dtb-test-group')
+        group.permissions.add(self.perm)
+        self.assertIn(self.perm, group.permissions.all())
+
+        group.permissions.remove(self.perm)
+
+        group.refresh_from_db()
+        self.assertNotIn(self.perm, group.permissions.all())
