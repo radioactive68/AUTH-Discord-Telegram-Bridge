@@ -28,14 +28,18 @@ class DiscordTelegramBridgeService(ServicesHook):
         ServicesHook.__init__(self)
         self.name = _('Discord-Telegram Bridge')
         self.service_ctrl_template = 'dtb/services_ctrl.html'
-        self.access_perm = 'aa_discord_telegram_bridge.access_dtb'
 
     @property
     def title(self):
         return _('Discord-Telegram Bridge')
 
     def service_active_for_user(self, user):
-        """Check if service is available for user (alliance members)."""
+        """Check if service is available for user (alliance members).
+
+        There is no separate access permission: membership of the alliance
+        configured in DTBSettings is the gate (plus manage_dtb_rules for
+        admins), and the same check guards the DTB views.
+        """
         from .tasks import _user_is_dtb_member
         return _user_is_dtb_member(user)
 

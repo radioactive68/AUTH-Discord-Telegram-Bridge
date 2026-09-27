@@ -239,9 +239,16 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 
 | Permission | Description | Grant to |
 |---|---|---|
-| `aa_discord_telegram_bridge.access_dtb` | Shows the DTB block on `/services/` | All alliance members |
 | `aa_discord_telegram_bridge.manage_dtb_rules` | Access to admin dashboard, rules, groups, settings | DTB admins |
 | `aa_discord_telegram_bridge.view_forward_history` | View the forwarding history log | Optionally to directors+ |
+
+> **Who sees the service:** the DTB block on `/services/` (and the DTB page
+> itself) is shown to every member of the alliance configured in
+> *DTB Settings → alliance_id* — plus anyone holding
+> `manage_dtb_rules`. There is no separate "access" permission: membership in
+> the configured alliance *is* the access gate, so members can link their
+> Telegram account without an admin having to hand out permissions. The old,
+> never-enforced `access_dtb` permission was removed in 1.6.3.
 
 ## User flow
 
@@ -313,8 +320,11 @@ aa_discord_telegram_bridge/
 
 ### Users cannot see the DTB block on /services/
 
-1. Check that the user has the `aa_discord_telegram_bridge.access_dtb`
-   permission (grant it to alliance members via your normal AA group management).
+1. The block is shown to members of the alliance set in *DTB Settings →
+   alliance_id* (and to DTB admins). Check that `alliance_id` is set and that
+   the user's EVE character is actually in that alliance in Auth.
+2. If the user has no characters at all, or none in the configured alliance,
+   the block is hidden by design — linking is alliance-only.
 
 ### Auto-invite does not send links
 

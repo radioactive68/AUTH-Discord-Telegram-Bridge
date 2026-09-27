@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.3
+- **Dead permission removed**: `aa_discord_telegram_bridge.access_dtb` was
+  declared in `DTBSettings.Meta.permissions` and set as `access_perm` on the
+  service hook, but nothing ever checked it — AA's `ServicesHook` does not
+  enforce `access_perm` itself. Service visibility is (and always was) decided
+  by membership of the alliance configured in `DTBSettings.alliance_id` plus
+  `manage_dtb_rules` for admins, and the same check guards the DTB pages
+  themselves. The permission is now gone (migration `0018`), and the README
+  states explicitly that alliance membership *is* the access gate, so nobody
+  expects a permission that never did anything.
+
 ## 1.6.2
 - **Secure one-time linking**: the "enter your Telegram username" and
   verification-code flows are gone. Clicking **Generate link** now mints a

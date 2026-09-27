@@ -130,9 +130,6 @@ class TestLinkingTokenFlow(TestCase):
         self.user = User.objects.create_user(
             username='linker', password='x', is_superuser=False, is_staff=False,
         )
-        self.user.user_permissions.add(
-            Permission.objects.get(name='Can access Discord-Telegram Bridge')
-        )
         perm = Permission.objects.get(codename='manage_dtb_rules')
         self.user.user_permissions.add(perm)
         self.user.is_active = True
