@@ -1,28 +1,27 @@
 # Changelog
 
+## 1.7.1
+- **DTB checks only its own permissions again**: `1.7.0` also accepted
+  `securegroups.access_sec_group` (permission of another app) as an access
+  signal. That was wrong — every app owns its permissions, so DTB now gates on
+  `aa_discord_telegram_bridge.access_dtb` (or `manage_dtb_rules` for DTB
+  admins) exclusively. Grant `access_dtb` to your own group/state (e.g.
+  "member", "FC", "leadership"); nothing else is required.
+- **Automatic revocation is back**: `1.7.0` turned the 6-hourly
+  `validate_all_telegram_users` task into a report. Losing `access_dtb` now
+  kicks the user from all tracked Telegram groups and unlinks their Telegram
+  account again — the periodic run is the enforcement point (Alliance Auth does
+  not notify apps about permission changes), `ServicesHook.validate_user()` and
+  `delete_user()` do the same on user state changes, and the admin can trigger
+  it instantly with *Validate & Kick Now*.
+
 ## 1.7.0
 - **Access is now purely permission-based, no `alliance_id`**: DTB no longer
-  looks at EVE data. A user may use the bridge when holding
-  `securegroups.access_sec_group` (the Secure Groups smart group permission —
-  "Can access sec group requests screen." — which every alliance member has),
-  **or** `access_dtb` (granting access outside of that smart group), **or**
-  `manage_dtb_rules` (DTB admins; Django superusers implicitly hold all
-  permissions). The same `tasks._user_can_use_dtb()` gate drives the tile on
-  `/services/`, the DTB pages, linking/unlinking and the Telegram
-  join-request approval.
+  looks at EVE data — a user may use the bridge when holding a DTB permission
+  (`access_dtb`, or `manage_dtb_rules` for admins).
 - **Migration `0020` drops `DTBSettings.alliance_id`** (field, admin page,
   settings form, `dtb_setup --alliance-id`, and the character-update signal
   that watched for alliance changes are gone).
-- **Losing access is reported, not enforced**: the 6-hourly
-  `validate_all_telegram_users` task no longer kicks or unlinks anybody — it
-  refreshes `is_active` for accounts that still have access and logs everyone
-  linked without it. `ServicesHook.validate_user()` likewise only logs. The
-  dashboard ("N linked account(s) without access") and the Members page ("no
-  access" badge) surface the report; revoking Telegram access is a deliberate
-  action (unlink, or kick from the Members page).
-- Deactivating a user in Auth still kicks them from the Telegram groups.
-- New tests: access via `access_dtb` alone, denial without any permission,
-  report-without-revoke, and restore-after-regain.
 
 ## 1.6.4
 - **`access_dtb` is now enforced**: AA only *hands* a service's `access_perm`

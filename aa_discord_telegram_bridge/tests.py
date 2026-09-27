@@ -187,8 +187,8 @@ class TestLinkingTokenFlow(TestCase):
         self.assertTrue(hook.service_active_for_user(self.user))
         self.assertTrue(hook.show_service_ctrl(self.user))
 
-    def test_validation_reports_but_does_not_revoke(self):
-        """Losing the permission is reported, the link is left untouched."""
+    def test_validation_revokes_access_lost(self):
+        """Losing access_dtb kicks from the groups and deactivates."""
         from .tasks import linked_profiles_without_access, validate_all_telegram_users
 
         profile = TelegramUser.objects.create(
@@ -207,16 +207,42 @@ class TestLinkingTokenFlow(TestCase):
         )
 
         with mock.patch(
-            'aa_discord_telegram_bridge.tasks._kick_user_from_all_groups'
+            'aa_discord_telegram_bridge.tasks._kick_user_from_all_groups',
+            return_value=True,
         ) as mock_kick:
             report = validate_all_telegram_users()
 
-        mock_kick.assert_not_called()
-        self.assertEqual(report['no_access'], 1)
-        self.assertEqual(report['no_access_users'], [self.user.username])
+        mock_kick.assert_called_once()
+        self.assertEqual(report['revoked'], 1)
+        self.assertEqual(report['revoked_users'], [self.user.username])
+        self.assertEqual(report['kicked'], 1)
         profile.refresh_from_db()
-        self.assertTrue(profile.is_active)
-        self.assertEqual(profile.telegram_chat_id, '12345')
+        self.assertFalse(profile.is_active)
+
+    def test_validate_user_hook_revokes(self):
+        """ServicesHook.validate_user revokes the service as well."""
+        from .auth_hooks import DiscordTelegramBridgeService
+
+        TelegramUser.objects.create(
+            user=self.user,
+            telegram_chat_id='12345',
+            telegram_user_id=111222333,
+            is_active=True,
+        )
+
+        self.user.user_permissions.clear()
+        self.user = User.objects.get(pk=self.user.pk)
+
+        with mock.patch(
+            'aa_discord_telegram_bridge.tasks._kick_user_from_all_groups',
+            return_value=True,
+        ) as mock_kick:
+            DiscordTelegramBridgeService().validate_user(self.user)
+
+        mock_kick.assert_called_once()
+        self.assertFalse(
+            TelegramUser.objects.get(user=self.user).is_active
+        )
 
     def test_validation_restores_access_after_regaining_permission(self):
         from .tasks import validate_all_telegram_users
@@ -231,7 +257,7 @@ class TestLinkingTokenFlow(TestCase):
         report = validate_all_telegram_users()
 
         self.assertEqual(report['validated'], 1)
-        self.assertEqual(report['no_access'], 0)
+        self.assertEqual(report['revoked'], 0)
         profile.refresh_from_db()
         self.assertTrue(profile.is_active)
 

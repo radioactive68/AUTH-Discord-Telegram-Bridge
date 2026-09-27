@@ -10,12 +10,10 @@ def create_dtb_permissions():
 
 
 # Permission constants
+#
+# DTB owns its permissions and never reads permissions of other apps: an
+# Alliance Auth admin grants these to their own groups/states (e.g. "member",
+# "FC", "leadership") and DTB checks exactly these.
 PERM_ACCESS_DTB = 'aa_discord_telegram_bridge.access_dtb'
 PERM_MANAGE_RULES = 'aa_discord_telegram_bridge.manage_dtb_rules'
 PERM_VIEW_HISTORY = 'aa_discord_telegram_bridge.view_forward_history'
-
-# Alliance membership is tracked by the Secure Groups app: its smart group
-# holds every alliance member and grants this permission ("Can access sec
-# group requests screen."). DTB treats it as the "is an alliance member"
-# signal, so no alliance_id / EVE data lookup is needed.
-PERM_SECURE_GROUP = 'securegroups.access_sec_group'

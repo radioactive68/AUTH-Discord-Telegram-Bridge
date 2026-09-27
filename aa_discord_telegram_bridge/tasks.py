@@ -70,26 +70,22 @@ def _user_can_use_dtb(user):
 
     Alliance Auth does not enforce ``ServicesHook.access_perm`` for a service
     app: it only *hands* the permission state to the service, which has to
-    check it. DTB therefore grants access purely by permission, with no EVE
-    data lookups:
+    check it. DTB therefore checks **its own** permissions — every app owns
+    its permissions, so DTB never inspects permissions of other apps:
 
-    * ``securegroups.access_sec_group`` — held by every member of the alliance
-      smart group of the Secure Groups app, i.e. every alliance member;
-    * ``access_dtb`` — the plugin's own permission, for granting access
-      outside of that smart group;
-    * ``manage_dtb_rules`` — DTB admins (and Django superusers, who hold every
-      permission implicitly).
+    * ``access_dtb`` — basic access, granted to the group/state holding the
+      members who may use the bridge (e.g. "member");
+    * ``manage_dtb_rules`` — DTB admins (leadership/FC); Django superusers hold
+      every permission implicitly and pass as well.
 
     The same check drives the tile on ``/services/``, the DTB pages, the
-    link/unlink flow and the Telegram join-request gate.
+    link/unlink flow and the Telegram join-request gate, and its loss is what
+    revokes the Telegram linkage (see ``validate_all_telegram_users``).
     """
-    from .permissions import (
-        PERM_ACCESS_DTB, PERM_MANAGE_RULES, PERM_SECURE_GROUP,
-    )
+    from .permissions import PERM_ACCESS_DTB, PERM_MANAGE_RULES
 
     return (
-        user.has_perm(PERM_SECURE_GROUP)
-        or user.has_perm(PERM_ACCESS_DTB)
+        user.has_perm(PERM_ACCESS_DTB)
         or user.has_perm(PERM_MANAGE_RULES)
     )
 
@@ -97,8 +93,8 @@ def _user_can_use_dtb(user):
 def linked_profiles_without_access():
     """Linked Telegram profiles whose portal user has no DTB access permission.
 
-    Pure report helper (no side effects) used by the admin dashboard. Access
-    checks are permission-only, so no EVE lookups are involved.
+    Pure report helper (no side effects) used by the admin dashboard, to show
+    what the next validation run will revoke.
     """
     profiles = (
         TelegramUser.objects
@@ -112,24 +108,24 @@ def linked_profiles_without_access():
 
 @shared_task(bind=True, max_retries=3)
 def validate_all_telegram_users(self):
-    """Periodic task: refresh the access state of every linked Telegram user.
+    """Periodic task: enforce the access state of every linked Telegram user.
 
-    Reporting only: nobody is unlinked or kicked here. Access is
-    permission-driven, so losing the permission is an Auth-side decision
-    (smart group / state change) — DTB only records who is currently linked
-    without access so an admin can act deliberately (see the "Members" page
-    or the DTB overview of that user).
+    Users whose ``access_dtb`` permission is gone (and who are not DTB admins)
+    are kicked from all tracked Telegram groups and unlinked; users who still
+    hold it are (re)activated. Auth does not notify apps about permission
+    changes, so this task is the enforcement point for access revocation;
+    deactivating a user in Auth is handled immediately by ``signals.py``.
     """
-    from .permissions import PERM_MANAGE_RULES
-
     # Process all linked users (with a Telegram chat id) so that users who were
     # previously deactivated can be re-activated when they regain access.
     linked_users = TelegramUser.objects.filter(
         telegram_chat_id__isnull=False,
     ).exclude(telegram_chat_id='')
 
-    no_access: list[str] = []
+    telegram_bot = TelegramBotManager()
+    revoked: list[str] = []
     validated_count = 0
+    kicked_count = 0
 
     for tg_user in linked_users:
         try:
@@ -138,15 +134,25 @@ def validate_all_telegram_users(self):
             # A deactivated Django user always loses Telegram access
             if not user.is_active:
                 if tg_user.is_active:
+                    kicked = _kick_user_from_all_groups(telegram_bot, tg_user)
                     tg_user.is_active = False
                     tg_user.save()
+                    if kicked:
+                        kicked_count += 1
                 continue
 
             if not _user_can_use_dtb(user):
-                if not user.has_perm(PERM_MANAGE_RULES):
-                    no_access.append(user.username)
-                tg_user.last_validated = timezone.now()
+                logger.info(
+                    'User %s no longer has the DTB access permission, '
+                    'kicking from Telegram',
+                    user.username,
+                )
+                kicked = _kick_user_from_all_groups(telegram_bot, tg_user)
+                tg_user.is_active = False
                 tg_user.save()
+                revoked.append(user.username)
+                if kicked:
+                    kicked_count += 1
                 continue
 
             # User is in good standing: ensure the profile is active.
@@ -163,19 +169,20 @@ def validate_all_telegram_users(self):
                 tg_user.user.username, redact_secrets(str(e)),
             )
 
-    if no_access:
-        logger.warning(
-            'Telegram users linked without DTB access permission (%d): %s',
-            len(no_access), ', '.join(sorted(no_access)),
+    if revoked:
+        logger.info(
+            'Revoked DTB access for %d user(s): %s',
+            len(revoked), ', '.join(sorted(revoked)),
         )
     logger.info(
-        'Telegram validation complete: %d with access, %d without access',
-        validated_count, len(no_access),
+        'Telegram validation complete: %d validated, %d revoked, %d kicked',
+        validated_count, len(revoked), kicked_count,
     )
     return {
         'validated': validated_count,
-        'no_access': len(no_access),
-        'no_access_users': sorted(no_access),
+        'revoked': len(revoked),
+        'revoked_users': sorted(revoked),
+        'kicked': kicked_count,
     }
 
 

@@ -60,7 +60,7 @@ class Command(BaseCommand):
         members = User.objects.filter(is_active=True)
         with_access = sum(1 for u in members if _user_can_use_dtb(u))
         self.stdout.write(f'  {with_access}/{members.count()} active users hold a DTB access permission')
-        self.stdout.write('  (securegroups.access_sec_group, access_dtb or manage_dtb_rules)')
+        self.stdout.write('  (access_dtb or manage_dtb_rules)')
 
         self.stdout.write(self.style.SUCCESS('\nDone! Visit https://<your-domain>/services/ to link Telegram.'))
 

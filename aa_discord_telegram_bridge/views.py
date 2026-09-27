@@ -42,9 +42,9 @@ def _is_configured():
 def services_overview(request):
     """Main user page: show Telegram block with link/unlink controls.
 
-    Restricted to users holding a DTB access permission (the Secure Groups
-    smart group permission, ``access_dtb``, or DTB admin rights) — the same
-    rule that decides whether the service tile is rendered on /services/.
+    Restricted to users holding a DTB access permission (``access_dtb``, or
+    DTB admin rights) — the same rule that decides whether the service tile
+    is rendered on /services/.
     """
     from .tasks import _user_can_use_dtb
 
@@ -396,16 +396,17 @@ def admin_groups(request):
 @login_required
 @permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_validate_now(request):
-    """Run the Telegram access validation/report task immediately."""
+    """Run the Telegram access validation/revocation task immediately."""
     from .tasks import validate_all_telegram_users
     result = validate_all_telegram_users.apply()
     info = getattr(result, 'result', None)
     if isinstance(info, dict):
         messages.success(
             request,
-            _('Validation complete: %(validated)s with access, %(no_access)s without access.') % {
+            _('Validation complete: %(validated)s validated, %(revoked)s revoked, %(kicked)s kicked.') % {
                 'validated': info.get('validated', 0),
-                'no_access': info.get('no_access', 0),
+                'revoked': info.get('revoked', 0),
+                'kicked': info.get('kicked', 0),
             },
         )
     else:

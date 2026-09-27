@@ -15,17 +15,16 @@ messages to Telegram channels.
   requesting Auth user and expire after a few minutes; a bare `/start` never
   creates a pending request, so nobody can bind someone else's Telegram account.
 - **Permission-based access** — no EVE data lookups. Anyone holding
-  `securegroups.access_sec_group` (granted by the alliance smart group of the
-  Secure Groups app), `access_dtb` or `manage_dtb_rules` sees the service tile
-  and may link Telegram; everyone else gets 403.
+  `aa_discord_telegram_bridge.access_dtb` sees the service tile and may link
+  Telegram; DTB admins (`manage_dtb_rules`) always pass. DTB checks **its own**
+  permissions only — never permissions of other apps.
 - **Auto-invite** — linked users receive Telegram group invitations via one-time
   invite links sent through DM. Periodic invite sync ensures users get invited
   to newly-added groups automatically.
-- **Access reporting** — the 6-hourly task refreshes who still has access and
-  logs the linked accounts that lost it; the dashboard and Members page flag
-  them. Revoking Telegram access is a deliberate action (unlink / kick), so
-  nothing is taken away silently. Deactivating a user in Auth still kicks them
-  from the Telegram groups.
+- **Auto-kick + auto-unlink when access is withdrawn** — every 6 hours (and
+  immediately when Auth reports a user state change) users who no longer hold
+  the access permission are kicked from all tracked Telegram groups and their
+  Telegram account is unlinked. They must link again after access is restored.
 - **Discord → Telegram forwarding** (optional) — forward messages from Discord
   channels to Telegram based on configurable rules with keyword filtering.
   Supports forum topics via `chat_id:thread_id` format.
@@ -96,8 +95,8 @@ active users hold a DTB access permission.
 > **Note**: DTB does not create or modify Alliance Auth groups. Grant the
 > `aa_discord_telegram_bridge.manage_dtb_rules` permission to the users or
 > groups who should manage DTB via your normal AA group management. Access for
-> regular members comes from the Secure Groups smart group permission
-> (`securegroups.access_sec_group`) — nothing else to configure.
+> regular members get `access_dtb`; leadership groups get
+> `manage_dtb_rules`.
 
 Optional arguments:
 
@@ -243,23 +242,30 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 
 | Permission | Description | Grant to |
 |---|---|---|
-| `securegroups.access_sec_group` | *External app (Secure Groups).* "Can access sec group requests screen." — held by every member of the alliance smart group | Already granted by the Secure Groups app |
-| `aa_discord_telegram_bridge.access_dtb` | **Basic access** — alternative way to grant DTB access outside the smart group | Group/state with the members who may use the bridge |
-| `aa_discord_telegram_bridge.manage_dtb_rules` | Access to admin dashboard, rules, groups, settings | DTB admins |
+| `aa_discord_telegram_bridge.access_dtb` | **Basic access** — required to see the DTB tile on `/services/` and to link Telegram | Your group/state with the members who may use the bridge (e.g. "member") |
+| `aa_discord_telegram_bridge.manage_dtb_rules` | Access to admin dashboard, rules, groups, settings | DTB admins (e.g. FC / leadership) |
 | `aa_discord_telegram_bridge.view_forward_history` | View the forwarding history log | Optionally to directors+ |
 
 > **How access works:** pure permission check, no EVE data and no
-> `alliance_id`. Alliance Auth does not enforce a service's `access_perm` for
+> `alliance_id`. Every app owns its permissions, so DTB checks **only its own**
+> three permissions above — it never looks at permissions of other apps (e.g.
+> Secure Groups). Alliance Auth does not enforce a service's `access_perm` for
 > you — it only *hands* the permission state to the service hook, so DTB
-> checks it itself in `tasks._user_can_use_dtb()`: the user needs
-> `securegroups.access_sec_group` **or** `access_dtb` **or**
-> `manage_dtb_rules`. That single check drives the tile on `/services/`, the
-> DTB pages, linking/unlinking and the Telegram join-request approval. Django
-> superusers pass implicitly (they hold every permission).
+> checks it itself in `tasks._user_can_use_dtb()`: the user needs `access_dtb`
+> **or** `manage_dtb_rules`. That single check drives the tile on `/services/`,
+> the DTB pages, linking/unlinking and the Telegram join-request approval.
+> Django superusers pass implicitly (they hold every permission).
 >
-> Losing the permission does **not** silently unlink anybody: the 6-hourly task
-> and the dashboard only report it. Revoke access deliberately via the user's
-> DTB page (Unlink) or the Members page (kick).
+> Hand the permissions out through your normal group/state management: add
+> `access_dtb` to the group that holds the members who may use the bridge and
+> include it in the state-granting process, so new members get it
+> automatically.
+>
+> **Losing `access_dtb` revokes access:** the 6-hourly task kicks the user from
+> all tracked Telegram groups and unlinks their Telegram account (Auth does not
+> notify apps about permission changes, so the periodic run is the enforcement
+> point; user state changes are handled immediately). Admins can trigger it
+> right away with *Validate & Kick Now* on the Groups page.
 
 ## User flow
 
@@ -333,12 +339,10 @@ aa_discord_telegram_bridge/
 
 Access is permission-only — check, in this order:
 
-1. `securegroups.access_sec_group` (the Secure Groups smart group permission):
-   is the user in the alliance smart group on the portal? Secure Groups syncs
-   it, so a member has it after the next sync.
-2. `aa_discord_telegram_bridge.access_dtb`: granted directly or via a
-   group/state, as an alternative to (1).
-3. `aa_discord_telegram_bridge.manage_dtb_rules`: DTB admins (Django
+1. `aa_discord_telegram_bridge.access_dtb`: granted directly to the user, or
+   via one of your groups/states (e.g. "member") which is part of the
+   state-granting process.
+2. `aa_discord_telegram_bridge.manage_dtb_rules`: DTB admins (Django
    superusers pass implicitly).
 
 The same check guards `/dtb/` (403) and the link endpoint.

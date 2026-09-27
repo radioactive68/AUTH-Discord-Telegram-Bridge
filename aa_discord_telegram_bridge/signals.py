@@ -33,7 +33,7 @@ def on_user_state_changed(sender, instance, **kwargs):
             pass
 
 
-# Alliance membership (and therefore DTB access) is no longer derived from
-# EVE data: it comes from the Secure Groups permission. There is no character
-# signal to watch any more — Auth updates the smart group membership, and the
-# periodic validation task reports the resulting access state.
+# Access is no longer derived from EVE data: it is the DTB permission
+# ``access_dtb``. There is no character signal to watch any more — the
+# periodic validation task enforces the permission state (Auth does not
+# notify apps when a permission is granted or removed).

@@ -77,30 +77,39 @@ class DiscordTelegramBridgeService(ServicesHook):
         }, request=request)
 
     def delete_user(self, user, notify_user=False):
-        """Remove user's Telegram linkage."""
+        """Revoke DTB access: kick from Telegram groups and unlink the account.
+
+        Called by Alliance Auth when the user must not have the service any
+        more (no ``access_dtb`` permission, deactivated account, …).
+        """
+        from .tasks import _kick_user_from_all_groups
+        from .manager import TelegramBotManager
+
         try:
             profile = user.telegram_profile
-            profile.is_active = False
-            profile.save()
-            logger.info('Deactivated Telegram for user %s', user.username)
-            return True
         except TelegramUser.DoesNotExist:
             return False
 
-    def validate_user(self, user):
-        """Report users that should no longer have the service.
+        if profile.telegram_chat_id:
+            try:
+                _kick_user_from_all_groups(
+                    TelegramBotManager(), profile, notify=notify_user,
+                )
+            except Exception as e:
+                logger.error(
+                    'Error revoking Telegram access for %s: %s',
+                    user.username, e,
+                )
+        if profile.is_active:
+            profile.is_active = False
+            profile.save()
+        logger.info('Revoked Telegram access for user %s', user.username)
+        return True
 
-        Access is permission-driven, so this only records the fact (log) and
-        leaves the Telegram account alone: removing access is an Auth-side
-        decision (smart group / state change), and revoking is done
-        deliberately by the user or a DTB admin.
-        """
+    def validate_user(self, user):
+        """Revoke the service when the user lost the access permission."""
         if not self.service_active_for_user(user):
-            logger.info(
-                'User %s has no DTB access permission any more '
-                '(linked Telegram account left untouched)',
-                user.username,
-            )
+            self.delete_user(user, notify_user=True)
 
 
 @receiver(post_save, sender=User)
