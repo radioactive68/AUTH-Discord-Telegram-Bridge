@@ -3,7 +3,7 @@ import secrets
 from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
@@ -18,13 +18,26 @@ from .models import (
 )
 from .forms import ForwardRuleForm, DTBSettingsForm
 from .manager import TelegramBotManager, DiscordBotManager, redact_secrets
+from .permissions import user_can_view_history, user_is_dtb_admin
 
 logger = logging.getLogger(__name__)
 
 
 def _has_dtb_permission(user):
     """Check if user has DTB admin permission."""
-    return user.has_perm('aa_discord_telegram_bridge.manage_dtb_rules')
+    return user_is_dtb_admin(user)
+
+
+def dtb_admin_required(view_func):
+    """Require ``manage_dtb_rules`` for a DTB admin page.
+
+    Not Django's ``permission_required``: that asks ``user.has_perm()``, which
+    misses a permission granted through an Alliance Auth state until AA syncs
+    it onto the user, and which silently passes every superuser. This uses the
+    same explicit resolver as the service gate, so admin access and service
+    access always agree.
+    """
+    return user_passes_test(user_is_dtb_admin, raise_exception=True)(view_func)
 
 
 def _is_configured():
@@ -187,7 +200,7 @@ def unlink_telegram(request):
 @login_required
 def forward_history(request):
     """View forwarding history (for users with permission)."""
-    if not request.user.has_perm('aa_discord_telegram_bridge.view_forward_history'):
+    if not user_can_view_history(request.user):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden('Permission denied.')
 
@@ -228,7 +241,7 @@ def connection_status(request):
 # ── Admin Views ─────────────────────────────────────────────
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_rules(request):
     """List and manage forwarding rules."""
     rules = ForwardRule.objects.all()
@@ -236,7 +249,7 @@ def admin_rules(request):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_rule_add(request):
     """Add a new forwarding rule."""
     if request.method == 'POST':
@@ -255,7 +268,7 @@ def admin_rule_add(request):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_rule_edit(request, rule_id):
     """Edit a forwarding rule."""
     rule = get_object_or_404(ForwardRule, pk=rule_id)
@@ -276,7 +289,7 @@ def admin_rule_edit(request, rule_id):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 @require_POST
 def admin_rule_delete(request, rule_id):
     """Delete a forwarding rule."""
@@ -288,7 +301,7 @@ def admin_rule_delete(request, rule_id):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 @require_POST
 def admin_rule_toggle(request, rule_id):
     """Toggle rule enabled/disabled."""
@@ -301,7 +314,7 @@ def admin_rule_toggle(request, rule_id):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_groups(request):
     """Manage known Telegram groups."""
     from .models import DTBSettings, TelegramGroup
@@ -394,7 +407,7 @@ def admin_groups(request):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_validate_now(request):
     """Run the Telegram access validation/revocation task immediately."""
     from .tasks import validate_all_telegram_users
@@ -415,7 +428,7 @@ def admin_validate_now(request):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_index(request):
     """Central DTB admin dashboard."""
     from .models import BotStatus
@@ -443,7 +456,7 @@ def admin_index(request):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 @require_POST
 def admin_test_connection(request):
     """Test Discord and Telegram connections."""
@@ -493,7 +506,7 @@ def admin_test_connection(request):
 # ── Settings ─────────────────────────────────────────────────
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_settings(request):
     """Edit DTB plugin settings."""
     s = DTBSettings.load()
@@ -528,7 +541,7 @@ def _sync_telegram_webhook(s):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_setup(request):
     """Guided first-time setup wizard."""
     from .models import ForwardRule, ConnectionStatus
@@ -589,7 +602,7 @@ def admin_setup(request):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_logs(request):
     """View bot service logs.
 
@@ -761,7 +774,7 @@ def _fetch_tg_member_details(bot, tg_user, group_chats):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_members(request):
     """List Telegram users: portal-linked accounts plus group administrators.
 
@@ -851,7 +864,7 @@ def admin_members(request):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 @require_POST
 def admin_tg_kick(request, tg_id):
     """Kick a Telegram user (no portal link) from all tracked groups."""
@@ -878,7 +891,7 @@ def admin_tg_kick(request, tg_id):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 def admin_member_info(request, user_pk):
     """AJAX: return Telegram name, bot flag and group-admin status for a user."""
     from .models import TelegramGroup
@@ -897,7 +910,7 @@ def admin_member_info(request, user_pk):
 
 
 @login_required
-@permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
+@dtb_admin_required
 @require_POST
 def admin_member_kick(request, user_pk):
     """Kick a linked user from all Telegram groups and unlink their profile."""

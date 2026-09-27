@@ -251,20 +251,29 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 > **only its own** three permissions above — it never looks at permissions of
 > other apps (e.g. Secure Groups). Alliance Auth does not enforce a service's
 > `access_perm` for you — it only *hands* the permission state to the service
-> hook, so DTB checks it itself in `tasks._user_can_use_dtb()`.
+> hook, so DTB checks it itself in `permissions.user_can_use_dtb()`.
 >
-> DTB deliberately does **not** use `user.has_perm()`, because Django answers
-> `True` for every permission when the user is a superuser. Instead
-> `tasks._user_holds_perm()` resolves the permission from the real grants
-> (user permissions or group permissions). Consequences:
+> DTB deliberately does **not** use `user.has_perm()`, for two reasons:
+> - Django answers `True` for every permission when the user is a superuser;
+> - on a **state-only** AA install (no Auth groups) the permission lives in the
+>   state grant, and AA copies it onto the user only when it syncs states.
+>
+> Instead `permissions.user_holds_perm()` resolves the permission from the real
+> grants, in this order: (1) permissions granted to the user directly,
+> (2) permissions of the user's groups, (3) permissions carried by an AA state
+> granted to the user — both the grant record and the state definition.
+> Consequences:
 > - a superuser sees nothing until `access_dtb` is granted to them too;
 > - `manage_dtb_rules` gives access to `/dtb/admin/…` only, not to the service
 >   tile, linking or the Telegram groups.
 >
-> Hand the permissions out through your normal group/state management: add
-> `access_dtb` to the group that holds the members who may use the bridge and
-> include it in the state-granting process, so new members get it
-> automatically.
+> Hand the permissions out the way your install does it — either way works:
+> - **state-only install** (no Auth groups): add the permission to the state
+>   (`Member`, `Corp Officer`, …), e.g. via *Change state*. DTB reads the state
+>   grant directly, so access appears immediately — no state sync needed.
+> - **group-based install**: add it to the Auth group that holds the members
+>   (`member`, `FC`, `leadership`) and include that group in the state-granting
+>   process, so new members get it automatically.
 >
 > **Losing `access_dtb` revokes access:** the 6-hourly task kicks the user from
 > all tracked Telegram groups and unlinks their Telegram account (Auth does not
@@ -344,12 +353,13 @@ aa_discord_telegram_bridge/
 
 Access is permission-only and has to be granted explicitly — check, in order:
 
-1. `aa_discord_telegram_bridge.access_dtb` on the user or on one of their
-   groups/states (e.g. "member"). Being an alliance member, an AA role holder
-   or a superuser is **not** enough.
+1. `aa_discord_telegram_bridge.access_dtb` on the user, on one of their
+   groups, **or carried by one of their states** (the grant record or the state
+   itself). Being an alliance member, an AA role holder or a superuser is
+   **not** enough.
 2. `access_dtb` may be missing because it was never added to the state in the
-   *state-granting process* — only adding it to a group is not enough if the
-   user's current state does not include that group.
+   *state-granting process* (or to the group that state assigns) — only adding
+   it to a group nobody is in does nothing.
 3. Remember you can see the DTB admin pages with `manage_dtb_rules` even
    without `access_dtb`; the service tile needs the permission above.
 

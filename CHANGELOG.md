@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.7.3
+- **State grants are read directly — access no longer depends on AA syncing
+  states, and works on installs without Auth groups.** On a state-only AA
+  install the permission lives in the state grant, and AA only copies it onto
+  `user.user_permissions` when it syncs states, so `access_dtb` handed out via
+  *Change state → Member* did not show up. All permission checks now go through
+  one resolver, `permissions.user_holds_perm()`, which looks at
+  1. the user's own permissions,
+  2. the permissions of the user's groups,
+  3. the permissions carried by an AA state granted to the user — both the
+     `StateMembership` grant record and the state definition (so a permission
+     added to the state after the grant counts too).
+  The field names are read from AA's models instead of being hardcoded, and a
+  missing/renamed field degrades to the other sources instead of erroring.
+- The same resolver now guards the admin pages: `@permission_required` /
+  `has_perm()` are replaced by `dtb_admin_required` (`manage_dtb_rules`) and
+  `permissions.user_can_view_history()`, so a DTB admin granted the permission
+  through a state is no longer locked out of `/dtb/admin/…`.
+- `dtb_setup` and the Members page read access through the same resolver, so
+  the report can no longer disagree with the gate.
+- Tests added: `access_dtb` on a state grants the service, `manage_dtb_rules` on
+  a state membership opens the admin pages (and still does not open the service).
+
 ## 1.7.2
 - **No implicit access any more — the permission has to be granted explicitly.**
   The service was still visible to users who were never granted `access_dtb`,

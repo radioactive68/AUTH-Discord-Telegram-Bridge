@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from . import urls
 from .models import TelegramUser
-from .permissions import PERM_ACCESS_DTB
+from .permissions import PERM_ACCESS_DTB, user_can_use_dtb, user_is_dtb_admin
 
 logger = logging.getLogger(__name__)
 
@@ -39,15 +39,14 @@ class DiscordTelegramBridgeService(ServicesHook):
         """Show the service only to users holding ``access_dtb``.
 
         AA hands the permission state to the service hook but does not
-        enforce it, so the check lives here (see ``_user_can_use_dtb``).
+        enforce it, so the check lives here (see
+        ``permissions.user_can_use_dtb``).
         """
-        from .tasks import _user_can_use_dtb
-        return _user_can_use_dtb(user)
+        return user_can_use_dtb(user)
 
     def show_service_ctrl(self, user):
         """Render the service control row under the same access rules."""
-        from .tasks import _user_can_use_dtb
-        return _user_can_use_dtb(user)
+        return user_can_use_dtb(user)
 
     def render_services_ctrl(self, request):
         from django.template.loader import render_to_string
@@ -147,7 +146,7 @@ class DTBMenu(MenuItemHook):
         )
 
     def render(self, request):
-        if request.user.has_perm('aa_discord_telegram_bridge.manage_dtb_rules'):
+        if user_is_dtb_admin(request.user):
             try:
                 return MenuItemHook.render(self, request)
             except (NoReverseMatch, Exception):
