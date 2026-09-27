@@ -1,11 +1,14 @@
 import logging
 import secrets
 from datetime import timedelta
+from functools import wraps
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.views import redirect_to_login
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -35,9 +38,18 @@ def dtb_admin_required(view_func):
     misses a permission granted through an Alliance Auth state until AA syncs
     it onto the user, and which silently passes every superuser. This uses the
     same explicit resolver as the service gate, so admin access and service
-    access always agree.
+    access always agree. Same behaviour as ``permission_required``: anonymous
+    users are sent to the login page, users without the permission get a 403.
     """
-    return user_passes_test(user_is_dtb_admin, raise_exception=True)(view_func)
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+        if not user_is_dtb_admin(request.user):
+            raise PermissionDenied
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped
 
 
 def _is_configured():
