@@ -160,10 +160,7 @@ class TestLinkingTokenFlow(TestCase):
             defaults={
                 'character_name': 'Test Character',
                 'gender': 'male',
-                'race': 'Amarr',
-                'blood_type': 'Non-Vorpyre',
                 'security_status': 0.0,
-                'skill_level': 0,
             },
         )
         profile = user.profile
