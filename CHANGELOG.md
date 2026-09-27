@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.7.5
+- **Tests finally match how AA 5 actually behaves** — the suite is green again
+  (`31 passed, 3 skipped`). Three pre-existing problems, none of them in the
+  runtime code:
+  - AA wraps app views with `main_character_required`, which redirects to the
+    dashboard. The test user had no main character, so every request to
+    `/dtb/link/` bounced to `/dashboard/` and the test then failed looking for a
+    `TelegramLinkRequest`. `setUp` now gives the user a main character.
+  - `create_telegram_profile` (a `post_save` receiver) already creates the
+    `TelegramUser` row when a user is created, and `TelegramUser.user` is a
+    `OneToOneField`. Three tests created a *second* row for the same user and
+    died with `IntegrityError: Duplicate entry ... for key 'user_id'`. They now
+    reuse the auto-created profile.
+  - `iter_user_ownerships()` yields `CharacterOwnership` objects (that is what
+    every caller uses); the test still expected bare character names.
+- The webhook auth tests are skipped when the route is not registered. This box
+  runs polling mode and the endpoint is disabled in the local `local-patches`
+  commit, so the three tests failed with a plain 404.
+- Admin help text now matches the 1.7.4 behaviour: the permission is resolved by
+  Alliance Auth, `manage_dtb_rules` opens the admin pages only, superusers keep
+  their implicit access. Translations for all six locales were updated to match.
+
 ## 1.7.4
 - **Access follows Alliance Auth again — state grants work on state-only
   installs.** 1.7.2/1.7.3 stopped using `user.has_perm()` and read
