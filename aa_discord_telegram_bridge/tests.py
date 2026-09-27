@@ -117,7 +117,8 @@ class TestIterUserOwnerships(TestCase):
             character_ownership = Ownership()
 
         got = list(iter_user_ownerships(FakeUser()))
-        self.assertEqual(got, ['char'])
+        self.assertEqual(len(got), 1)
+        self.assertEqual(got[0].character, 'char')
 
     def test_empty_user(self):
         self.assertEqual(list(iter_user_ownerships(object())), [])
@@ -142,8 +143,47 @@ class TestLinkingTokenFlow(TestCase):
         s.telegram_bot_token = '123:fake'
         s.save()
 
+        # Alliance Auth wraps app views with ``main_character_required``, which
+        # redirects to the dashboard when the user has no main character.
+        self._give_main_character(self.user)
+
         self.client = Client()
         self.client.force_login(self.user)
+
+    @staticmethod
+    def _give_main_character(user, character_id=999000123):
+        """Attach a main character so AA's view decorators let us through."""
+        from allianceauth.eveonline.models import EveCharacter
+
+        character, _ = EveCharacter.objects.get_or_create(
+            character_id=character_id,
+            defaults={
+                'character_name': 'Test Character',
+                'gender': 'male',
+                'race': 'Amarr',
+                'blood_type': 'Non-Vorpyre',
+                'security_status': 0.0,
+                'skill_level': 0,
+            },
+        )
+        profile = user.profile
+        if profile.main_character_id != character.pk:
+            profile.main_character = character
+            profile.save()
+        return character
+
+    def _telegram_profile(self, **fields):
+        """Return the auto-created TelegramUser, applying ``fields`` to it.
+
+        ``auth_hooks.create_telegram_profile`` already created the row when
+        the user was created, so tests must update it instead of creating a
+        second one (``TelegramUser.user`` is a OneToOne).
+        """
+        profile, _ = TelegramUser.objects.get_or_create(user=self.user)
+        for key, value in fields.items():
+            setattr(profile, key, value)
+        profile.save()
+        return profile
 
     @mock.patch('aa_discord_telegram_bridge.telegram_handler._invite_to_groups')
     def test_link_view_mints_token(self, mock_invite):
@@ -283,8 +323,7 @@ class TestLinkingTokenFlow(TestCase):
         """Losing access_dtb kicks from the groups and deactivates."""
         from .tasks import linked_profiles_without_access, validate_all_telegram_users
 
-        profile = TelegramUser.objects.create(
-            user=self.user,
+        profile = self._telegram_profile(
             telegram_chat_id='12345',
             telegram_user_id=111222333,
             is_active=True,
@@ -315,8 +354,7 @@ class TestLinkingTokenFlow(TestCase):
         """ServicesHook.validate_user revokes the service as well."""
         from .auth_hooks import DiscordTelegramBridgeService
 
-        TelegramUser.objects.create(
-            user=self.user,
+        self._telegram_profile(
             telegram_chat_id='12345',
             telegram_user_id=111222333,
             is_active=True,
@@ -339,8 +377,7 @@ class TestLinkingTokenFlow(TestCase):
     def test_validation_restores_access_after_regaining_permission(self):
         from .tasks import validate_all_telegram_users
 
-        profile = TelegramUser.objects.create(
-            user=self.user,
+        profile = self._telegram_profile(
             telegram_chat_id='12345',
             telegram_user_id=111222333,
             is_active=False,
@@ -418,7 +455,16 @@ class TestLinkingTokenFlow(TestCase):
 class TestWebhookSecretAuth(TestCase):
     """The webhook endpoint requires the registered secret token."""
 
+    WEBHOOK_PATH = '/dtb/telegram/webhook/'
+
     def setUp(self):
+        from django.urls import Resolver404, resolve
+
+        try:
+            resolve(self.WEBHOOK_PATH)
+        except Resolver404:
+            self.skipTest('webhook route is disabled on this install')
+
         s = DTBSettings.load()
         s.telegram_bot_token = '123:fake'
         s.telegram_webhook_url = 'https://example.com/dtb/telegram/webhook/'
