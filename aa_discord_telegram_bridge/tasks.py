@@ -65,104 +65,70 @@ def iter_user_ownerships(user):
             yield ownership
 
 
-def _user_in_alliance(user):
-    """Check if user has at least one character in the configured alliance.
-
-    Returns False if DTBSettings.alliance_id is None (not configured).
-    """
-    try:
-        from .models import DTBSettings
-        s = DTBSettings.load()
-        alliance_id = s.alliance_id
-    except Exception:
-        alliance_id = getattr(__import__('django.conf', fromlist=['settings']).settings, 'DTB_ALLIANCE_ID', None)
-    if alliance_id is None:
-        return False
-    # Trusted Alliance Auth administrators are always considered authorized
-    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False):
-        return True
-    # Check via AA's CharacterOwnership -> EveCharacter.alliance_id
-    for ownership in iter_user_ownerships(user):
-        char = getattr(ownership, 'character', None)
-        if char and getattr(char, 'alliance_id', None) == alliance_id:
-            return True
-    return False
-
-
-def _user_is_dtb_member(user):
-    """Strict check used for showing the DTB block on the services page.
-
-    Unlike :func:`_user_in_alliance`, the superuser/staff shortcut is NOT
-    applied: non-alliance users must not see the service on the services
-    page, matching every other alliance-only service. DTB admins
-    (``manage_dtb_rules``) always pass.
-    """
-    from django.conf import settings
-
-    if user.has_perm('aa_discord_telegram_bridge.manage_dtb_rules'):
-        return True
-
-    try:
-        from .models import DTBSettings
-        s = DTBSettings.load()
-        alliance_id = s.alliance_id
-    except Exception:
-        alliance_id = getattr(settings, 'DTB_ALLIANCE_ID', None)
-    if alliance_id is None:
-        return False
-
-    for ownership in iter_user_ownerships(user):
-        char = getattr(ownership, 'character', None)
-        if char and getattr(char, 'alliance_id', None) == alliance_id:
-            return True
-    return False
-
-
 def _user_can_use_dtb(user):
     """Access gate for the DTB service entry and every DTB page.
 
-    Alliance Auth does not enforce ``ServicesHook.access_perm`` for us: the
-    permission information is handed to the service, and the service has to
-    check it. So the tile on ``/services/``, the DTB pages and linking all
-    require ``access_dtb`` (the permission admins are expected to grant to
-    the group/state holding alliance members). On top of that the user must be
-    a member of the alliance configured in DTBSettings, since that is what
-    DTB grants Telegram access for. DTB admins (``manage_dtb_rules``) always
-    pass.
-    """
-    from .permissions import PERM_ACCESS_DTB, PERM_MANAGE_RULES
+    Alliance Auth does not enforce ``ServicesHook.access_perm`` for a service
+    app: it only *hands* the permission state to the service, which has to
+    check it. DTB therefore grants access purely by permission, with no EVE
+    data lookups:
 
-    if user.has_perm(PERM_MANAGE_RULES):
-        return True
-    if not user.has_perm(PERM_ACCESS_DTB):
-        return False
-    return _user_is_dtb_member(user)
+    * ``securegroups.access_sec_group`` — held by every member of the alliance
+      smart group of the Secure Groups app, i.e. every alliance member;
+    * ``access_dtb`` — the plugin's own permission, for granting access
+      outside of that smart group;
+    * ``manage_dtb_rules`` — DTB admins (and Django superusers, who hold every
+      permission implicitly).
+
+    The same check drives the tile on ``/services/``, the DTB pages, the
+    link/unlink flow and the Telegram join-request gate.
+    """
+    from .permissions import (
+        PERM_ACCESS_DTB, PERM_MANAGE_RULES, PERM_SECURE_GROUP,
+    )
+
+    return (
+        user.has_perm(PERM_SECURE_GROUP)
+        or user.has_perm(PERM_ACCESS_DTB)
+        or user.has_perm(PERM_MANAGE_RULES)
+    )
+
+
+def linked_profiles_without_access():
+    """Linked Telegram profiles whose portal user has no DTB access permission.
+
+    Pure report helper (no side effects) used by the admin dashboard. Access
+    checks are permission-only, so no EVE lookups are involved.
+    """
+    profiles = (
+        TelegramUser.objects
+        .filter(telegram_chat_id__isnull=False)
+        .exclude(telegram_chat_id='')
+        .select_related('user')
+        .prefetch_related('user__user_permissions', 'user__groups__permissions')
+    )
+    return [p for p in profiles if not _user_can_use_dtb(p.user)]
 
 
 @shared_task(bind=True, max_retries=3)
 def validate_all_telegram_users(self):
-    """Periodic task: validate all Telegram users are still in valid state.
+    """Periodic task: refresh the access state of every linked Telegram user.
 
-    Kicks users from Telegram groups if they left the alliance.
-    Skips entirely if alliance_id is not configured.
+    Reporting only: nobody is unlinked or kicked here. Access is
+    permission-driven, so losing the permission is an Auth-side decision
+    (smart group / state change) — DTB only records who is currently linked
+    without access so an admin can act deliberately (see the "Members" page
+    or the DTB overview of that user).
     """
-    try:
-        from .models import DTBSettings
-        s = DTBSettings.load()
-        if s.alliance_id is None:
-            return {'validated': 0, 'kicked': 0, 'skipped': 'no alliance_id'}
-    except Exception:
-        return {'validated': 0, 'kicked': 0, 'skipped': 'error'}
-
-    telegram_bot = TelegramBotManager()
+    from .permissions import PERM_MANAGE_RULES
 
     # Process all linked users (with a Telegram chat id) so that users who were
-    # previously deactivated can be re-activated when they return to good standing.
+    # previously deactivated can be re-activated when they regain access.
     linked_users = TelegramUser.objects.filter(
         telegram_chat_id__isnull=False,
     ).exclude(telegram_chat_id='')
 
-    kicked_count = 0
+    no_access: list[str] = []
     validated_count = 0
 
     for tg_user in linked_users:
@@ -171,43 +137,17 @@ def validate_all_telegram_users(self):
 
             # A deactivated Django user always loses Telegram access
             if not user.is_active:
-                kicked = _kick_user_from_all_groups(telegram_bot, tg_user)
-                tg_user.is_active = False
-                tg_user.save()
-                if kicked:
-                    kicked_count += 1
+                if tg_user.is_active:
+                    tg_user.is_active = False
+                    tg_user.save()
                 continue
 
-            # Trusted Alliance Auth administrators are always authorized
-            authorized = user.is_superuser or user.is_staff
-
-            if not authorized:
-                # Check if user has any character ownership
-                has_ownership = any(
-                    ownership.character
-                    and ownership.character.alliance_id is not None
-                    for ownership in iter_user_ownerships(user)
-                )
-                if not has_ownership:
-                    kicked = _kick_user_from_all_groups(telegram_bot, tg_user)
-                    tg_user.is_active = False
-                    tg_user.save()
-                    if kicked:
-                        kicked_count += 1
-                    continue
-
-                # Check alliance membership
-                if not _user_in_alliance(user):
-                    logger.info(
-                        'User %s no longer in alliance, kicking from Telegram',
-                        user.username,
-                    )
-                    kicked = _kick_user_from_all_groups(telegram_bot, tg_user)
-                    tg_user.is_active = False
-                    tg_user.save()
-                    if kicked:
-                        kicked_count += 1
-                    continue
+            if not _user_can_use_dtb(user):
+                if not user.has_perm(PERM_MANAGE_RULES):
+                    no_access.append(user.username)
+                tg_user.last_validated = timezone.now()
+                tg_user.save()
+                continue
 
             # User is in good standing: ensure the profile is active.
             # This also recovers users that were deactivated earlier.
@@ -223,13 +163,19 @@ def validate_all_telegram_users(self):
                 tg_user.user.username, redact_secrets(str(e)),
             )
 
+    if no_access:
+        logger.warning(
+            'Telegram users linked without DTB access permission (%d): %s',
+            len(no_access), ', '.join(sorted(no_access)),
+        )
     logger.info(
-        'Telegram validation complete: %d validated, %d kicked',
-        validated_count, kicked_count,
+        'Telegram validation complete: %d with access, %d without access',
+        validated_count, len(no_access),
     )
     return {
         'validated': validated_count,
-        'kicked': kicked_count,
+        'no_access': len(no_access),
+        'no_access_users': sorted(no_access),
     }
 
 
@@ -270,8 +216,9 @@ def _kick_user_from_all_groups(telegram_bot, tg_user, notify=True):
                 text = gettext(
                     'You have been removed from the alliance Telegram groups '
                     'and your Telegram account has been unlinked from Alliance '
-                    'Auth because you are no longer a member of the alliance. '
-                    'If you rejoin, link your account again to restore access.'
+                    'Auth because you no longer have access to the '
+                    'Discord-Telegram Bridge. If your access is restored, '
+                    'link your account again.'
                 )
             telegram_bot.send_message(
                 chat_id=tg_user.telegram_chat_id,

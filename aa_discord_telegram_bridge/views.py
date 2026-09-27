@@ -28,11 +28,10 @@ def _has_dtb_permission(user):
 
 
 def _is_configured():
-    """Check if DTB has a configured alliance_id."""
+    """Check if the Telegram bot is configured (token present)."""
     try:
         from .models import DTBSettings
-        s = DTBSettings.load()
-        return s.alliance_id is not None
+        return bool((DTBSettings.load().telegram_bot_token or '').strip())
     except Exception:
         return False
 
@@ -43,14 +42,11 @@ def _is_configured():
 def services_overview(request):
     """Main user page: show Telegram block with link/unlink controls.
 
-    Restricted to holders of ``access_dtb`` who are members of the configured
-    alliance, plus DTB admins. Everyone else gets 403 — the same rules that
-    decide whether the service tile is rendered on /services/.
+    Restricted to users holding a DTB access permission (the Secure Groups
+    smart group permission, ``access_dtb``, or DTB admin rights) — the same
+    rule that decides whether the service tile is rendered on /services/.
     """
-    from .tasks import _user_can_use_dtb, _user_is_dtb_member
-
-    is_admin = _has_dtb_permission(request.user)
-    in_alliance = _user_is_dtb_member(request.user)
+    from .tasks import _user_can_use_dtb
 
     if not _user_can_use_dtb(request.user):
         from django.http import HttpResponseForbidden
@@ -98,7 +94,6 @@ def services_overview(request):
         'bot_username': bot_username,
         'bot_link': bot_link,
         'link_pending': link_pending,
-        'in_alliance': in_alliance,
         'is_configured': _is_configured(),
     })
 
@@ -114,7 +109,7 @@ def link_telegram(request):
     complete the pairing — nobody else can bind their accounts.
     """
     if not _is_configured():
-        messages.error(request, _('DTB is not configured. Admin must set alliance_id.'))
+        messages.error(request, _('DTB is not configured. Admin must set the Telegram bot token.'))
         return redirect('dtb:services_overview')
 
     from .tasks import _user_can_use_dtb
@@ -401,16 +396,16 @@ def admin_groups(request):
 @login_required
 @permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_validate_now(request):
-    """Run the Telegram membership validation/kick task immediately."""
+    """Run the Telegram access validation/report task immediately."""
     from .tasks import validate_all_telegram_users
     result = validate_all_telegram_users.apply()
     info = getattr(result, 'result', None)
     if isinstance(info, dict):
         messages.success(
             request,
-            _('Validation complete: %(validated)s validated, %(kicked)s kicked.') % {
+            _('Validation complete: %(validated)s with access, %(no_access)s without access.') % {
                 'validated': info.get('validated', 0),
-                'kicked': info.get('kicked', 0),
+                'no_access': info.get('no_access', 0),
             },
         )
     else:
@@ -422,8 +417,8 @@ def admin_validate_now(request):
 @permission_required('aa_discord_telegram_bridge.manage_dtb_rules', raise_exception=True)
 def admin_index(request):
     """Central DTB admin dashboard."""
-    from .models import DTBSettings, BotStatus
-    s = DTBSettings.load()
+    from .models import BotStatus
+    from .tasks import linked_profiles_without_access
     now = timezone.now()
     bot_status = BotStatus.objects.first()
     bot_running = bool(
@@ -440,7 +435,8 @@ def admin_index(request):
         'bot_last_seen': bot_last_seen,
         'rules_count': ForwardRule.objects.count(),
         'groups_count': TelegramGroup.objects.count(),
-        'is_configured': s.alliance_id is not None,
+        'is_configured': _is_configured(),
+        'no_access_count': len(linked_profiles_without_access()),
     }
     return render(request, 'dtb/admin_index.html', ctx)
 
@@ -776,6 +772,7 @@ def admin_members(request):
     """
     members = []
     seen_ids = set()
+    from .tasks import _user_can_use_dtb
     profiles = TelegramUser.objects.select_related('user').exclude(
         telegram_user_id__isnull=True,
     ).order_by('-is_active', 'user__username')
@@ -796,6 +793,7 @@ def admin_members(request):
             'tg_name': '',
             'is_active': p.is_active,
             'is_dtb_admin': _has_dtb_permission(p.user),
+            'has_access': _user_can_use_dtb(p.user),
             'linked': True,
             'is_tg_admin': False,
             'admin_groups': [],
@@ -845,6 +843,9 @@ def admin_members(request):
         'members': members,
         'members_count': len(members),
         'admin_groups_loaded': True,
+        'no_access_count': sum(
+            1 for m in members if m.get('linked') and not m.get('has_access')
+        ),
     })
 
 

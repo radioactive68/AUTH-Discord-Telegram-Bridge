@@ -8,16 +8,11 @@ class DTBSettingsForm(forms.ModelForm):
         model = DTBSettings
         fields = [
             'telegram_bot_token', 'discord_bot_token', 'discord_guild_id',
-            'alliance_id',
         ]
         widgets = {
             'telegram_bot_token': forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'discord_bot_token': forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'discord_guild_id': forms.TextInput(attrs={'class': 'form-control'}),
-            'alliance_id': forms.NumberInput(attrs={'class': 'form-control'}),
-        }
-        help_texts = {
-            'alliance_id': _('Leave empty to disable membership check.'),
         }
 
     def __init__(self, *args, **kwargs):

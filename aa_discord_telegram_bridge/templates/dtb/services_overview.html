@@ -23,12 +23,7 @@
                 {% if not is_configured %}
                     <div class="alert alert-danger mb-0">
                         <i class="fas fa-cog"></i>
-                        {% translate "DTB is not configured. Admin must set alliance_id in Settings." %}
-                    </div>
-                {% elif not in_alliance %}
-                    <div class="alert alert-warning mb-0">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        {% translate "Telegram linking is only available to members of the configured alliance." %}
+                        {% translate "DTB is not configured. Admin must set the Telegram bot token." %}
                     </div>
                 {% elif profile.is_active and profile.telegram_user_id %}
                     <p><strong>{% translate "Linked account:" %}</strong>
@@ -121,7 +116,7 @@
                 <ul>
                     <li>{% translate "Messages and pings in specific Discord channels are automatically forwarded to Telegram" %}</li>
                     <li>{% translate "You can enable/disable notifications at any time" %}</li>
-                    <li>{% translate "When you leave the alliance, you will be automatically removed from Telegram groups" %}</li>
+                    <li>{% translate "When your access permission is withdrawn, an admin can remove you from the Telegram groups" %}</li>
                     <li>{% translate "After linking, you will receive an invite link to the alliance Telegram group(s) in Telegram" %}</li>
                 </ul>
 

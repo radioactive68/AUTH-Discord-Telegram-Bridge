@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-DTB_VERSION = '1.6.4'
+DTB_VERSION = '1.7.0'
 
 
 class DTBSettings(models.Model):
@@ -20,10 +20,6 @@ class DTBSettings(models.Model):
     discord_guild_id = models.CharField(
         max_length=100, blank=True, default='',
         help_text=_('Discord Guild (Server) ID'),
-    )
-    alliance_id = models.PositiveIntegerField(
-        null=True, blank=True,
-        help_text=_('EVE Alliance ID to enforce membership. Leave empty to disable.'),
     )
     telegram_webhook_url = models.CharField(
         max_length=500, blank=True, default='',

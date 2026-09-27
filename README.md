@@ -14,16 +14,18 @@ messages to Telegram channels.
   `t.me/<bot>?start=<token>` link and is auto-linked. Tokens are bound to the
   requesting Auth user and expire after a few minutes; a bare `/start` never
   creates a pending request, so nobody can bind someone else's Telegram account.
-- **Alliance membership enforcement** — configurable `alliance_id` ensures only
-  members of the specified EVE alliance can stay in Telegram groups. Non-members
-  are automatically rejected from join requests and kicked on character update.
+- **Permission-based access** — no EVE data lookups. Anyone holding
+  `securegroups.access_sec_group` (granted by the alliance smart group of the
+  Secure Groups app), `access_dtb` or `manage_dtb_rules` sees the service tile
+  and may link Telegram; everyone else gets 403.
 - **Auto-invite** — linked users receive Telegram group invitations via one-time
   invite links sent through DM. Periodic invite sync ensures users get invited
   to newly-added groups automatically.
-- **Auto-kick + auto-unlink on alliance leave** — when a user leaves the
-  alliance or their character no longer matches, they are kicked from all
-  Telegram groups and their Telegram account is automatically unlinked from the
-  portal. They must link again after returning to the alliance.
+- **Access reporting** — the 6-hourly task refreshes who still has access and
+  logs the linked accounts that lost it; the dashboard and Members page flag
+  them. Revoking Telegram access is a deliberate action (unlink / kick), so
+  nothing is taken away silently. Deactivating a user in Auth still kicks them
+  from the Telegram groups.
 - **Discord → Telegram forwarding** (optional) — forward messages from Discord
   channels to Telegram based on configurable rules with keyword filtering.
   Supports forum topics via `chat_id:thread_id` format.
@@ -88,18 +90,20 @@ python manage.py collectstatic --noinput
 python manage.py dtb_setup
 ```
 
-`dtb_setup` saves settings, syncs known Telegram groups, and validates user
-membership in the configured alliance (if `alliance_id` is set).
+`dtb_setup` saves settings, syncs known Telegram groups, and reports how many
+active users hold a DTB access permission.
 
 > **Note**: DTB does not create or modify Alliance Auth groups. Grant the
 > `aa_discord_telegram_bridge.manage_dtb_rules` permission to the users or
-> groups who should manage DTB via your normal AA group management.
+> groups who should manage DTB via your normal AA group management. Access for
+> regular members comes from the Secure Groups smart group permission
+> (`securegroups.access_sec_group`) — nothing else to configure.
 
 Optional arguments:
 
 ```bash
 # Set everything in one command
-python manage.py dtb_setup --alliance-id 99003995 --tg-token "YOUR_TOKEN" --discord-token "YOUR_DISCORD_TOKEN"
+python manage.py dtb_setup --tg-token "YOUR_TOKEN" --discord-token "YOUR_DISCORD_TOKEN"
 
 # Or configure later in the admin panel
 python manage.py dtb_setup
@@ -165,7 +169,7 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat
 4. Copy the received token (you'll enter it in the DTB settings form later).
 5. **Important**: disable bot privacy (Bot Settings > Group Privacy > turn off).
 6. Add the bot to the needed Telegram groups as an admin with:
-   - Delete messages (for kick on alliance leave)
+   - Delete messages (for kicking users on revoke/unlink)
    - Send messages
    - Invite users (for auto-invite to groups)
 
@@ -228,8 +232,8 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 
 | Command | Description |
 |---|---|
-| `dtb_setup` | First-time setup: set tokens/alliance_id, sync groups, validate config |
-| `dtb_setup --alliance-id X --tg-token Y` | Setup with inline config |
+| `dtb_setup` | First-time setup: set tokens, sync groups, report access state |
+| `dtb_setup --tg-token Y --discord-token Z` | Setup with inline config |
 | `dtb_add_group <chat_id>` | Manually add a Telegram group by chat_id |
 | `dtb_add_group <chat_id> --name "Name"` | Add with custom name |
 | `dtb_sync_groups --fetch-updates` | Discover groups from getUpdates, linked users, and ForwardRule targets |
@@ -239,23 +243,23 @@ systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 
 | Permission | Description | Grant to |
 |---|---|---|
-| `aa_discord_telegram_bridge.access_dtb` | **Basic access** — required to see the DTB tile on `/services/` and to link Telegram | Group/state with the members who may use the bridge |
+| `securegroups.access_sec_group` | *External app (Secure Groups).* "Can access sec group requests screen." — held by every member of the alliance smart group | Already granted by the Secure Groups app |
+| `aa_discord_telegram_bridge.access_dtb` | **Basic access** — alternative way to grant DTB access outside the smart group | Group/state with the members who may use the bridge |
 | `aa_discord_telegram_bridge.manage_dtb_rules` | Access to admin dashboard, rules, groups, settings | DTB admins |
 | `aa_discord_telegram_bridge.view_forward_history` | View the forwarding history log | Optionally to directors+ |
 
-> **How access works:** Alliance Auth does not enforce a service's
-> `access_perm` for you — it only *hands* the permission state to the service
-> hook, so DTB checks `access_dtb` itself. Without it the tile is not rendered
-> and `/dtb/` returns 403. `access_dtb` alone is not enough either: the user
-> must also have a character in the alliance configured in *DTB Settings →
-> alliance_id*, because that alliance is what DTB grants Telegram access for.
-> DTB admins (`manage_dtb_rules`) always pass both checks.
+> **How access works:** pure permission check, no EVE data and no
+> `alliance_id`. Alliance Auth does not enforce a service's `access_perm` for
+> you — it only *hands* the permission state to the service hook, so DTB
+> checks it itself in `tasks._user_can_use_dtb()`: the user needs
+> `securegroups.access_sec_group` **or** `access_dtb` **or**
+> `manage_dtb_rules`. That single check drives the tile on `/services/`, the
+> DTB pages, linking/unlinking and the Telegram join-request approval. Django
+> superusers pass implicitly (they hold every permission).
 >
-> To hand out access, create a state/group (e.g. "Alliance members"), add
-> `access_dtb` to it, and include it in the state-granting process — then new
-> members receive the permission automatically. Users without the permission
-> are also removed from the bridge by the periodic validation task, so grant it
-> before they link.
+> Losing the permission does **not** silently unlink anybody: the 6-hourly task
+> and the dashboard only report it. Revoke access deliberately via the user's
+> DTB page (Unlink) or the Members page (kick).
 
 ## User flow
 
@@ -296,8 +300,8 @@ aa_discord_telegram_bridge/
 ├── urls.py              # URL routes
 ├── forms.py             # Django forms
 ├── auth_hooks.py        # Alliance Auth service hook + URL hook + menu
-├── tasks.py             # Celery tasks (validation, kick, alliance check)
-├── signals.py           # Django signals (alliance membership, character update)
+├── tasks.py             # Celery tasks (validation report, kick, access check)
+├── signals.py           # Django signals (deactivated users)
 ├── bot_runner.py        # Bot lifecycle, periodic token check, stale lock detection
 ├── discord_cog.py       # Discord forwarding cog (async-safe, embed support, dedup, keyword filter)
 ├── manager.py           # Telegram/Discord API managers with auto-group registration
@@ -327,26 +331,32 @@ aa_discord_telegram_bridge/
 
 ### Users cannot see the DTB block on /services/
 
-1. Check the user holds `aa_discord_telegram_bridge.access_dtb` — it is not
-   granted automatically. Create a group/state with that permission and add it
-   to the state-granting process, or grant it to the user directly.
-2. Also check `alliance_id` in DTB Settings and that the user's EVE character
-   is actually in that alliance: both the permission *and* alliance membership
-   are required.
+Access is permission-only — check, in this order:
+
+1. `securegroups.access_sec_group` (the Secure Groups smart group permission):
+   is the user in the alliance smart group on the portal? Secure Groups syncs
+   it, so a member has it after the next sync.
+2. `aa_discord_telegram_bridge.access_dtb`: granted directly or via a
+   group/state, as an alternative to (1).
+3. `aa_discord_telegram_bridge.manage_dtb_rules`: DTB admins (Django
+   superusers pass implicitly).
+
+The same check guards `/dtb/` (403) and the link endpoint.
 
 ### Auto-invite does not send links
 
 1. The bot must be an admin in the Telegram group with "Invite Users" permission.
-2. Check `alliance_id` is set correctly in DTB Settings.
-3. Verify the user's EVE character has the correct alliance in ESI data.
-4. The user must have sent `/start` to the bot in Telegram.
-5. Periodic invite sync runs every ~60 minutes for linked users.
+2. The user must hold an access permission (see above) and have a linked
+   Telegram account.
+3. The user must have sent `/start` to the bot in Telegram.
+4. Periodic invite sync runs every ~60 minutes for linked users.
 
-### Kick on alliance leave does not work
+### Revoking access from Telegram groups
 
-1. The bot must be a group admin with the "Ban Users" right.
-2. Check the bot token in DTB Settings.
-3. Check that `telegram_user_id` is saved correctly on link.
+Nothing is kicked automatically any more (except when a user is deactivated in
+Auth). To remove someone from the Telegram groups, unlink their account from
+their DTB page or kick them from the *Members* page in the DTB admin. The
+dashboard shows how many linked accounts currently have no access permission.
 
 ### Telegram groups not appearing in admin
 

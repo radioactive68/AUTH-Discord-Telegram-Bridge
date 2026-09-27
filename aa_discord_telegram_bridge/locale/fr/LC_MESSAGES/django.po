@@ -833,3 +833,51 @@ msgstr "Secret token Telegram sends with every webhook update (generated automat
 
 msgid "You need the Discord-Telegram Bridge access permission to link Telegram."
 msgstr "You need the Discord-Telegram Bridge access permission to link Telegram."
+
+msgid "DTB is not configured. Admin must set the Telegram bot token."
+msgstr "DTB is not configured. Admin must set the Telegram bot token."
+
+msgid "When your access permission is withdrawn, an admin can remove you from the Telegram groups"
+msgstr "When your access permission is withdrawn, an admin can remove you from the Telegram groups"
+
+msgid "The Telegram bot token is not set. Telegram linking is disabled for all users."
+msgstr "The Telegram bot token is not set. Telegram linking is disabled for all users."
+
+msgid "Set bot token"
+msgstr "Set bot token"
+
+msgid "Tokens and bot setup"
+msgstr "Tokens and bot setup"
+
+msgid "Access:"
+msgstr "Access:"
+
+msgid "Access is permission-based (Secure Groups smart group, access_dtb or DTB admin). Every 6 hours the plugin reports linked accounts that lost access."
+msgstr "Access is permission-based (Secure Groups smart group, access_dtb or DTB admin). Every 6 hours the plugin reports linked accounts that lost access."
+
+msgid "linked account(s) without access"
+msgstr "linked account(s) without access"
+
+msgid "linked account(s) without a DTB access permission"
+msgstr "linked account(s) without a DTB access permission"
+
+msgid "no access"
+msgstr "no access"
+
+msgid "No DTB access permission"
+msgstr "No DTB access permission"
+
+msgid "Validate Access Now"
+msgstr "Validate Access Now"
+
+msgid "Reports linked accounts whose DTB access permission is gone. | Also runs every 6 hours."
+msgstr "Reports linked accounts whose DTB access permission is gone. | Also runs every 6 hours."
+
+msgid "Access is permission-based: everyone holding the Secure Groups smart group permission, access_dtb or manage_dtb_rules may use the bridge. This page only reports accounts that lost access — revoking Telegram access is a manual action (unlink or kick on the Members page)."
+msgstr "Access is permission-based: everyone holding the Secure Groups smart group permission, access_dtb or manage_dtb_rules may use the bridge. This page only reports accounts that lost access — revoking Telegram access is a manual action (unlink or kick on the Members page)."
+
+msgid "Validation complete: %(validated)s with access, %(no_access)s without access."
+msgstr "Validation complete: %(validated)s with access, %(no_access)s without access."
+
+msgid "You have been removed from the alliance Telegram groups and your Telegram account has been unlinked from Alliance Auth because you no longer have access to the Discord-Telegram Bridge. If your access is restored, link your account again."
+msgstr "You have been removed from the alliance Telegram groups and your Telegram account has been unlinked from Alliance Auth because you no longer have access to the Discord-Telegram Bridge. If your access is restored, link your account again."

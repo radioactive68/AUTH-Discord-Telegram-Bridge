@@ -18,6 +18,12 @@
         <div class="alert alert-secondary py-2">
             {% translate "List of all Telegram accounts linked to Alliance Auth (including old/archived users)." %}
             {% translate "Administrators of the tracked Telegram groups appear below even when they never linked — marked &quot;Telegram only&quot;. Regular members cannot be listed through the Telegram Bot API." %}
+            {% if no_access_count %}
+                <br>
+                <span class="badge bg-warning text-dark">
+                    {{ no_access_count }} {% translate "linked account(s) without a DTB access permission" %}
+                </span>
+            {% endif %}
         </div>
 
         <div id="memberProgressWrap" class="mb-3{% if not members %} d-none{% endif %}">
@@ -65,6 +71,7 @@
                             {% if m.linked %}
                                 <strong>{{ m.portal_name }}</strong>
                                 {% if m.is_dtb_admin %}<span class="badge bg-warning text-dark ms-1" title="{% translate 'DTB admin' %}">DTB</span>{% endif %}
+                                {% if not m.has_access %}<span class="badge bg-danger ms-1" title="{% translate 'No DTB access permission' %}">{% translate "no access" %}</span>{% endif %}
                                 <br>
                                 <small class="text-muted">
                                     {% if m.char_name %}{{ m.char_name }}<br>{% endif %}

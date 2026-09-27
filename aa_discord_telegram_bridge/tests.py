@@ -139,7 +139,6 @@ class TestLinkingTokenFlow(TestCase):
         self.user.save()
 
         s = DTBSettings.load()
-        s.alliance_id = 99000000
         s.telegram_bot_token = '123:fake'
         s.save()
 
@@ -161,11 +160,11 @@ class TestLinkingTokenFlow(TestCase):
         self.assertEqual(session.get('dtb_link_pending', {}).get('token'), request.token)
 
     def test_link_view_denied_without_access_permission(self):
-        """Without access_dtb the service is not available to the user."""
+        """Without any access permission the service is not available."""
+        from .auth_hooks import DiscordTelegramBridgeService
+
         self.user.user_permissions.clear()
         self.user = User.objects.get(pk=self.user.pk)  # drop perm cache
-
-        from .auth_hooks import DiscordTelegramBridgeService
 
         self.assertFalse(
             DiscordTelegramBridgeService().service_active_for_user(self.user)
@@ -173,6 +172,68 @@ class TestLinkingTokenFlow(TestCase):
         self.assertEqual(TelegramLinkRequest.objects.count(), 0)
         self.client.post('/dtb/link/', follow=True)
         self.assertEqual(TelegramLinkRequest.objects.count(), 0)
+
+    def test_service_visible_with_access_dtb(self):
+        """access_dtb alone is enough — no EVE/alliance data involved."""
+        from .auth_hooks import DiscordTelegramBridgeService
+
+        self.user.user_permissions.clear()
+        self.user.user_permissions.add(
+            Permission.objects.get(codename='access_dtb')
+        )
+        self.user = User.objects.get(pk=self.user.pk)
+
+        hook = DiscordTelegramBridgeService()
+        self.assertTrue(hook.service_active_for_user(self.user))
+        self.assertTrue(hook.show_service_ctrl(self.user))
+
+    def test_validation_reports_but_does_not_revoke(self):
+        """Losing the permission is reported, the link is left untouched."""
+        from .tasks import linked_profiles_without_access, validate_all_telegram_users
+
+        profile = TelegramUser.objects.create(
+            user=self.user,
+            telegram_chat_id='12345',
+            telegram_user_id=111222333,
+            is_active=True,
+        )
+
+        self.user.user_permissions.clear()
+        self.user = User.objects.get(pk=self.user.pk)
+
+        self.assertEqual(
+            [p.user.username for p in linked_profiles_without_access()],
+            [self.user.username],
+        )
+
+        with mock.patch(
+            'aa_discord_telegram_bridge.tasks._kick_user_from_all_groups'
+        ) as mock_kick:
+            report = validate_all_telegram_users()
+
+        mock_kick.assert_not_called()
+        self.assertEqual(report['no_access'], 1)
+        self.assertEqual(report['no_access_users'], [self.user.username])
+        profile.refresh_from_db()
+        self.assertTrue(profile.is_active)
+        self.assertEqual(profile.telegram_chat_id, '12345')
+
+    def test_validation_restores_access_after_regaining_permission(self):
+        from .tasks import validate_all_telegram_users
+
+        profile = TelegramUser.objects.create(
+            user=self.user,
+            telegram_chat_id='12345',
+            telegram_user_id=111222333,
+            is_active=False,
+        )
+
+        report = validate_all_telegram_users()
+
+        self.assertEqual(report['validated'], 1)
+        self.assertEqual(report['no_access'], 0)
+        profile.refresh_from_db()
+        self.assertTrue(profile.is_active)
 
     @mock.patch('aa_discord_telegram_bridge.telegram_handler._invite_to_groups')
     def test_bot_binds_user_with_valid_token(self, mock_invite):

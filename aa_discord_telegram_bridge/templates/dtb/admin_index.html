@@ -16,8 +16,8 @@
         <div class="alert alert-danger">
             <i class="fas fa-cog"></i>
             <strong>{% translate "Not configured!" %}</strong>
-            {% translate "Alliance ID is not set. Telegram linking is disabled for all users." %}
-            <a href="{% url 'dtb:admin_settings' %}" class="alert-link">{% translate "Set Alliance ID" %}</a>
+            {% translate "The Telegram bot token is not set. Telegram linking is disabled for all users." %}
+            <a href="{% url 'dtb:admin_settings' %}" class="alert-link">{% translate "Set bot token" %}</a>
         </div>
         {% endif %}
 
@@ -40,8 +40,14 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <strong>{% translate "Membership enforcement:" %}</strong>
-                        {% translate "users who leave the alliance (or unlink their character) are auto-kicked from Telegram groups." %}
+                        <strong>{% translate "Access:" %}</strong>
+                        {% translate "permission-based (Secure Groups smart group, access_dtb or DTB admin). Every 6 hours the plugin reports linked accounts that lost access." %}
+                        {% if no_access_count %}
+                            <br>
+                            <span class="badge bg-warning text-dark">
+                                {{ no_access_count }} {% translate "linked account(s) without access" %}
+                            </span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -61,7 +67,7 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <h5><i class="fas fa-cog"></i> {% translate "Settings" %}</h5>
-                        <p class="text-muted">{% translate "Tokens, alliance, membership" %}</p>
+                        <p class="text-muted">{% translate "Tokens and bot setup" %}</p>
                         <a href="{% url 'dtb:admin_settings' %}" class="btn btn-primary btn-sm">{% translate "Open" %}</a>
                     </div>
                 </div>

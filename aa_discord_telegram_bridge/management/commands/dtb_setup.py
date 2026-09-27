@@ -2,10 +2,9 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = 'Quick setup for DTB: set tokens/alliance_id, validate config, sync groups.'
+    help = 'Quick setup for DTB: set tokens, sync groups, report access state.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--alliance-id', type=int, help='EVE Alliance ID')
         parser.add_argument('--tg-token', type=str, help='Telegram Bot Token')
         parser.add_argument('--discord-token', type=str, help='Discord Bot Token')
 
@@ -15,10 +14,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.MIGRATE_HEADING('DTB Setup'))
 
         settings = DTBSettings.load()
-
-        if options['alliance_id']:
-            settings.alliance_id = options['alliance_id']
-            self.stdout.write(f'  Alliance ID: {options["alliance_id"]}')
 
         if options['tg_token']:
             settings.telegram_bot_token = options['tg_token']
@@ -59,12 +54,13 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(self.style.WARNING(f'  Telegram sync failed: {e}'))
 
-        self.stdout.write(self.style.MIGRATE_HEADING('\nValidating user memberships...'))
+        self.stdout.write(self.style.MIGRATE_HEADING('\nChecking DTB access permissions...'))
         from django.contrib.auth.models import User
-        from aa_discord_telegram_bridge.tasks import _user_in_alliance
+        from aa_discord_telegram_bridge.tasks import _user_can_use_dtb
         members = User.objects.filter(is_active=True)
-        in_alliance = sum(1 for u in members if _user_in_alliance(u))
-        self.stdout.write(f'  {in_alliance}/{members.count()} active users in configured alliance')
+        with_access = sum(1 for u in members if _user_can_use_dtb(u))
+        self.stdout.write(f'  {with_access}/{members.count()} active users hold a DTB access permission')
+        self.stdout.write('  (securegroups.access_sec_group, access_dtb or manage_dtb_rules)')
 
         self.stdout.write(self.style.SUCCESS('\nDone! Visit https://<your-domain>/services/ to link Telegram.'))
 

@@ -88,18 +88,19 @@ class DiscordTelegramBridgeService(ServicesHook):
             return False
 
     def validate_user(self, user):
-        """Validate user should have service."""
-        if self.service_active_for_user(user):
-            from .tasks import _user_in_alliance, iter_user_ownerships
+        """Report users that should no longer have the service.
 
-            # If user has no characters or left alliance, deactivate
-            has_ownership = any(
-                ownership.character
-                and ownership.character.alliance_id is not None
-                for ownership in iter_user_ownerships(user)
+        Access is permission-driven, so this only records the fact (log) and
+        leaves the Telegram account alone: removing access is an Auth-side
+        decision (smart group / state change), and revoking is done
+        deliberately by the user or a DTB admin.
+        """
+        if not self.service_active_for_user(user):
+            logger.info(
+                'User %s has no DTB access permission any more '
+                '(linked Telegram account left untouched)',
+                user.username,
             )
-            if not has_ownership or not _user_in_alliance(user):
-                self.delete_user(user, notify_user=True)
 
 
 @receiver(post_save, sender=User)

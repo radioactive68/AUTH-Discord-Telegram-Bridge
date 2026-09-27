@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def on_user_state_changed(sender, instance, **kwargs):
     """Handle user state changes for Telegram management.
 
-    When a user is deactivated or loses membership, kick them from Telegram groups.
+    When a user is deactivated in Auth, kick them from Telegram groups.
     """
     if not instance.is_active:
         from .models import TelegramUser
@@ -33,64 +33,7 @@ def on_user_state_changed(sender, instance, **kwargs):
             pass
 
 
-@receiver(post_save, sender='eveonline.EveCharacter')
-def on_character_update(sender, instance, **kwargs):
-    """Check alliance membership when character data is updated by model update task.
-
-    If the character's alliance_id changed and no longer matches DTBSettings.alliance_id,
-    kick the user from Telegram groups.
-    """
-    from .models import DTBSettings, TelegramUser
-    from .tasks import _kick_user_from_all_groups, _user_in_alliance
-    from .telegram_handler import _invite_to_groups
-    from .manager import TelegramBotManager
-
-    try:
-        s = DTBSettings.load()
-        if s.alliance_id is None:
-            return
-    except Exception:
-        return
-
-    try:
-        ownership = instance.character_ownership
-    except AttributeError:
-        # Older/newer Alliance Auth geometry differs; the periodic
-        # validation task is the enforcement backstop for these cases.
-        return
-    user = getattr(ownership, 'user', None)
-    if user is None:
-        return
-    try:
-        tg_profile = TelegramUser.objects.get(user=user)
-
-        # Only act on users that have a linked Telegram account
-        if not tg_profile.telegram_chat_id:
-            return
-
-        in_alliance = _user_in_alliance(user)
-
-        if in_alliance:
-            # User is (back) in the alliance: restore access if it was revoked
-            if not tg_profile.is_active:
-                bot = TelegramBotManager()
-                _invite_to_groups(bot, tg_profile.telegram_user_id, chat_id=tg_profile.telegram_chat_id)
-                tg_profile.is_active = True
-                tg_profile.save()
-                logger.info(
-                    'Re-activated Telegram for %s: in alliance',
-                    user.username,
-                )
-        else:
-            # User left the alliance: revoke access
-            if tg_profile.is_active:
-                bot = TelegramBotManager()
-                _kick_user_from_all_groups(bot, tg_profile)
-                tg_profile.is_active = False
-                tg_profile.save()
-                logger.info(
-                    'Kicked %s from Telegram: left alliance',
-                    user.username,
-                )
-    except Exception:
-        pass
+# Alliance membership (and therefore DTB access) is no longer derived from
+# EVE data: it comes from the Secure Groups permission. There is no character
+# signal to watch any more — Auth updates the smart group membership, and the
+# periodic validation task reports the resulting access state.

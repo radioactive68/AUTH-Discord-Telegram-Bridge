@@ -548,10 +548,10 @@ def _process_join_request(req):
     bot = TelegramBotManager()
     authorized = False
     try:
-        from .tasks import _user_in_alliance
+        from .tasks import _user_can_use_dtb
         profile = TelegramUser.objects.get(telegram_user_id=user_id)
         user = profile.user
-        if user.is_active and _user_in_alliance(user):
+        if user.is_active and _user_can_use_dtb(user):
             authorized = True
             profile.is_active = True
             profile.telegram_chat_id = str(chat_id)
