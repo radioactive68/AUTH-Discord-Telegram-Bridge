@@ -1,10 +1,17 @@
 import logging
+import re
 from typing import Optional
 
 import requests
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+# Telegram tokens are '<bot_id>:<35 chars of [A-Za-z0-9_-]>'. The bot id itself
+# is public (it is the @name's numeric id and already logged on login), the
+# secret half is not.
+_API_URL_PATTERN = re.compile(r'/bot(\d{5,15}):[A-Za-z0-9_\-]{10,}')
+_BARE_TOKEN_PATTERN = re.compile(r'\b\d{8,12}:[A-Za-z0-9_\-]{30,}\b')
 
 
 def _get_dtb_settings():
@@ -17,12 +24,20 @@ def _get_dtb_settings():
 
 
 def redact_secrets(text):
-    """Replace configured bot tokens inside ``text`` with a redaction marker.
+    """Replace bot tokens inside ``text`` with a redaction marker.
 
     Telegram errors often stringify the API URL, which contains the bot
     token; those error strings end up in logs and in the ``error_message``
     DB columns. This helper strips any configured token before such text
     is logged or stored.
+
+    Matching the *configured* token is not enough: the token in the URL is
+    whatever was in effect when the failing request was built, so after a
+    rotation through BotFather it no longer matches the value in the
+    database and the whole secret lands in the log verbatim. The patterns
+    below therefore also redact any token shaped string, which covers old
+    and rotated tokens, tokens supplied via environment/settings, and
+    Telegram URLs for bots this installation has never heard of.
     """
     if not text:
         return text
@@ -42,6 +57,10 @@ def redact_secrets(text):
         for tok in tokens:
             if tok in result:
                 result = result.replace(tok, '***REDACTED***')
+        # Shape-based net: '/bot<id>:<secret>/method' keeps the public bot id,
+        # a bare '<id>:<secret>' is replaced whole.
+        result = _API_URL_PATTERN.sub(r'/bot\1:***REDACTED***', result)
+        result = _BARE_TOKEN_PATTERN.sub('***REDACTED***', result)
     except Exception:
         pass
     return result

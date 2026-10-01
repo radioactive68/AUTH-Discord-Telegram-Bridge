@@ -8,6 +8,12 @@ class DtbConfig(AppConfig):
 
     def ready(self):
         import aa_discord_telegram_bridge.signals  # noqa: F401
+        from .logging_setup import configure as configure_logging
+
+        # Attach our own handlers before anything logs: AA configures no
+        # logger for third-party apps, so without this every INFO line is
+        # dropped and the survivors have no timestamp.
+        configure_logging()
         from django.db.models.signals import post_migrate
         post_migrate.connect(_on_post_migrate, sender=self)
 

@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.7.7
+- **Fixed: DTB log messages were never written to any file.** Alliance Auth
+  configures handlers for its own loggers (`allianceauth`, `extensions`,
+  `esi`, `mumble_authenticator`) but none for third-party apps, so every DTB
+  record fell through to `logging.lastResort`, which emits **WARNING and
+  above only, as a bare line with no timestamp**. Consequences: the INFO
+  messages that actually identify a kick were dropped in every process, so
+  the logs never showed who was removed or why; and what did survive could not
+  be placed on a timeline. The plugin now installs its own rotating,
+  timestamped file handler (`<BASE_DIR>/log/dtb-bridge.log`, 5 MB × 5) from
+  `AppConfig.ready()`, so it works identically under gunicorn, celery, the bot
+  and the management commands. Configurable via `DTB_LOG_DIR`, `DTB_LOG_FILE`,
+  `DTB_LOG_LEVEL`, `DTB_LOG_MAX_BYTES`, `DTB_LOG_BACKUP_COUNT`.
+- **Fixed: bot tokens leaked into logs in full.** `requests` stringifies the
+  failed API URL into its exception text, and that URL carries the entire
+  token — so `getUpdates` timeouts wrote e.g.
+  `/bot8243994060:AAEO…/getUpdates` to the log verbatim. Redaction only matched
+  the *currently configured* token, so after a rotation through BotFather the
+  old secret stopped matching and was logged in full. `redact_secrets` now
+  also matches by shape (`/bot<id>:<secret>/…` and bare `<id>:<secret>`),
+  which covers rotated, previously-valid and entirely unknown tokens. The
+  public bot id is kept for debugging; chat ids and thread ids are untouched.
+- Removed the `Token: <first 10 chars>` line from the bot startup output. It
+  was only ever a Discord token prefix, and `Logged in as <name> (ID: …)`
+  already identifies the account.
+- Applied `redact_secrets` to the remaining unredacted exception output in
+  `dtb_run_bot`, `dtb_setup` and `dtb_sync_groups`.
+- **The admin log page now reads the plugin's own log first** and offers a
+  new `?focus=access` filter for "who lost access and why". `?errors=1` could
+  never show these events, because they are INFO lines with no error keywords.
+  All six translations updated.
+
 ## 1.7.6
 - **Fixes removing `access_dtb` from a state or a group — it silently rolled
   back.** `DiscordTelegramBridgeService.name` was a lazy gettext proxy, and

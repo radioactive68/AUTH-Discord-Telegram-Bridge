@@ -29,6 +29,13 @@
                     </div>
                 </div>
                 <div class="col-auto">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="focus" id="focus" value="access"
+                               {% if focus == 'access' %}checked{% endif %}>
+                        <label class="form-check-label" for="focus">{% translate "Access changes only" %}</label>
+                    </div>
+                </div>
+                <div class="col-auto">
                     <button type="submit" class="btn btn-primary btn-sm">
                         <i class="fas fa-eye"></i> {% translate "View" %}
                     </button>

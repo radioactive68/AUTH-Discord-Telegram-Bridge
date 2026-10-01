@@ -28,7 +28,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.MIGRATE_HEADING('\nSyncing Telegram groups...'))
         try:
-            from aa_discord_telegram_bridge.manager import TelegramBotManager
+            from aa_discord_telegram_bridge.manager import TelegramBotManager, redact_secrets
             bot = TelegramBotManager()
             me = bot.get_me()
             if me.get('ok'):
@@ -50,9 +50,10 @@ class Command(BaseCommand):
                                 status = 'created' if created else 'exists'
                                 self.stdout.write(f'  Group: {name} ({cid}) [{status}]')
             else:
-                self.stdout.write(self.style.WARNING(f'  Telegram API error: {me.get("description", "unknown")}'))
+                self.stdout.write(self.style.WARNING(
+                    f'  Telegram API error: {redact_secrets(me.get("description", "unknown"))}'))
         except Exception as e:
-            self.stdout.write(self.style.WARNING(f'  Telegram sync failed: {e}'))
+            self.stdout.write(self.style.WARNING(f'  Telegram sync failed: {redact_secrets(str(e))}'))
 
         self.stdout.write(self.style.MIGRATE_HEADING('\nChecking DTB access permissions...'))
         from django.contrib.auth.models import User

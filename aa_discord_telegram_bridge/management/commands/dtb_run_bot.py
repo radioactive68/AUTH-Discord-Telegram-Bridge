@@ -5,6 +5,8 @@ import logging
 
 from django.core.management.base import BaseCommand
 
+from aa_discord_telegram_bridge.manager import redact_secrets
+
 logger = logging.getLogger('aa_discord_telegram_bridge.bot_runner')
 
 
@@ -33,15 +35,17 @@ class Command(BaseCommand):
                 try:
                     run_bot()
                 except Exception as e:
-                    print(f'[DTB] Bot crashed: {e}', flush=True)
-                    logger.error('DTB: bot crashed: %s', e, exc_info=True)
+                    safe = redact_secrets(str(e))
+                    print(f'[DTB] Bot crashed: {safe}', flush=True)
+                    logger.error('DTB: bot crashed: %s', safe, exc_info=True)
             else:
                 print('[DTB] Starting Telegram-only mode...', flush=True)
                 try:
                     run_telegram_only()
                 except Exception as e:
-                    print(f'[DTB] Bot crashed: {e}', flush=True)
-                    logger.error('DTB: bot crashed: %s', e, exc_info=True)
+                    safe = redact_secrets(str(e))
+                    print(f'[DTB] Bot crashed: {safe}', flush=True)
+                    logger.error('DTB: bot crashed: %s', safe, exc_info=True)
 
             print('[DTB] Bot exited. Restarting in 5s...', flush=True)
             time.sleep(5)

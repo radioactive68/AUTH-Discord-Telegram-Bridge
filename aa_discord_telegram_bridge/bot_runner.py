@@ -141,7 +141,9 @@ def run_bot():
             print(f'Guilds: {[(g.name, g.id) for g in bot.guilds]}', flush=True)
             print(f'DTB cog active, listening for messages...', flush=True)
 
-        print(f'Token: {token[:10]}...', flush=True)
+        # No token echo, not even a prefix: it ends up in supervisor output
+        # that admins paste around, and 'Logged in as <name> (ID: ...)' below
+        # already identifies which token was loaded.
 
         # Start Telegram update polling (handles /start, linking, join requests)
         # in a background thread so the bot can receive user messages without a

@@ -9,14 +9,16 @@ uses ``TestCase``. Network calls are mocked, so no real bot keys are needed.
 """
 
 import json
+import logging
+import logging.handlers
 from datetime import timedelta
 from unittest import mock
 
 from django.contrib.auth.models import Group, Permission, User
-from django.test import Client, SimpleTestCase, TestCase
+from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
-from .manager import TelegramBotManager
+from .manager import TelegramBotManager, redact_secrets
 from .models import (
     DTBSettings, ForwardRule, TelegramLinkRequest, TelegramUser,
 )
@@ -512,6 +514,127 @@ class TestPlainStartDoesNotCreateRequest(TestCase):
             _process_plain_start(999888777, '100', 'nobody', 'en')
         self.assertEqual(TelegramLinkRequest.objects.count(), 0)
         self.assertFalse(TelegramUser.objects.filter(telegram_user_id=999888777).exists())
+
+
+class TestTokenRedaction(TestCase):
+    """No bot token may ever reach a log line or the DB.
+
+    The real leak: ``requests`` stringifies the failed API URL into its
+    exception text, and that URL carries the whole token. Matching only the
+    *configured* token did not help once it had been rotated -- the token in
+    the old log line no longer equalled the value in the DB, so it was logged
+    verbatim. The shape-based patterns are what actually close that hole.
+    """
+
+    SECRET = 'AAEOqAYoPK_JDzYWdv5cMHDmvNqEOMSAnZw'
+
+    def test_redacts_url_from_requests_exception(self):
+        msg = (
+            "HTTPSConnectionPool(host='api.telegram.org', port=443): "
+            "Max retries exceeded with url: /bot8243994060:%s/getUpdates "
+            "(Caused by NewConnectionError('Network is unreachable'))"
+        ) % self.SECRET
+        out = redact_secrets(msg)
+        self.assertNotIn(self.SECRET, out)
+        self.assertIn('***REDACTED***', out)
+
+    def test_redacts_rotated_token_not_in_settings(self):
+        # A token this installation knows nothing about must still go.
+        out = redact_secrets('/bot123456789:%s/sendMessage' % self.SECRET)
+        self.assertNotIn(self.SECRET, out)
+
+    def test_keeps_bot_id_visible_for_debugging(self):
+        # The numeric id is public (logged on login), only the secret matters.
+        out = redact_secrets('/bot8243994060:%s/getMe' % self.SECRET)
+        self.assertIn('8243994060', out)
+        self.assertNotIn(self.SECRET, out)
+
+    def test_keeps_chat_ids_and_thread_ids_intact(self):
+        # Negative chat ids and small thread ids must survive untouched, or
+        # every log line about a forum topic turns into noise.
+        text = 'group -1002857334511 topic 42 and -1004494114977/2'
+        self.assertEqual(redact_secrets(text), text)
+
+    def test_handles_empty_and_none(self):
+        self.assertEqual(redact_secrets(''), '')
+        self.assertIsNone(redact_secrets(None))
+
+    def test_manager_error_path_redacts_token(self):
+        """End to end: a failing API call must not leak the token when logged."""
+        import requests as requests_mod
+        from aa_discord_telegram_bridge.manager import TelegramBotManager
+
+        def boom(*args, **kwargs):
+            raise requests_mod.ConnectionError(
+                "Max retries exceeded with url: /bot8243994060:%s/getUpdates"
+                % self.SECRET
+            )
+
+        with mock.patch(
+                'aa_discord_telegram_bridge.manager.requests.post', side_effect=boom):
+            with self.assertLogs('aa_discord_telegram_bridge.manager', level='ERROR') as cm:
+                result = TelegramBotManager(bot_token='8243994060:%s' % self.SECRET).get_me()
+
+        self.assertFalse(result['ok'])
+        for line in cm.output:
+            self.assertNotIn(self.SECRET, line)
+
+
+class TestLoggingSetup(TestCase):
+    """The plugin must persist its own INFO records with a timestamp.
+
+    AA configures no logger for third-party apps, so before this every DTB
+    record fell through to ``logging.lastResort``: WARNING and above only, as a
+    bare line. That is exactly why ``Kicked user X from Telegram group Y``
+    could never be found on a server -- it was INFO, so it was dropped.
+    """
+
+    def test_logger_has_a_file_handler(self):
+        from aa_discord_telegram_bridge.logging_setup import configure
+
+        logger = configure()
+        self.assertTrue(
+            any(isinstance(h, logging.handlers.RotatingFileHandler)
+                for h in logger.handlers),
+            'no rotating file handler installed on the DTB logger',
+        )
+
+    def test_info_records_reach_the_file(self):
+        import os
+        import tempfile
+        from aa_discord_telegram_bridge.logging_setup import configure
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = os.path.join(tmp, 'dtb-test.log')
+            logger = configure()
+            with override_settings(DTB_LOG_FILE=target):
+                logger = configure()
+                logger.info('Kicked user unit_test_user from Telegram group UnitGroup')
+                for h in logger.handlers:
+                    h.flush()
+
+            with open(target, encoding='utf-8') as fh:
+                content = fh.read()
+            self.assertIn('Kicked user unit_test_user', content)
+            # A timestamp is what makes the line usable on a timeline.
+            self.assertRegex(content, r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}')
+
+    def test_configure_is_idempotent(self):
+        from aa_discord_telegram_bridge.logging_setup import configure
+
+        logger = configure()
+        before = len(logger.handlers)
+        configure()
+        self.assertEqual(len(logger.handlers), before,
+                         'duplicate handlers would write every line twice')
+
+    def test_kick_helper_logs_info_not_warning(self):
+        """The kick helpers must stay INFO: it is the level we now persist."""
+        import inspect
+        from aa_discord_telegram_bridge import tasks
+
+        src = inspect.getsource(tasks)
+        self.assertIn('Kicked user %s from Telegram group %s', src)
 
 
 class TestServiceHookStringification(TestCase):

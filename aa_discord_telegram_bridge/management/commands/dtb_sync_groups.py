@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from aa_discord_telegram_bridge.models import TelegramGroup, TelegramUser
-        from aa_discord_telegram_bridge.manager import TelegramBotManager
+        from aa_discord_telegram_bridge.manager import TelegramBotManager, redact_secrets
         import logging
 
         found = 0
@@ -42,9 +42,10 @@ class Command(BaseCommand):
                                     self.stdout.write(f'  {obj.name} ({cid}) [{status}]')
                                     found += 1
                 else:
-                    self.stdout.write(self.style.WARNING(f'  getUpdates failed: {resp.get("description", "unknown")}'))
+                    self.stdout.write(self.style.WARNING(
+                        f'  getUpdates failed: {redact_secrets(resp.get("description", "unknown"))}'))
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'  Error: {e}'))
+                self.stdout.write(self.style.ERROR(f'  Error: {redact_secrets(str(e))}'))
 
         self.stdout.write(self.style.MIGRATE_HEADING('\nChecking linked user chats...'))
         for profile in TelegramUser.objects.filter(is_active=True, telegram_chat_id__isnull=False).exclude(telegram_chat_id=''):
@@ -67,6 +68,7 @@ class Command(BaseCommand):
                         self.stdout.write(f'  {name} ({chat_id}) [{status}]')
                         found += 1
             except Exception as e:
-                self.stdout.write(self.style.WARNING(f'  Could not fetch {chat_id}: {e}'))
+                self.stdout.write(self.style.WARNING(
+                    f'  Could not fetch {chat_id}: {redact_secrets(str(e))}'))
 
         self.stdout.write(self.style.SUCCESS(f'\nTotal groups in DB: {TelegramGroup.objects.count()}'))

@@ -21,9 +21,18 @@ from .models import (
 )
 from .forms import ForwardRuleForm, DTBSettingsForm
 from .manager import TelegramBotManager, DiscordBotManager, redact_secrets
+from .logging_setup import log_file
 from .permissions import user_can_view_history, user_is_dtb_admin
 
 logger = logging.getLogger(__name__)
+
+# Lines that answer "who lost bridge access, and why". They are all INFO level,
+# so the page's errors-only filter could never show them.
+ACCESS_LOG_KEYWORDS = (
+    'kicked', 'kick', 'revoked', 'revoke', 'unlinked', 'unlink',
+    'deactivated telegram', 'no longer has the dtb access',
+    'validation complete', 'revoked dtb access', '/stop',
+)
 
 
 def _has_dtb_permission(user):
@@ -628,6 +637,10 @@ def admin_logs(request):
     line_count = int(request.GET.get('lines', 100))
     line_count = max(20, min(line_count, 500))
     errors_only = request.GET.get('errors', '') == '1'
+    # 'kicks' focuses the page on access changes: who was removed and why.
+    # Plain INFO lines like "Kicked user X" carry no error keywords, so the
+    # errors-only filter never surfaced them.
+    focus = request.GET.get('focus', '')
     service_name = 'aa-dtb-bot'
 
     # Candidate paths for supervisor / plain-file deployments.
@@ -640,6 +653,10 @@ def admin_logs(request):
     if configured:
         candidate_paths.append(configured)
     candidate_paths += [
+        # The plugin's own log comes first: it is written by every process
+        # (gunicorn, celery, the bot) and, unlike the bot's stdout, it has
+        # timestamps and includes the INFO lines that name who was kicked.
+        log_file(),
         '/home/allianceserver/myauth/log/dtb-bot.log',
         '/var/log/supervisor/dtb-bot.log',
         '/var/log/myauth/dtb-bot.log',
@@ -681,6 +698,11 @@ def admin_logs(request):
                 except OSError as e:
                     output = f'Cannot read log file {path}: {e}'
                     continue
+                if focus == 'access':
+                    lines = [
+                        l for l in lines
+                        if any(k in l.lower() for k in ACCESS_LOG_KEYWORDS)
+                    ]
                 if errors_only:
                     lines = [
                         l for l in lines
@@ -705,6 +727,7 @@ def admin_logs(request):
         'log_output': output,
         'line_count': line_count,
         'errors_only': errors_only,
+        'focus': focus,
         'service_name': service_name,
         'log_source': source,
     })
