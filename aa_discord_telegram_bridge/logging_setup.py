@@ -69,25 +69,47 @@ def formatter():
     )
 
 
-def configure():
+def _close(handler):
+    try:
+        handler.close()
+    except Exception:
+        pass
+
+
+def _reset(logger):
+    """Drop our handlers so a later configure() can install a fresh set."""
+    for handler in list(logger.handlers):
+        if getattr(handler, '_dtb_ours', False):
+            logger.removeHandler(handler)
+            _close(handler)
+    logger._dtb_signature = None
+
+
+def configure(force=False):
     """Attach our handlers once per process.
 
-    Idempotent: ``ready()`` runs again on autoreload and in every worker, and a
-    duplicated handler would write every line twice.
+    Idempotent for the common case: ``ready()`` runs again under autoreload and
+    in every worker, and duplicated handlers would write every line twice. The
+    installed configuration is remembered by signature, so a settings override
+    (``DTB_LOG_FILE`` in a test, or in a settings module loaded later) is
+    picked up instead of being silently ignored; ``force=True`` re-installs.
     """
     logger = logging.getLogger(LOGGER_NAME)
-    if getattr(logger, '_dtb_handlers_installed', False):
+
+    path = log_file()
+    level = _level()
+    signature = (path, level)
+    if not force and getattr(logger, '_dtb_signature', None) == signature:
         return logger
 
-    level = _level()
-    logger.setLevel(level)
+    _reset(logger)
 
     console = logging.StreamHandler()
     console.setFormatter(formatter())
     console.setLevel(level)
+    console._dtb_ours = True
     logger.addHandler(console)
 
-    path = log_file()
     try:
         directory = os.path.dirname(path)
         if directory:
@@ -100,14 +122,16 @@ def configure():
         )
         handler.setFormatter(formatter())
         handler.setLevel(level)
+        handler._dtb_ours = True
         logger.addHandler(handler)
     except (OSError, ValueError) as e:
-        # Logging must never be the reason a deploy fails: console output and
-        # the rest of the handlers stay in place.
+        # Logging must never be the reason a deploy fails: console output
+        # stays in place and the logger keeps working.
         logger.warning('DTB: cannot write log file %s (%s)', path, e)
 
+    logger.setLevel(level)
     # Keep DTB out of AA's handlers: it has its own file, and propagating would
     # duplicate every line into gunicorn/celery output.
     logger.propagate = False
-    logger._dtb_handlers_installed = True
+    logger._dtb_signature = signature
     return logger

@@ -628,6 +628,14 @@ class TestLoggingSetup(TestCase):
         self.assertEqual(len(logger.handlers), before,
                          'duplicate handlers would write every line twice')
 
+    def tearDown(self):
+        # These tests point the plugin at a temporary file; restore the real
+        # one so a later test (or a same-process view call) is not left
+        # logging into a directory that no longer exists.
+        from aa_discord_telegram_bridge.logging_setup import configure
+
+        configure(force=True)
+
     def test_kick_helper_logs_info_not_warning(self):
         """The kick helpers must stay INFO: it is the level we now persist."""
         import inspect
