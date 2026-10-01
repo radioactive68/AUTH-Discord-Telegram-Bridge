@@ -1,3 +1,7 @@
+# 1.7.7: 플러그인 전용 로그(타임스탬프 포함) 추가 및 봇 토큰 로그 노출 수정.
+
+msgid ""
+msgstr ""
 # Korean translations for aa-discord-telegram-bridge.
 # Copyright (C) 2026
 # This file is distributed under the same license as the aa-discord-telegram-bridge package.
@@ -1124,3 +1128,6 @@ msgstr "접근은 권한 기반입니다: access_dtb 권한을 가진 모든 사
 
 msgid "the access_dtb permission, granted via a group or a state and resolved by Alliance Auth itself; manage_dtb_rules opens the admin pages only. Superusers keep their usual implicit access, deactivated users get none. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
 msgstr "access_dtb 권한이며, 그룹이나 state에 부여되어 Alliance Auth가 직접 해석합니다. manage_dtb_rules는 관리 페이지만 엽니다. 슈퍼유저는 기존의 암시적 접근을 유지하고, 비활성화된 사용자는 없습니다. 권한을 잃은 사용자는 Telegram 그룹에서 추방되고 연결도 해제됩니다 — 6시간 주기 실행 시 또는 Groups 페이지에서 즉시."
+
+msgid "Access changes only"
+msgstr "접근 권한 변경만"

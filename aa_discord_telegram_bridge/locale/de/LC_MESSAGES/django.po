@@ -1,3 +1,7 @@
+# 1.7.7: eigene Plugin-Logs (mit Zeitstempel) hinzugefügt, Bot-Token-Leak in Logs behoben.
+
+msgid ""
+msgstr ""
 # German translations for aa-discord-telegram-bridge.
 # Copyright (C) 2026
 # This file is distributed under the same license as the aa-discord-telegram-bridge package.
@@ -1138,3 +1142,6 @@ msgstr "Der Zugriff ist rechtebasiert: Wer die Berechtigung access_dtb hat, darf
 
 msgid "the access_dtb permission, granted via a group or a state and resolved by Alliance Auth itself; manage_dtb_rules opens the admin pages only. Superusers keep their usual implicit access, deactivated users get none. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
 msgstr "die Berechtigung access_dtb, vergeben an eine Gruppe oder einen State und von Alliance Auth selbst aufgelöst; manage_dtb_rules öffnet nur die Admin-Seiten. Superuser behalten ihren üblichen impliziten Zugriff, deaktivierte Benutzer nicht. Wer die Berechtigung verliert, wird aus Telegram-Gruppen gekickt und die Verknüpfung wird aufgelöst — beim 6-Stunden-Lauf oder sofort auf der Groups-Seite."
+
+msgid "Access changes only"
+msgstr "Nur Zugriffsänderungen"

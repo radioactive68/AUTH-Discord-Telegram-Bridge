@@ -1,3 +1,7 @@
+# 1.7.7 : logs du plugin ajoutés (avec horodatage) et fuite de jetons de bot corrigée.
+
+msgid ""
+msgstr ""
 # French translations for aa-discord-telegram-bridge.
 # Copyright (C) 2026
 # This file is distributed under the same license as the aa-discord-telegram-bridge package.
@@ -878,3 +882,6 @@ msgstr "L'accès est basé sur les permissions : quiconque détient la permissio
 
 msgid "the access_dtb permission, granted via a group or a state and resolved by Alliance Auth itself; manage_dtb_rules opens the admin pages only. Superusers keep their usual implicit access, deactivated users get none. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
 msgstr "la permission access_dtb, attribuée à un groupe ou à un state et résolue par Alliance Auth lui-même ; manage_dtb_rules n'ouvre que les pages d'administration. Les superutilisateurs conservent leur accès implicite habituel, les utilisateurs désactivés n'en ont pas. Ceux qui perdent la permission sont expulsés des groupes Telegram et dissociés — lors de l'exécution toutes les 6 heures ou immédiatement depuis la page Groups."
+
+msgid "Access changes only"
+msgstr "Uniquement les changements d'accès"

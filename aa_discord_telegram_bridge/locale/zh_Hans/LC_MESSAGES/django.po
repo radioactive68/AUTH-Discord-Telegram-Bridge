@@ -1,3 +1,7 @@
+# 1.7.7：新增插件专用日志（含时间戳），并修复机器人令牌泄漏到日志的问题。
+
+msgid ""
+msgstr ""
 # Chinese (Simplified) translations for aa-discord-telegram-bridge.
 # Copyright (C) 2026
 # This file is distributed under the same license as the aa-discord-telegram-bridge package.
@@ -1117,3 +1121,6 @@ msgstr "访问基于权限：持有 access_dtb 权限的每个人都可以使用
 
 msgid "the access_dtb permission, granted via a group or a state and resolved by Alliance Auth itself; manage_dtb_rules opens the admin pages only. Superusers keep their usual implicit access, deactivated users get none. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
 msgstr "access_dtb 权限，通过用户组或 state 授予，并由 Alliance Auth 自行解析；manage_dtb_rules 仅开启管理页面。超级用户保留其隐式访问权限，已停用的用户没有。失去权限的用户会被移出 Telegram 群组并解绑 — 在每 6 小时的运行时，或从 Groups 页面立即执行。"
+
+msgid "Access changes only"
+msgstr "仅显示权限变更"

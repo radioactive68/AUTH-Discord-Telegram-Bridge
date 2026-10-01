@@ -1,3 +1,7 @@
+# 1.7.7: プラグイン独自のログ（タイムスタンプ付き）を追加し、ボットトークンのログ漏洩を修正。
+
+msgid ""
+msgstr ""
 # Japanese translations for aa-discord-telegram-bridge.
 # Copyright (C) 2026
 # This file is distributed under the same license as the aa-discord-telegram-bridge package.
@@ -875,3 +879,6 @@ msgstr "アクセスは権限ベースです: access_dtb 権限を持つ人は�
 
 msgid "the access_dtb permission, granted via a group or a state and resolved by Alliance Auth itself; manage_dtb_rules opens the admin pages only. Superusers keep their usual implicit access, deactivated users get none. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
 msgstr "access_dtb 権限（グループまたは state に付与され、Alliance Auth 自身が解決します）。manage_dtb_rules は管理ページのみを開きます。スーパーユーザーは通常の暗黙のアクセスを保持し、無効化されたユーザーにはありません。権限を失ったユーザーは Telegram グループから追放され、連携も解除されます — 6 時間ごとの実行時、または Groups ページからすぐに。"
+
+msgid "Access changes only"
+msgstr "アクセス変更のみ"

@@ -1,3 +1,7 @@
+# 1.7.7: добавлены собственные логи плагина (с таймстемпами) и исправлена утечка токенов ботов в логи.
+
+msgid ""
+msgstr ""
 # Russian translations for aa-discord-telegram-bridge.
 # Copyright (C) 2026
 # This file is distributed under the same license as the aa-discord-telegram-bridge package.
@@ -1132,3 +1136,6 @@ msgstr "Доступ основан на правах: пользоваться 
 
 msgid "the access_dtb permission, granted via a group or a state and resolved by Alliance Auth itself; manage_dtb_rules opens the admin pages only. Superusers keep their usual implicit access, deactivated users get none. Users who lose the permission are kicked from Telegram groups and unlinked — on the 6-hourly run or immediately from the Groups page."
 msgstr "право access_dtb, выданное группе или state и разрешённое самим Alliance Auth; manage_dtb_rules открывает только страницы админки. Суперпользователи сохраняют обычный неявный доступ, отключённые пользователи — нет. Те, кто потерял право, исключается из групп Telegram и отвязывается — на 6-часовом запуске или сразу со страницы Groups."
+
+msgid "Access changes only"
+msgstr "Только изменения доступа"
