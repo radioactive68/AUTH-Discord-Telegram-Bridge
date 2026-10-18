@@ -740,17 +740,21 @@ class TestHeartbeatTaskRetention(TestCase):
         self._interval = mock.patch.object(
             bot_runner, 'WATCHDOG_INTERVAL', 0.01)
         self._interval.start()
-        self.addCleanup(self._interval.stop)
-        self.addCleanup(self._cancel_all)
+        # addCleanup runs LIFO, so register close first (it must run last).
         self.addCleanup(self.loop.close)
+        self.addCleanup(self._cancel_all)
+        self.addCleanup(self._interval.stop)
 
     def _cancel_all(self):
+        if self.loop.is_closed():
+            return
         for name in ('dtb_heartbeat_task', 'dtb_heartbeat_watchdog'):
             task = getattr(self.bot, name, None)
             if task is not None and not task.done():
                 task.cancel()
-        if not self.loop.is_closed():
-            self.loop.run_until_complete(asyncio.sleep(0))
+        # Two turns let the cancellations propagate through wait_for futures.
+        self.loop.run_until_complete(asyncio.sleep(0))
+        self.loop.run_until_complete(asyncio.sleep(0))
 
     def test_start_heartbeat_stores_a_strong_reference(self):
         task = self.bot_runner.start_heartbeat(self.bot)
