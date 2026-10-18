@@ -740,9 +740,26 @@ class TestHeartbeatTaskRetention(TestCase):
         self._interval = mock.patch.object(
             bot_runner, 'WATCHDOG_INTERVAL', 0.01)
         self._interval.start()
+        # These tests cover task lifetime, not the DB write. Running the real
+        # sync_to_async against a hand-made event loop hangs asgiref, so run
+        # the wrapped call inline and make the write itself a no-op.
+        self._hb_write = mock.patch(
+            'aa_discord_telegram_bridge.models.BotStatus.update_heartbeat')
+        self._hb_write.start()
+
+        def _inline_sync(func, **kwargs):
+            async def wrapper(*args, **kw):
+                return func(*args, **kw)
+            return wrapper
+
+        self._sync = mock.patch(
+            'asgiref.sync.sync_to_async', side_effect=_inline_sync)
+        self._sync.start()
         # addCleanup runs LIFO, so register close first (it must run last).
         self.addCleanup(self.loop.close)
         self.addCleanup(self._cancel_all)
+        self.addCleanup(self._sync.stop)
+        self.addCleanup(self._hb_write.stop)
         self.addCleanup(self._interval.stop)
 
     def _cancel_all(self):
