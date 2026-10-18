@@ -1,6 +1,19 @@
 # Changelog
 
 ## 1.7.7
+- **Fixed: the heartbeat could die silently, leaving the bot "Stopped" in AA
+  while it kept running.** The heartbeat was started as fire-and-forget —
+  `bot.loop.create_task(_heartbeat())` discarded the returned `Task`, and
+  asyncio holds only weak references to tasks, so the heartbeat could be
+  garbage-collected mid-run. The process stayed alive, Discord and Telegram
+  stayed connected, forwarding kept working — but `last_heartbeat` froze and
+  the status page showed "Stopped" until someone restarted the bot by hand
+  (observed in the field: 90 hours stale). Both the heartbeat and a new
+  watchdog are now referenced from the bot object itself, and the watchdog
+  restarts the heartbeat if it ever finishes anyway. The intervals are module
+  constants (`HEARTBEAT_INTERVAL`, `WATCHDOG_INTERVAL`) so tests can shrink
+  them; `TestHeartbeatTaskRetention` covers the reference retention, survival
+  across `gc.collect()`, the watchdog restart/leave-alone/closed-bot paths.
 - **Fixed: DTB log messages were never written to any file.** Alliance Auth
   configures handlers for its own loggers (`allianceauth`, `extensions`,
   `esi`, `mumble_authenticator`) but none for third-party apps, so every DTB
