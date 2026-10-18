@@ -8,6 +8,8 @@ Simple (DB-less) tests use ``SimpleTestCase``; anything touching the models
 uses ``TestCase``. Network calls are mocked, so no real bot keys are needed.
 """
 
+import asyncio
+import gc
 import json
 import logging
 import logging.handlers
@@ -702,3 +704,99 @@ class TestServiceHookStringification(TestCase):
 
         group.refresh_from_db()
         self.assertNotIn(self.perm, group.permissions.all())
+
+
+class _FakeBot:
+    """Minimal stand-in for a discord.py/py-cord Bot."""
+
+    def __init__(self, loop):
+        self.loop = loop
+        self._closed = False
+
+    def is_closed(self):
+        return self._closed
+
+
+class TestHeartbeatTaskRetention(TestCase):
+    """The heartbeat task must not disappear while the process is alive.
+
+    ``bot.loop.create_task(_heartbeat())`` discarded the returned Task.
+    asyncio keeps only weak references to tasks, so the heartbeat could be
+    garbage-collected mid-run. That is exactly what happened in the field:
+    the process stayed up, Discord and Telegram stayed connected and
+    forwarding kept working, but ``last_heartbeat`` froze and the AA status
+    page showed "Stopped" until someone restarted the bot by hand. The task
+    is now referenced from the bot object, and a watchdog restarts it if it
+    ever finishes anyway.
+    """
+
+    def setUp(self):
+        from . import bot_runner
+
+        self.bot_runner = bot_runner
+        self.loop = asyncio.new_event_loop()
+        self.bot = _FakeBot(self.loop)
+        # Shrink the watchdog interval so its behaviour is testable in ms.
+        self._interval = mock.patch.object(
+            bot_runner, 'WATCHDOG_INTERVAL', 0.01)
+        self._interval.start()
+        self.addCleanup(self._interval.stop)
+        self.addCleanup(self._cancel_all)
+        self.addCleanup(self.loop.close)
+
+    def _cancel_all(self):
+        for name in ('dtb_heartbeat_task', 'dtb_heartbeat_watchdog'):
+            task = getattr(self.bot, name, None)
+            if task is not None and not task.done():
+                task.cancel()
+        if not self.loop.is_closed():
+            self.loop.run_until_complete(asyncio.sleep(0))
+
+    def test_start_heartbeat_stores_a_strong_reference(self):
+        task = self.bot_runner.start_heartbeat(self.bot)
+
+        self.assertIs(task, self.bot.dtb_heartbeat_task)
+        self.assertIsNotNone(self.bot.dtb_heartbeat_watchdog)
+        self.assertFalse(task.done())
+
+    def test_task_survives_garbage_collection(self):
+        # Reproduce the original bug shape: create the task, drop every local
+        # reference, then force a full collection. With the old fire-and-forget
+        # create_task the task could vanish here.
+        self.bot_runner.start_heartbeat(self.bot)
+        task = self.bot.dtb_heartbeat_task
+
+        gc.collect()
+
+        self.assertFalse(task.done())
+        self.assertIn(task, asyncio.all_tasks(self.loop))
+
+    def test_watchdog_restarts_a_dead_heartbeat(self):
+        self.bot_runner.start_heartbeat(self.bot)
+        original = self.bot.dtb_heartbeat_task
+        original.cancel()
+        self.loop.run_until_complete(asyncio.sleep(0))
+
+        self.loop.run_until_complete(asyncio.sleep(0.2))
+
+        self.assertTrue(original.done())
+        self.assertIsNot(self.bot.dtb_heartbeat_task, original)
+        self.assertFalse(self.bot.dtb_heartbeat_task.done())
+
+    def test_watchdog_leaves_a_live_heartbeat_alone(self):
+        self.bot_runner.start_heartbeat(self.bot)
+        live = self.bot.dtb_heartbeat_task
+
+        self.loop.run_until_complete(asyncio.sleep(0.2))
+
+        self.assertIs(self.bot.dtb_heartbeat_task, live)
+
+    def test_watchdog_exits_once_the_bot_is_closed(self):
+        watchdog = self.loop.create_task(
+            self.bot_runner._heartbeat_watchdog(self.bot))
+        self.bot._closed = True
+
+        self.loop.run_until_complete(asyncio.sleep(0.2))
+
+        self.assertTrue(watchdog.done())
+        self.assertIsNone(watchdog.exception())

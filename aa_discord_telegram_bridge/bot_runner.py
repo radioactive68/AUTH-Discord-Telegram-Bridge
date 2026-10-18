@@ -8,6 +8,11 @@ import threading
 
 logger = logging.getLogger(__name__)
 
+# How often the heartbeat writes a row / the watchdog checks the task.
+HEARTBEAT_INTERVAL = 30
+# How often the watchdog verifies the heartbeat task is still running.
+WATCHDOG_INTERVAL = 60
+
 
 def _pid_is_alive(pid):
     """Check if a process with the given PID is still running."""
@@ -64,6 +69,61 @@ def get_dtb_token():
     return DTBSettings.load().discord_bot_token
 
 
+async def _heartbeat_loop():
+    """Write a heartbeat row and periodically re-invite linked users."""
+    from .models import BotStatus
+    from asgiref.sync import sync_to_async
+    import os as _os
+    invite_counter = 0
+    while True:
+        try:
+            await sync_to_async(BotStatus.update_heartbeat)(_os.getpid())
+        except Exception:
+            pass
+        invite_counter += 1
+        if invite_counter >= 120:
+            invite_counter = 0
+            try:
+                from .telegram_handler import sync_invites_for_all_users
+                await sync_to_async(sync_invites_for_all_users)()
+            except Exception:
+                pass
+        await asyncio.sleep(HEARTBEAT_INTERVAL)
+
+
+async def _heartbeat_watchdog(bot):
+    """Restart the heartbeat task if it ever stops.
+
+    asyncio holds only weak references to tasks, so a task that nothing else
+    points at can be garbage-collected mid-execution. The heartbeat task used
+    to be fire-and-forget (`bot.loop.create_task(_heartbeat())`), which meant
+    it could vanish silently: the process stayed alive, Discord and Telegram
+    stayed connected and forwarding kept working, but `last_heartbeat` froze
+    and the AA status page showed "Stopped" until someone restarted the bot by
+    hand. A strong reference is now kept on the bot object, and this watchdog
+    catches the remaining cases where the task dies for another reason.
+    """
+    while True:
+        await asyncio.sleep(WATCHDOG_INTERVAL)
+        task = getattr(bot, 'dtb_heartbeat_task', None)
+        if task is None or task.done():
+            if getattr(bot, 'is_closed', lambda: True)():
+                return
+            logger.error('DTB: heartbeat task is not running, restarting it')
+            bot.dtb_heartbeat_task = bot.loop.create_task(_heartbeat_loop())
+
+
+def start_heartbeat(bot):
+    """Start the heartbeat and its watchdog, holding strong references.
+
+    The references are stored on the bot object itself, which lives for the
+    whole process, so neither task can be collected while it is running.
+    """
+    bot.dtb_heartbeat_task = bot.loop.create_task(_heartbeat_loop())
+    bot.dtb_heartbeat_watchdog = bot.loop.create_task(_heartbeat_watchdog(bot))
+    return bot.dtb_heartbeat_task
+
+
 def run_bot():
     """Run the Discord->Telegram forwarder bot (blocking).
 
@@ -114,27 +174,7 @@ def run_bot():
                     result = await result
                 print('DTB cog added!', flush=True)
 
-                async def _heartbeat():
-                    from .models import BotStatus
-                    from asgiref.sync import sync_to_async
-                    import os as _os
-                    invite_counter = 0
-                    while True:
-                        try:
-                            await sync_to_async(BotStatus.update_heartbeat)(_os.getpid())
-                        except Exception:
-                            pass
-                        invite_counter += 1
-                        if invite_counter >= 120:
-                            invite_counter = 0
-                            try:
-                                from .telegram_handler import sync_invites_for_all_users
-                                await sync_to_async(sync_invites_for_all_users)()
-                            except Exception:
-                                pass
-                        await asyncio.sleep(30)
-
-                bot.loop.create_task(_heartbeat())
+                start_heartbeat(bot)
                 print('DTB heartbeat task started.', flush=True)
 
             print(f'Logged in as {bot.user} (ID: {bot.user.id})', flush=True)
