@@ -22,10 +22,11 @@ notable changes:
 - **DTBSettings** is a proper django-solo singleton with a `load()` helper.
 - **Periodic task registration moved out of `post_migrate`** (it raced with
   django-celery-beat's DB scheduler). Both beat entries —
-  `dtb_test_connections` (hourly) and `dtb_validate_telegram_users`
-  (6-hourly) — must now be created by hand in the admin; the README documents
-  the exact cron strings.
-- **QueueOnce** on `dtb_test_connections` and `dtb_validate_telegram_users`
+  `aa_discord_telegram_bridge.tasks.test_connections` (hourly) and
+  `aa_discord_telegram_bridge.tasks.validate_all_telegram_users` (6-hourly)
+  — must now be created by hand in the admin; the README documents the
+  exact cron strings.
+- **QueueOnce** on `test_connections` and `validate_all_telegram_users`
   so hourly/6-hourly runs cannot pile up on slow Redis.
 - **Validate & Kick Now hardened**: `@require_POST`, runs asynchronously via
   `.delay()`, and handles the queue-rejected case instead of 500-ing.

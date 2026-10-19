@@ -232,13 +232,15 @@ DTB no longer registers its own beat schedules automatically (that used to
 race with django-celery-beat's database scheduler). Create both entries by
 hand in the Auth admin under *Celery → Periodic tasks* (django-celery-beat):
 
-| Task                        | Schedule            | What it does                                    |
-|-----------------------------|---------------------|-------------------------------------------------|
-| `dtb_test_connections`      | Every hour (`5 * * * *`)   | Re-checks bot connectivity, updates status page |
-| `dtb_validate_telegram_users` | Every 6 hours (`15 */6 * * *`) | Kicks linked users who lost the access permission |
+| Task                                                | Schedule                   | What it does                                            |
+|-----------------------------------------------------|----------------------------|---------------------------------------------------------|
+| `aa_discord_telegram_bridge.tasks.test_connections` | Every hour (`5 * * * *`)   | Re-checks bot connectivity, updates status page         |
+| `aa_discord_telegram_bridge.tasks.validate_all_telegram_users` | Every 6 hours (`15 */6 * * *`) | Kicks linked users who lost the access permission |
 
-Exact cron syntax is fine to type in; just make sure the *Task (registered)*
-field points at the same names the plugin registered under celery.
+Use the full dotted task names above — that is how celery registers them,
+and both the *CELERYBEAT_SCHEDULE* dict in `local.py` and the
+django-celery-beat admin require the exact registered name. The scheduled
+times are examples; pick whatever fits your ops cadence.
 Without these two entries nothing is auto-kicked when permissions change —
 the dashboard and "Validate & Kick Now" remain as manual fallbacks.
 
@@ -270,7 +272,8 @@ pip uninstall aa-discord-telegram-bridge
 # and 'dtb' from APPS_WITH_PUBLIC_VIEWS in local.py
 
 # Delete the two beat entries in the admin
-# (Celery → Periodic tasks: dtb_test_connections, dtb_validate_telegram_users)
+# (Celery → Periodic tasks: aa_discord_telegram_bridge.tasks.test_connections,
+#  aa_discord_telegram_bridge.tasks.validate_all_telegram_users)
 
 # Optionally drop the tables (this destroys all links and history!)
 python manage.py migrate aa_discord_telegram_bridge zero
