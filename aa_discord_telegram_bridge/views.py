@@ -1,4 +1,3 @@
-import logging
 import secrets
 from datetime import timedelta
 from functools import wraps
@@ -15,6 +14,8 @@ from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.utils.translation import gettext_lazy as _
 
+from allianceauth.services.hooks import get_extension_logger
+
 from .models import (
     DTBSettings, DTB_VERSION, ForwardRule, TelegramUser, ForwardHistory,
     ConnectionStatus, TelegramGroup, BotStatus, TelegramLinkRequest,
@@ -24,7 +25,7 @@ from .manager import TelegramBotManager, DiscordBotManager, redact_secrets
 from .logging_setup import log_file
 from .permissions import user_can_view_history, user_is_dtb_admin
 
-logger = logging.getLogger(__name__)
+logger = get_extension_logger(__name__)
 
 # Lines that answer "who lost bridge access, and why". They are all INFO level,
 # so the page's errors-only filter could never show them.
@@ -91,12 +92,10 @@ def services_overview(request):
     bot_link = None
     bot_username = None
     try:
-        from .manager import TelegramBotManager
-        res = TelegramBotManager().get_me()
-        if res.get('ok'):
-            bot_username = res.get('result', {}).get('username')
-            if bot_username:
-                bot_link = f'https://t.me/{bot_username}'
+        from .manager import get_cached_bot_username
+        bot_username = get_cached_bot_username()
+        if bot_username:
+            bot_link = f'https://t.me/{bot_username}'
     except Exception:
         pass
 
@@ -429,22 +428,44 @@ def admin_groups(request):
 
 @login_required
 @dtb_admin_required
+@require_POST
 def admin_validate_now(request):
-    """Run the Telegram access validation/revocation task immediately."""
+    """Queue the Telegram access validation/revocation task.
+
+    POST-only and asynchronous: the task makes dozens of Telegram API calls,
+    which must not run inside a request/response cycle. ``.apply()`` used to
+    execute it synchronously in the web worker.
+    """
     from .tasks import validate_all_telegram_users
-    result = validate_all_telegram_users.apply()
-    info = getattr(result, 'result', None)
-    if isinstance(info, dict):
-        messages.success(
+    try:
+        async_result = validate_all_telegram_users.delay()
+    except Exception as exc:
+        logger.warning(
+            'DTB: could not queue the validation task: %s',
+            redact_secrets(str(exc)),
+        )
+        messages.error(
             request,
-            _('Validation complete: %(validated)s validated, %(revoked)s revoked, %(kicked)s kicked.') % {
-                'validated': info.get('validated', 0),
-                'revoked': info.get('revoked', 0),
-                'kicked': info.get('kicked', 0),
-            },
+            _('Could not queue the validation task (message broker unreachable). '
+              'Check the DTB log for details.'),
+        )
+        return redirect('dtb:admin_groups')
+
+    # QueueOnce in graceful mode answers with a REJECTED result when a
+    # validation run is already queued or executing — nothing was dispatched.
+    state = getattr(async_result, 'state', None)
+    if state == 'REJECTED':
+        messages.warning(
+            request,
+            _('A validation run is already queued or executing; '
+              'not queuing another one.'),
         )
     else:
-        messages.success(request, _('Validation task executed.'))
+        messages.success(
+            request,
+            _('Validation task queued (id %(id)s). Results will appear in the '
+              'DTB log shortly.') % {'id': getattr(async_result, 'id', '')},
+        )
     return redirect('dtb:admin_groups')
 
 
@@ -808,50 +829,22 @@ def _fetch_tg_member_details(bot, tg_user, group_chats):
     return name, is_bot, admin_groups
 
 
-@login_required
-@dtb_admin_required
-def admin_members(request):
-    """List Telegram users: portal-linked accounts plus group administrators.
+# Telegram admin enumeration is one Bot API call per tracked group; it used to
+# run on every render of the members page. Now it runs only on demand
+# (?tg_admins=1) and the result is served from cache for 10 minutes.
+TG_ADMINS_CACHE_KEY = 'dtb:tg_group_admins'
+TG_ADMINS_CACHE_TTL = 600
 
-    Portal-linked accounts render instantly from the DB; Telegram display
-    names, bot flags and group-admin status are fetched lazily per linked
-    member via ``admin_member_info`` (AJAX). Administrators of the tracked
-    Telegram groups are appended at the bottom so admins are visible even
-    when nobody has linked an account yet. Bots are shown too (flagged).
+
+def _collect_tg_admins(seen_ids):
+    """Enumerate group administrators not linked to a portal account.
+
+    The Telegram Bot API has no way to enumerate regular members, but
+    ``getChatAdministrators`` always works for groups the bot is in, so
+    admins (and admin bots) are always shown. Returns member dicts for
+    admins outside ``seen_ids``; never raises.
     """
     members = []
-    seen_ids = set()
-    from .tasks import _user_can_use_dtb
-    profiles = TelegramUser.objects.select_related('user').exclude(
-        telegram_user_id__isnull=True,
-    ).order_by('-is_active', 'user__username')
-    for p in profiles:
-        uid = p.telegram_user_id
-        if uid is None:
-            continue
-        seen_ids.add(str(uid))
-        char_name, alliance_ticker, corp_name = _member_character_info(p.user)
-        members.append({
-            'user_pk': p.user.pk,
-            'tg_user_id': str(uid),
-            'portal_name': p.user.username,
-            'char_name': char_name,
-            'alliance_ticker': alliance_ticker,
-            'corp_name': corp_name,
-            'tg_username': p.telegram_username or '',
-            'tg_name': '',
-            'is_active': p.is_active,
-            'is_dtb_admin': _has_dtb_permission(p.user),
-            'has_access': _user_can_use_dtb(p.user),
-            'linked': True,
-            'is_tg_admin': False,
-            'admin_groups': [],
-        })
-
-    # Append administrators of tracked Telegram groups that are not linked
-    # to any portal account. The Telegram Bot API has no way to enumerate
-    # regular members, but getChatAdministrators always works for groups the
-    # bot is in, so admins (and admin bots) are always shown.
     bot = TelegramBotManager()
     for g in TelegramGroup.objects.filter(is_active=True)\
             .exclude(telegram_chat_id__contains='/')\
@@ -887,11 +880,69 @@ def admin_members(request):
                 'admin_groups': [g.name],
                 'is_bot': bool(info.get('is_bot')),
             })
+    return members
+
+
+@login_required
+@dtb_admin_required
+def admin_members(request):
+    """List Telegram users: portal-linked accounts plus group administrators.
+
+    Portal-linked accounts render instantly from the DB; Telegram display
+    names, bot flags and group-admin status are fetched lazily per linked
+    member via ``admin_member_info`` (AJAX). Administrators of the tracked
+    Telegram groups are appended when they are available: fetching them costs
+    one Bot API call per group, so the list is read from cache by default and
+    refreshed only through the explicit ``?tg_admins=1`` action (the button
+    in the template). Bots are shown too (flagged).
+    """
+    members = []
+    seen_ids = set()
+    from .tasks import _user_can_use_dtb
+    profiles = TelegramUser.objects.select_related('user').exclude(
+        telegram_user_id__isnull=True,
+    ).order_by('-is_active', 'user__username')
+    for p in profiles:
+        uid = p.telegram_user_id
+        if uid is None:
+            continue
+        seen_ids.add(str(uid))
+        char_name, alliance_ticker, corp_name = _member_character_info(p.user)
+        members.append({
+            'user_pk': p.user.pk,
+            'tg_user_id': str(uid),
+            'portal_name': p.user.username,
+            'char_name': char_name,
+            'alliance_ticker': alliance_ticker,
+            'corp_name': corp_name,
+            'tg_username': p.telegram_username or '',
+            'tg_name': '',
+            'is_active': p.is_active,
+            'is_dtb_admin': _has_dtb_permission(p.user),
+            'has_access': _user_can_use_dtb(p.user),
+            'linked': True,
+            'is_tg_admin': False,
+            'admin_groups': [],
+        })
+
+    # Telegram group administrators: cached by default, refreshed on demand.
+    refresh_tg_admins = request.GET.get('tg_admins') == '1'
+    if refresh_tg_admins:
+        tg_admins = _collect_tg_admins(seen_ids)
+        from django.core.cache import cache
+        cache.set(TG_ADMINS_CACHE_KEY, tg_admins, TG_ADMINS_CACHE_TTL)
+    else:
+        from django.core.cache import cache
+        tg_admins = cache.get(TG_ADMINS_CACHE_KEY) or []
+        # Drop entries that became portal-linked after the cache was built.
+        tg_admins = [m for m in tg_admins if m['tg_user_id'] not in seen_ids]
+    members.extend(tg_admins)
 
     return render(request, 'dtb/admin_members.html', {
         'members': members,
         'members_count': len(members),
-        'admin_groups_loaded': True,
+        'tg_admins_loaded': bool(tg_admins),
+        'tg_admins_refresh': refresh_tg_admins,
         'no_access_count': sum(
             1 for m in members if m.get('linked') and not m.get('has_access')
         ),

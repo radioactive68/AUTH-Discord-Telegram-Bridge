@@ -1,21 +1,23 @@
-from django.urls import path
+"""Root URLconf for the DTB app.
+
+The member-facing routes (webhook + portal views) live in
+``public_urls.py`` and are included as a nested ``include`` — see the
+docstring there for why the nesting matters to Alliance Auth's
+``decorate_url_patterns``. The admin routes stay flat in this list: with the
+public views nested, the decorator's early ``return`` can no longer reach
+them, so every admin view keeps ``main_character_required``.
+"""
+from django.urls import include, path
+
 from . import views
-from .telegram_handler import telegram_webhook
 
 app_name = 'dtb'
 
 urlpatterns = [
-    # Telegram webhook endpoint (used when a webhook URL is configured)
-    path('telegram/webhook/', telegram_webhook, name='telegram_webhook'),
+    # Member-facing views + Telegram webhook (see public_urls.py).
+    path('', include('aa_discord_telegram_bridge.public_urls')),
 
-    # User-facing views
-    path('', views.services_overview, name='services_overview'),
-    path('link/', views.link_telegram, name='link_telegram'),
-    path('unlink/', views.unlink_telegram, name='unlink_telegram'),
-    path('history/', views.forward_history, name='forward_history'),
-    path('status/', views.connection_status, name='connection_status'),
-
-    # Admin views
+    # Admin views — always decorated by AA.
     path('admin/', views.admin_index, name='admin_index'),
     path('admin/rules/', views.admin_rules, name='admin_rules'),
     path('admin/rules/add/', views.admin_rule_add, name='admin_rule_add'),

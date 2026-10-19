@@ -1,12 +1,13 @@
 import asyncio
 import html
 import inspect
-import logging
 import os
 import tempfile
 import threading
 
-logger = logging.getLogger(__name__)
+from allianceauth.services.hooks import get_extension_logger
+
+logger = get_extension_logger(__name__)
 
 # How often the heartbeat writes a row / the watchdog checks the task.
 HEARTBEAT_INTERVAL = 30

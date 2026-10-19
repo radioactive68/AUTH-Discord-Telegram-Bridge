@@ -1,5 +1,53 @@
 # Changelog
 
+## 1.8.0
+Compliance rework against the full Alliance Auth plugin checklist. Most
+notable changes:
+
+- **Fixed: the Telegram webhook was broken in every stock Alliance Auth
+  install.** The webhook view sat behind `main_character_required` and, being
+  nested inside an `include()` with no `app_name`, the decorator was never
+  applied to the user-facing views either — a double failure. Public routes
+  now live in their own `public_urls.py` (no `app_name`, correct decorator
+  order) nested under the main `urls.py`; webhook deployments require
+  `APPS_WITH_PUBLIC_VIEWS += ['dtb']` (long polling is unaffected).
+- **Menu items.** Two `MenuItemHook`s (user: "Discord-Telegram Bridge" with
+  a link/unlink state badge; admin: "DTB Admin" for `manage_dtb_rules`
+  holders) with safe rendering (no right → empty, unknown route → empty) and
+  an explicit `excluded_views` list.
+- **Permissions trimmed.** All 8 models get `default_permissions = ()` via
+  migration `0021_default_permissions` — the unused auto-generated
+  add/change/delete/view codenames are gone; the three real permissions
+  (`access_dtb`, `manage_dtb_rules`, `view_forward_history`) are unchanged.
+- **DTBSettings** is a proper django-solo singleton with a `load()` helper.
+- **Periodic task registration moved out of `post_migrate`** (it raced with
+  django-celery-beat's DB scheduler). Both beat entries —
+  `dtb_test_connections` (hourly) and `dtb_validate_telegram_users`
+  (6-hourly) — must now be created by hand in the admin; the README documents
+  the exact cron strings.
+- **QueueOnce** on `dtb_test_connections` and `dtb_validate_telegram_users`
+  so hourly/6-hourly runs cannot pile up on slow Redis.
+- **Validate & Kick Now hardened**: `@require_POST`, runs asynchronously via
+  `.delay()`, and handles the queue-rejected case instead of 500-ing.
+- **Fixed: kicking a deactivated user could run before the deactivation
+  commit.** The signal now waits with `transaction.on_commit`.
+- **New GDPR knob: `DTB_HISTORY_RETENTION_DAYS`** — nightly
+  `prune_forward_history` deletes per-message forwarding history older than N
+  days (`0` = keep forever).
+- **Caching for API hot paths**: `get_cached_bot_username()` (1 h) in the
+  services overview and the menu hook; `_collect_tg_admins` (10 min) behind
+  the `?tg_admins=1` toggle on the admin Members page — the default members
+  view stays DB-only.
+- **Logging**: all modules use `get_extension_logger(__name__)`; shared setup
+  extracted to `logging_setup.py` (rotating timestamped file handler,
+  descendant adoption); admin templates fixed for Bootstrap 5.
+- **Test suite**: 67 tests in a standalone `dtb_tests` package (excluded from
+  the wheel), CI on GitHub Actions (Python 3.10/3.12 x SQLite/MariaDB +
+  redis/mariadb services, `makemigrations --check`, packaging build).
+- **Packaging**: dynamic version from `__version__` (= `1.8.0`), Python
+  `>=3.10`, `allianceauth>=5.0,<6`, README rewritten (Uninstall section,
+  beat schedule, webhook prerequisite, tests).
+
 ## 1.7.7
 - **Fixed: the heartbeat could die silently, leaving the bot "Stopped" in AA
   while it kept running.** The heartbeat was started as fire-and-forget —

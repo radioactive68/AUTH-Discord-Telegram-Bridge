@@ -1,4 +1,3 @@
-import logging
 import time
 from datetime import timedelta
 
@@ -6,16 +5,19 @@ from celery import shared_task
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+from allianceauth.services.hooks import get_extension_logger
+from allianceauth.services.tasks import QueueOnce
+
 from .models import (
-    TelegramUser, ConnectionStatus, TelegramGroup, DTBSettings,
+    TelegramUser, ConnectionStatus, TelegramGroup, DTBSettings, ForwardHistory,
 )
 from .manager import TelegramBotManager, DiscordBotManager, redact_secrets
 from .permissions import user_can_use_dtb, user_holds_perm
 
-logger = logging.getLogger(__name__)
+logger = get_extension_logger(__name__)
 
 
-@shared_task(bind=True, max_retries=3)
+@shared_task(base=QueueOnce, bind=True, max_retries=3)
 def test_connections(self):
     """Periodic task: test Discord and Telegram connections."""
     # Telegram
@@ -90,7 +92,33 @@ def linked_profiles_without_access():
     return [p for p in profiles if not _user_can_use_dtb(p.user)]
 
 
-@shared_task(bind=True, max_retries=3)
+def prune_forward_history():
+    """Delete ForwardHistory rows older than the configured retention.
+
+    ``DTB_HISTORY_RETENTION_DAYS`` (default 90, ``0`` disables pruning) bounds
+    how much forward-log data the plugin keeps in the database. Called from
+    ``validate_all_telegram_users`` so no extra beat entry is needed.
+    Returns the number of rows deleted, or ``None`` when pruning is off.
+    """
+    from django.conf import settings
+
+    days = int(getattr(settings, 'DTB_HISTORY_RETENTION_DAYS', 90) or 0)
+    if days <= 0:
+        return None
+    cutoff = timezone.now() - timedelta(days=days)
+    deleted, _ = ForwardHistory.objects.filter(forwarded_at__lt=cutoff).delete()
+    if deleted:
+        logger.info(
+            'Pruned %d forward history row(s) older than %d days',
+            deleted, days,
+        )
+    return deleted
+
+
+# QueueOnce (AA's celery_once wrapper, graceful mode): if a validation run is
+# still queued or executing, a second enqueue is skipped instead of piling up
+# or raising. The ONCE backend is configured by Alliance Auth itself.
+@shared_task(base=QueueOnce, bind=True, max_retries=3)
 def validate_all_telegram_users(self):
     """Periodic task: enforce the access state of every linked Telegram user.
 
@@ -98,13 +126,19 @@ def validate_all_telegram_users(self):
     are kicked from all tracked Telegram groups and unlinked; users who still
     hold it are (re)activated. Auth does not notify apps about permission
     changes, so this task is the enforcement point for access revocation;
-    deactivating a user in Auth is handled immediately by ``signals.py``.
+    deactivating a user in Auth is queued by ``signals.py`` as
+    ``kick_deactivated_user``.
     """
     # Process all linked users (with a Telegram chat id) so that users who were
     # previously deactivated can be re-activated when they regain access.
     linked_users = TelegramUser.objects.filter(
         telegram_chat_id__isnull=False,
     ).exclude(telegram_chat_id='')
+
+    try:
+        prune_forward_history()
+    except Exception as e:
+        logger.error('Error pruning forward history: %s', redact_secrets(str(e)))
 
     telegram_bot = TelegramBotManager()
     revoked: list[str] = []
@@ -168,6 +202,40 @@ def validate_all_telegram_users(self):
         'revoked_users': sorted(revoked),
         'kicked': kicked_count,
     }
+
+
+@shared_task(bind=True, max_retries=3)
+def kick_deactivated_user(self, user_pk):
+    """Kick a user deactivated in Auth from all Telegram groups.
+
+    Queued by ``signals.on_user_state_changed`` so the user's save never
+    blocks on Telegram API calls. Idempotent: a profile that is already
+    deactivated, or a user who re-linked in the meantime, is a no-op, and a
+    missing profile (the user never linked Telegram) is normal, not an
+    error.
+    """
+    try:
+        tg_profile = TelegramUser.objects.select_related('user').get(user_id=user_pk)
+    except TelegramUser.DoesNotExist:
+        return 'no telegram profile'
+
+    if not (tg_profile.is_active and tg_profile.telegram_chat_id):
+        return 'nothing to do'
+
+    user = tg_profile.user
+    if user.is_active:
+        logger.info(
+            'User %s is active again; skipping the deactivation kick',
+            user.username,
+        )
+        return 'user active again'
+
+    bot = TelegramBotManager()
+    _kick_user_from_all_groups(bot, tg_profile)
+    tg_profile.is_active = False
+    tg_profile.save(update_fields=['is_active'])
+    logger.info('Deactivated Telegram for inactive user: %s', user.username)
+    return 'done'
 
 
 def _kick_user_from_all_groups(telegram_bot, tg_user, notify=True):

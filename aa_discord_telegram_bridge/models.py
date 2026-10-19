@@ -3,11 +3,12 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from solo.models import SingletonModel
 
-DTB_VERSION = '1.7.7'
+from aa_discord_telegram_bridge import __version__ as DTB_VERSION
 
 
-class DTBSettings(models.Model):
+class DTBSettings(SingletonModel):
     """Singleton model for plugin settings (managed via admin page)."""
     telegram_bot_token = models.CharField(
         max_length=255, blank=True, default='',
@@ -39,17 +40,20 @@ class DTBSettings(models.Model):
             ('view_forward_history', 'Can view forward history'),
         )
 
+        default_permissions = ()
+
     def __str__(self):
         return 'DTB Settings'
 
-    def save(self, *args, **kwargs):
-        self.pk = 1
-        super().save(*args, **kwargs)
-
     @classmethod
     def load(cls):
-        obj, _ = cls.objects.get_or_create(pk=1)
-        return obj
+        """Return the singleton settings row (django-solo's ``get_solo``).
+
+        Kept as ``load()`` because the whole codebase — and the tests — call
+        ``DTBSettings.load()``; django-solo's ``SingletonModel`` provides the
+        pk=1 save behaviour that the hand-rolled ``save()`` used to.
+        """
+        return cls.get_solo()
 
 
 class TelegramGroup(models.Model):
@@ -77,6 +81,7 @@ class TelegramGroup(models.Model):
         verbose_name_plural = _('Telegram Groups')
         ordering = ['name']
 
+        default_permissions = ()
     def __str__(self):
         return f'{self.name} ({self.telegram_chat_id})'
 
@@ -130,6 +135,7 @@ class ForwardRule(models.Model):
         verbose_name_plural = _('Forward Rules')
         ordering = ['-priority', 'name']
 
+        default_permissions = ()
     def __str__(self):
         status = 'ON' if self.is_enabled else 'OFF'
         return f'[{status}] {self.name}: {self.discord_channel_name} -> {self.telegram_target}'
@@ -179,6 +185,7 @@ class TelegramUser(models.Model):
         verbose_name = _('Telegram User')
         verbose_name_plural = _('Telegram Users')
 
+        default_permissions = ()
     def __str__(self):
         return f'{self.user.username} -> @{self.telegram_username or "not linked"}'
 
@@ -218,6 +225,7 @@ class TelegramLinkRequest(models.Model):
         verbose_name = _('Telegram Link Request')
         verbose_name_plural = _('Telegram Link Requests')
 
+        default_permissions = ()
     def __str__(self):
         return f'LinkRequest user={self.user_id} token={self.token[:8]}…'
 
@@ -247,6 +255,7 @@ class ForwardHistory(models.Model):
         verbose_name_plural = _('Forward History')
         ordering = ['-forwarded_at']
 
+        default_permissions = ()
     def __str__(self):
         status = 'OK' if self.success else 'FAIL'
         return f'[{status}] {self.source_channel} -> {self.target_channel} at {self.forwarded_at}'
@@ -274,6 +283,7 @@ class ConnectionStatus(models.Model):
         verbose_name = _('Connection Status')
         verbose_name_plural = _('Connection Statuses')
 
+        default_permissions = ()
     def __str__(self):
         status = 'Connected' if self.is_connected else 'Disconnected'
         return f'{self.get_service_display()}: {status}'
@@ -301,6 +311,7 @@ class BotStatus(models.Model):
         verbose_name = _('Bot Status')
         verbose_name_plural = _('Bot Status')
 
+        default_permissions = ()
     def __str__(self):
         return f'Bot heartbeat: {self.last_heartbeat}'
 

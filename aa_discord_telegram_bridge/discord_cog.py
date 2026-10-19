@@ -1,15 +1,16 @@
 import inspect
-import logging
 from collections import deque
 
 import discord
 from asgiref.sync import sync_to_async
 from discord.ext import commands
 
+from allianceauth.services.hooks import get_extension_logger
+
 from .models import ForwardRule, ForwardHistory
 from .manager import TelegramBotManager
 
-logger = logging.getLogger(__name__)
+logger = get_extension_logger(__name__)
 
 
 class DiscordForwarderCog(commands.Cog):

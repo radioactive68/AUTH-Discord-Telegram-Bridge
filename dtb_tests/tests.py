@@ -2,7 +2,11 @@
 
 Run on the Alliance Auth server::
 
-    python manage.py test aa_discord_telegram_bridge
+    python manage.py test dtb_tests
+
+or against the standalone CI settings module::
+
+    DJANGO_SETTINGS_MODULE=dtb_tests.settings python manage.py test dtb_tests
 
 Simple (DB-less) tests use ``SimpleTestCase``; anything touching the models
 uses ``TestCase``. Network calls are mocked, so no real bot keys are needed.
@@ -20,11 +24,12 @@ from django.contrib.auth.models import Group, Permission, User
 from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
-from .manager import TelegramBotManager, redact_secrets
-from .models import (
-    DTBSettings, ForwardRule, TelegramLinkRequest, TelegramUser,
+from aa_discord_telegram_bridge.manager import TelegramBotManager, redact_secrets
+from aa_discord_telegram_bridge.models import (
+    DTBSettings, ForwardHistory, ForwardRule, TelegramLinkRequest,
+    TelegramUser,
 )
-from .tasks import iter_user_ownerships
+from aa_discord_telegram_bridge.tasks import iter_user_ownerships, prune_forward_history
 
 
 class TestMatchesKeywords(SimpleTestCase):
@@ -73,7 +78,7 @@ class TestBuildTelegramText(SimpleTestCase):
     """The forwarded message: plain text escaped, safe embed markup, truncation."""
 
     def setUp(self):
-        from .discord_cog import DiscordForwarderCog
+        from aa_discord_telegram_bridge.discord_cog import DiscordForwarderCog
         self.cog = DiscordForwarderCog(bot=object())
         self.rule = ForwardRule(name='ops')
 
@@ -202,7 +207,7 @@ class TestLinkingTokenFlow(TestCase):
 
     def test_link_view_denied_without_access_permission(self):
         """Without any access permission the service is not available."""
-        from .auth_hooks import DiscordTelegramBridgeService
+        from aa_discord_telegram_bridge.auth_hooks import DiscordTelegramBridgeService
 
         self.user.user_permissions.clear()
         self.user = User.objects.get(pk=self.user.pk)  # drop perm cache
@@ -216,7 +221,7 @@ class TestLinkingTokenFlow(TestCase):
 
     def test_service_visible_with_access_dtb(self):
         """access_dtb alone is enough — no EVE/alliance data involved."""
-        from .auth_hooks import DiscordTelegramBridgeService
+        from aa_discord_telegram_bridge.auth_hooks import DiscordTelegramBridgeService
 
         self.user.user_permissions.clear()
         self.user.user_permissions.add(
@@ -236,8 +241,8 @@ class TestLinkingTokenFlow(TestCase):
         that reads those tables itself would deny a legitimately granted member,
         so the gate must defer to Django.
         """
-        from .auth_hooks import DiscordTelegramBridgeService
-        from .permissions import user_can_use_dtb
+        from aa_discord_telegram_bridge.auth_hooks import DiscordTelegramBridgeService
+        from aa_discord_telegram_bridge.permissions import user_can_use_dtb
 
         self.user.user_permissions.clear()
         self.user.groups.clear()
@@ -255,7 +260,7 @@ class TestLinkingTokenFlow(TestCase):
             )
 
     def test_inactive_user_has_no_service(self):
-        from .auth_hooks import DiscordTelegramBridgeService
+        from aa_discord_telegram_bridge.auth_hooks import DiscordTelegramBridgeService
 
         self.user.is_active = False
         self.user.save()
@@ -272,8 +277,8 @@ class TestLinkingTokenFlow(TestCase):
         periodic validation would otherwise kick their own linked Telegram
         account out of the bridge.
         """
-        from .auth_hooks import DiscordTelegramBridgeService
-        from .permissions import user_can_use_dtb
+        from aa_discord_telegram_bridge.auth_hooks import DiscordTelegramBridgeService
+        from aa_discord_telegram_bridge.permissions import user_can_use_dtb
 
         self.user.user_permissions.clear()
         self.user.is_superuser = True
@@ -287,7 +292,7 @@ class TestLinkingTokenFlow(TestCase):
 
     def test_dtb_admin_permission_does_not_grant_service(self):
         """manage_dtb_rules opens the admin pages, not the service tile."""
-        from .auth_hooks import DiscordTelegramBridgeService
+        from aa_discord_telegram_bridge.auth_hooks import DiscordTelegramBridgeService
 
         self.user.user_permissions.clear()
         self.user.user_permissions.add(
@@ -301,7 +306,7 @@ class TestLinkingTokenFlow(TestCase):
 
     def test_permission_via_group_grants_service(self):
         """The way an admin hands out access: a group with the permission."""
-        from .auth_hooks import DiscordTelegramBridgeService
+        from aa_discord_telegram_bridge.auth_hooks import DiscordTelegramBridgeService
 
         self.user.user_permissions.clear()
         self.user = User.objects.get(pk=self.user.pk)
@@ -322,7 +327,7 @@ class TestLinkingTokenFlow(TestCase):
 
     def test_validation_revokes_access_lost(self):
         """Losing access_dtb kicks from the groups and deactivates."""
-        from .tasks import linked_profiles_without_access, validate_all_telegram_users
+        from aa_discord_telegram_bridge.tasks import linked_profiles_without_access, validate_all_telegram_users
 
         profile = self._telegram_profile(
             telegram_chat_id='12345',
@@ -353,7 +358,7 @@ class TestLinkingTokenFlow(TestCase):
 
     def test_validate_user_hook_revokes(self):
         """ServicesHook.validate_user revokes the service as well."""
-        from .auth_hooks import DiscordTelegramBridgeService
+        from aa_discord_telegram_bridge.auth_hooks import DiscordTelegramBridgeService
 
         self._telegram_profile(
             telegram_chat_id='12345',
@@ -376,7 +381,7 @@ class TestLinkingTokenFlow(TestCase):
         )
 
     def test_validation_restores_access_after_regaining_permission(self):
-        from .tasks import validate_all_telegram_users
+        from aa_discord_telegram_bridge.tasks import validate_all_telegram_users
 
         profile = self._telegram_profile(
             telegram_chat_id='12345',
@@ -399,7 +404,7 @@ class TestLinkingTokenFlow(TestCase):
             expires_at=timezone.now() + timedelta(minutes=10),
         )
         with mock.patch.object(TelegramBotManager, 'send_message', return_value={'ok': True}):
-            from .telegram_handler import _process_linking_code
+            from aa_discord_telegram_bridge.telegram_handler import _process_linking_code
             ok = _process_linking_code(
                 'valid-token-abc', '12345', 111222333, 'alice', 'en',
             )
@@ -420,7 +425,7 @@ class TestLinkingTokenFlow(TestCase):
             expires_at=timezone.now() - timedelta(minutes=1),
         )
         with mock.patch.object(TelegramBotManager, 'send_message', return_value={'ok': True}):
-            from .telegram_handler import _process_linking_code
+            from aa_discord_telegram_bridge.telegram_handler import _process_linking_code
             ok = _process_linking_code(
                 'stale-token-abc', '12345', 111222333, 'alice', 'en',
             )
@@ -430,7 +435,7 @@ class TestLinkingTokenFlow(TestCase):
     @mock.patch('aa_discord_telegram_bridge.telegram_handler._invite_to_groups')
     def test_bot_rejects_unknown_token(self, mock_invite):
         with mock.patch.object(TelegramBotManager, 'send_message', return_value={'ok': True}):
-            from .telegram_handler import _process_linking_code
+            from aa_discord_telegram_bridge.telegram_handler import _process_linking_code
             ok = _process_linking_code(
                 'never-issued', '12345', 111222333, 'alice', 'en',
             )
@@ -445,7 +450,7 @@ class TestLinkingTokenFlow(TestCase):
             expires_at=timezone.now() + timedelta(minutes=10),
         )
         with mock.patch.object(TelegramBotManager, 'send_message', return_value={'ok': True}):
-            from .telegram_handler import _process_linking_code
+            from aa_discord_telegram_bridge.telegram_handler import _process_linking_code
             ok1 = _process_linking_code('one-shot-token', '1', 111, 'a1', 'en')
             ok2 = _process_linking_code('one-shot-token', '2', 222, 'a2', 'en')
         self.assertTrue(ok1)
@@ -512,7 +517,7 @@ class TestPlainStartDoesNotCreateRequest(TestCase):
         with mock.patch.object(
                 TelegramBotManager, 'send_message', return_value={'ok': True},
         ):
-            from .telegram_handler import _process_plain_start
+            from aa_discord_telegram_bridge.telegram_handler import _process_plain_start
             _process_plain_start(999888777, '100', 'nobody', 'en')
         self.assertEqual(TelegramLinkRequest.objects.count(), 0)
         self.assertFalse(TelegramUser.objects.filter(telegram_user_id=999888777).exists())
@@ -574,7 +579,7 @@ class TestTokenRedaction(TestCase):
 
         with mock.patch(
                 'aa_discord_telegram_bridge.manager.requests.post', side_effect=boom):
-            with self.assertLogs('aa_discord_telegram_bridge.manager', level='ERROR') as cm:
+            with self.assertLogs('extensions.aa_discord_telegram_bridge.manager', level='ERROR') as cm:
                 result = TelegramBotManager(bot_token='8243994060:%s' % self.SECRET).get_me()
 
         self.assertFalse(result['ok'])
@@ -585,10 +590,12 @@ class TestTokenRedaction(TestCase):
 class TestLoggingSetup(TestCase):
     """The plugin must persist its own INFO records with a timestamp.
 
-    AA configures no logger for third-party apps, so before this every DTB
-    record fell through to ``logging.lastResort``: WARNING and above only, as a
-    bare line. That is exactly why ``Kicked user X from Telegram group Y``
-    could never be found on a server -- it was INFO, so it was dropped.
+    The handler lives on the ``extensions.aa_discord_telegram_bridge`` logger
+    (AA's ``extensions`` tree), but it is DTB's own rotating file handler:
+    without it every DTB record fell through to ``logging.lastResort`` —
+    WARNING and above only, as a bare line. That is exactly why ``Kicked
+    user X from Telegram group Y`` could never be found on a server — it was
+    INFO, so it was dropped.
     """
 
     def test_logger_has_a_file_handler(self):
@@ -617,6 +624,9 @@ class TestLoggingSetup(TestCase):
 
             with open(target, encoding='utf-8') as fh:
                 content = fh.read()
+            # Repoint the handlers off the temp file before the directory is
+            # removed — Windows cannot delete a file that is still open.
+            configure(force=True)
             self.assertIn('Kicked user unit_test_user', content)
             # A timestamp is what makes the line usable on a timeline.
             self.assertRegex(content, r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}')
@@ -662,7 +672,7 @@ class TestServiceHookStringification(TestCase):
     """
 
     def setUp(self):
-        from .auth_hooks import DiscordTelegramBridgeService
+        from aa_discord_telegram_bridge.auth_hooks import DiscordTelegramBridgeService
 
         self.service = DiscordTelegramBridgeService()
         self.perm = Permission.objects.get(codename='access_dtb')
@@ -731,7 +741,7 @@ class TestHeartbeatTaskRetention(TestCase):
     """
 
     def setUp(self):
-        from . import bot_runner
+        from aa_discord_telegram_bridge import bot_runner
 
         self.bot_runner = bot_runner
         self.loop = asyncio.new_event_loop()
@@ -821,3 +831,266 @@ class TestHeartbeatTaskRetention(TestCase):
 
         self.assertTrue(watchdog.done())
         self.assertIsNone(watchdog.exception())
+
+
+# ---------------------------------------------------------------------------
+# 1.8.0 behaviour: async validation, deactivation kick, retention, admin
+# page API gating, menu hooks, nested URL decoration.
+
+
+def _give_main_character(user, character_id=999000123):
+    """Attach a main character so AA's view decorators let us through."""
+    from allianceauth.eveonline.models import EveCharacter
+
+    character, _ = EveCharacter.objects.get_or_create(
+        character_id=character_id,
+        defaults={
+            'character_name': 'Test Character',
+            'gender': 'male',
+            'security_status': 0.0,
+        },
+    )
+    profile = user.profile
+    if profile.main_character_id != character.pk:
+        profile.main_character = character
+        profile.save()
+    return character
+
+
+class _AdminUserMixin:
+    def _make_admin(self, username='dtbadmin', main_character=True):
+        user = User.objects.create_user(username=username, password='x')
+        user.user_permissions.add(
+            Permission.objects.get(codename='access_dtb'),
+            Permission.objects.get(codename='manage_dtb_rules'),
+        )
+        if main_character:
+            _give_main_character(user, character_id=999000100 + len(username))
+        return user
+
+
+class TestValidateNowEndpoint(_AdminUserMixin, TestCase):
+    """``/dtb/admin/validate/`` queues Celery work instead of running it."""
+
+    def setUp(self):
+        self.client = Client()
+        self.client.force_login(self._make_admin())
+
+    def test_get_is_rejected(self):
+        resp = self.client.get('/dtb/admin/validate/')
+        self.assertEqual(resp.status_code, 405)
+
+    @mock.patch('aa_discord_telegram_bridge.tasks.validate_all_telegram_users.delay')
+    def test_post_queues_the_task(self, mock_delay):
+        mock_delay.return_value = mock.Mock(state='PENDING', id='tid-1')
+
+        resp = self.client.post('/dtb/admin/validate/')
+
+        self.assertEqual(resp.status_code, 302)
+        mock_delay.assert_called_once_with()
+        from django.contrib.messages import get_messages
+        texts = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any('queued' in t and 'already' not in t for t in texts))
+
+    @mock.patch('aa_discord_telegram_bridge.tasks.validate_all_telegram_users.delay')
+    def test_post_reports_already_queued(self, mock_delay):
+        mock_delay.return_value = mock.Mock(state='REJECTED', id=None)
+
+        resp = self.client.post('/dtb/admin/validate/')
+
+        self.assertEqual(resp.status_code, 302)
+        from django.contrib.messages import get_messages
+        texts = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any('already queued' in t for t in texts))
+
+    @mock.patch('aa_discord_telegram_bridge.tasks.validate_all_telegram_users.delay')
+    def test_broker_failure_is_surfaced_not_raised(self, mock_delay):
+        mock_delay.side_effect = ConnectionError('broker down')
+
+        resp = self.client.post('/dtb/admin/validate/')
+
+        self.assertEqual(resp.status_code, 302)
+        from django.contrib.messages import get_messages
+        texts = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any('broker unreachable' in t for t in texts))
+
+
+class TestDeactivationQueuesKick(TestCase):
+    """Deactivating an Auth user schedules the Telegram kick off-request."""
+
+    @mock.patch('aa_discord_telegram_bridge.tasks.kick_deactivated_user.delay')
+    def test_deactivation_schedules_kick(self, mock_delay):
+        user = User.objects.create_user(username='to-kick', password='x')
+
+        with self.captureOnCommitCallbacks(execute=True):
+            user.is_active = False
+            user.save()
+
+        mock_delay.assert_called_once_with(user.pk)
+
+    @mock.patch('aa_discord_telegram_bridge.tasks.kick_deactivated_user.delay')
+    def test_ordinary_save_schedules_nothing(self, mock_delay):
+        user = User.objects.create_user(username='stays', password='x')
+
+        with self.captureOnCommitCallbacks(execute=True):
+            user.first_name = 'changed'
+            user.save()
+
+        mock_delay.assert_not_called()
+
+
+class TestForwardHistoryRetention(TestCase):
+    """DTB_HISTORY_RETENTION_DAYS bounds the forward log (0 disables)."""
+
+    @staticmethod
+    def _make_history(age_days):
+        row = ForwardHistory.objects.create(
+            source_channel='#src', target_channel='-1001234',
+        )
+        ForwardHistory.objects.filter(pk=row.pk).update(
+            forwarded_at=timezone.now() - timedelta(days=age_days),
+        )
+        return row
+
+    @override_settings(DTB_HISTORY_RETENTION_DAYS=90)
+    def test_prunes_rows_older_than_retention(self):
+        old = self._make_history(120)
+        fresh = self._make_history(1)
+
+        deleted = prune_forward_history()
+
+        self.assertEqual(deleted, 1)
+        self.assertFalse(ForwardHistory.objects.filter(pk=old.pk).exists())
+        self.assertTrue(ForwardHistory.objects.filter(pk=fresh.pk).exists())
+
+    @override_settings(DTB_HISTORY_RETENTION_DAYS=0)
+    def test_zero_disables_pruning(self):
+        old = self._make_history(400)
+
+        self.assertIsNone(prune_forward_history())
+        self.assertTrue(ForwardHistory.objects.filter(pk=old.pk).exists())
+
+
+@override_settings(
+    CACHES={'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }},
+)
+class TestAdminMembersApiGating(_AdminUserMixin, TestCase):
+    """The members page reads the DB; Telegram admins are opt-in only.
+
+    CACHES is forced to LocMem so running this suite on a live install
+    never clears (or reads) the real cache.
+    """
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+        self.client = Client()
+        self.client.force_login(self._make_admin())
+
+    @mock.patch('aa_discord_telegram_bridge.views._collect_tg_admins')
+    def test_default_view_never_calls_telegram(self, mock_collect):
+        resp = self.client.get('/dtb/admin/members/')
+
+        self.assertEqual(resp.status_code, 200)
+        mock_collect.assert_not_called()
+
+    @mock.patch('aa_discord_telegram_bridge.views._collect_tg_admins')
+    def test_refresh_flag_collects_admins(self, mock_collect):
+        mock_collect.return_value = []
+
+        resp = self.client.get('/dtb/admin/members/?tg_admins=1')
+
+        self.assertEqual(resp.status_code, 200)
+        mock_collect.assert_called_once()
+        self.assertTrue(resp.context['tg_admins_refresh'])
+
+    @mock.patch('aa_discord_telegram_bridge.views._collect_tg_admins')
+    def test_second_default_load_serves_cache(self, mock_collect):
+        mock_collect.return_value = []
+        resp = self.client.get('/dtb/admin/members/?tg_admins=1')
+        self.assertEqual(resp.status_code, 200)
+        mock_collect.assert_called_once()
+
+        resp = self.client.get('/dtb/admin/members/')
+        self.assertEqual(resp.status_code, 200)
+        mock_collect.assert_called_once()
+
+
+class TestMenuHooksVisibility(_AdminUserMixin, TestCase):
+    """Member/admin menu items render only for the right permission."""
+
+    def setUp(self):
+        from django.test import RequestFactory
+        from aa_discord_telegram_bridge.auth_hooks import (
+            register_admin_menu_item, register_menu_item,
+        )
+
+        self.factory = RequestFactory()
+        self.member_item = register_menu_item()
+        self.admin_item = register_admin_menu_item()
+
+    def _request(self, user):
+        request = self.factory.get('/dtb/')
+        request.user = user
+        return request
+
+    def test_member_item_hidden_without_permission(self):
+        user = User.objects.create_user(username='nomember', password='x')
+        self.assertEqual(self.member_item.render(self._request(user)), '')
+
+    def test_member_item_visible_with_access_dtb(self):
+        user = User.objects.create_user(username='hasaccess', password='x')
+        user.user_permissions.add(Permission.objects.get(codename='access_dtb'))
+        user = User.objects.get(pk=user.pk)
+        html = self.member_item.render(self._request(user))
+        self.assertIn('Discord-Telegram Bridge', html)
+
+    def test_admin_item_hidden_without_manage_permission(self):
+        user = User.objects.create_user(username='plainmem', password='x')
+        user.user_permissions.add(Permission.objects.get(codename='access_dtb'))
+        user = User.objects.get(pk=user.pk)
+        self.assertEqual(self.admin_item.render(self._request(user)), '')
+
+    def test_admin_item_visible_for_admin(self):
+        user = self._make_admin()
+
+        html = self.admin_item.render(self._request(user))
+        self.assertIn('DTB Admin', html)
+
+
+class TestNestedUrlDecoration(_AdminUserMixin, TestCase):
+    """The nested include keeps admin views decorated while public ones are not.
+
+    Meaningful only when the install declares ``dtb`` public (CI harness);
+    on installs that never opted in, every route is decorated anyway.
+    """
+
+    def setUp(self):
+        from django.conf import settings
+        if 'dtb' not in settings.APPS_WITH_PUBLIC_VIEWS:
+            self.skipTest('dtb is not declared public on this install')
+        self.client = Client()
+
+    def test_public_view_renders_without_main_character(self):
+        user = User.objects.create_user(username='nomc', password='x')
+        user.user_permissions.add(Permission.objects.get(codename='access_dtb'))
+        user = User.objects.get(pk=user.pk)
+        profile = user.profile
+        profile.main_character = None
+        profile.save()
+        self.client.force_login(user)
+
+        resp = self.client.get('/dtb/')
+
+        self.assertEqual(resp.status_code, 200)
+
+    def test_admin_view_still_requires_main_character(self):
+        user = self._make_admin(username='adminnomc', main_character=False)
+        self.client.force_login(user)
+
+        resp = self.client.get('/dtb/admin/')
+
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('dashboard', resp['Location'])

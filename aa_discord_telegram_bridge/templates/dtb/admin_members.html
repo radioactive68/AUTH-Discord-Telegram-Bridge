@@ -14,10 +14,15 @@
         <a href="{% url 'dtb:admin_index' %}" class="btn btn-secondary btn-sm mb-3">
             <i class="fas fa-arrow-left"></i> {% translate "Back" %}
         </a>
+        <a href="{% url 'dtb:admin_members' %}?tg_admins=1" class="btn btn-outline-primary btn-sm mb-3"
+           title="{% translate "One Telegram API call per tracked group; cached for 10 minutes." %}">
+            <i class="fas fa-rotate"></i>
+            {% if tg_admins_loaded %}{% translate "Refresh Telegram admins" %}{% else %}{% translate "Load Telegram admins" %}{% endif %}
+        </a>
 
         <div class="alert alert-secondary py-2">
             {% translate "List of all Telegram accounts linked to Alliance Auth (including old/archived users)." %}
-            {% translate "Administrators of the tracked Telegram groups appear below even when they never linked — marked &quot;Telegram only&quot;. Regular members cannot be listed through the Telegram Bot API." %}
+            {% translate "Administrators of the tracked Telegram groups are listed when loaded with the button above — marked &quot;Telegram only&quot;. Regular members cannot be listed through the Telegram Bot API." %}
             {% if no_access_count %}
                 <br>
                 <span class="badge bg-warning text-dark">

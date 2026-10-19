@@ -1,36 +1,37 @@
-import logging
-
+from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.auth.models import User
 
-logger = logging.getLogger(__name__)
+from allianceauth.services.hooks import get_extension_logger
+
+logger = get_extension_logger(__name__)
 
 
 @receiver(post_save, sender=User)
 def on_user_state_changed(sender, instance, **kwargs):
-    """Handle user state changes for Telegram management.
+    """When a user is deactivated in Auth, queue their Telegram kick.
 
-    When a user is deactivated in Auth, kick them from Telegram groups.
+    This receiver deliberately does no I/O itself: it runs inside Auth's own
+    ``User.save()`` transaction, and Telegram API calls there would hold that
+    transaction open for seconds — and be rolled back if the save later
+    fails. It only schedules the work; the kicks happen in a celery worker.
+
+    Every failure is caught and logged: an exception escaping this receiver
+    would break user saves across Alliance Auth.
     """
-    if not instance.is_active:
-        from .models import TelegramUser
-        from .tasks import _kick_user_from_all_groups
-        from .manager import TelegramBotManager
+    if instance.is_active or kwargs.get('raw'):
+        return
+    try:
+        from .tasks import kick_deactivated_user
 
-        try:
-            tg_profile = TelegramUser.objects.get(user=instance)
-            if tg_profile.is_active and tg_profile.telegram_chat_id:
-                bot = TelegramBotManager()
-                _kick_user_from_all_groups(bot, tg_profile)
-                tg_profile.is_active = False
-                tg_profile.save()
-                logger.info(
-                    'Deactivated Telegram for inactive user: %s',
-                    instance.username,
-                )
-        except TelegramUser.DoesNotExist:
-            pass
+        user_pk = instance.pk
+        transaction.on_commit(lambda: kick_deactivated_user.delay(user_pk))
+    except Exception:
+        logger.exception(
+            'DTB: could not queue the deactivation kick for user %s',
+            instance.username,
+        )
 
 
 # Access is no longer derived from EVE data: it is the DTB permission

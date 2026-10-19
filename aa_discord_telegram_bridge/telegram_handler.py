@@ -1,5 +1,4 @@
 import html
-import logging
 import secrets
 import time
 
@@ -10,10 +9,12 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.utils.translation import override as translation_override, gettext
 
+from allianceauth.services.hooks import get_extension_logger
+
 from .models import TelegramUser, TelegramLinkRequest
 from .manager import TelegramBotManager, redact_secrets
 
-logger = logging.getLogger(__name__)
+logger = get_extension_logger(__name__)
 
 
 def _record_chat(data):

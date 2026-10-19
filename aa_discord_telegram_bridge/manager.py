@@ -1,11 +1,12 @@
-import logging
 import re
 from typing import Optional
 
 import requests
 from django.conf import settings
 
-logger = logging.getLogger(__name__)
+from allianceauth.services.hooks import get_extension_logger
+
+logger = get_extension_logger(__name__)
 
 # Telegram tokens are '<bot_id>:<35 chars of [A-Za-z0-9_-]>'. The bot id itself
 # is public (it is the @name's numeric id and already logged on login), the
@@ -64,6 +65,36 @@ def redact_secrets(text):
     except Exception:
         pass
     return result
+
+
+def get_cached_bot_username():
+    """Return the bot username, cached for an hour."""
+    from django.core.cache import cache
+
+    s = _get_dtb_settings()
+    token = (s.telegram_bot_token or "") if s else ""
+    if not token:
+        return None
+    bot_id = token.split(":", 1)[0]
+    cache_key = f"dtb:bot_username:{bot_id}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
+    try:
+        manager = TelegramBotManager(bot_token=token)
+        res = manager.get_me()
+        if res.get("ok"):
+            username = (res.get("result") or {}).get("username")
+            if username:
+                cache.set(cache_key, username, timeout=3600)
+                return username
+    except Exception as e:
+        logger.warning(
+            "DTB: failed to fetch Telegram bot username (cached): %s",
+            redact_secrets(str(e)),
+        )
+    return None
 
 
 class TelegramBotManager:

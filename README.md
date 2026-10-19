@@ -43,7 +43,7 @@ messages to Telegram channels.
 
 ## Requirements
 
-- Python 3.9+
+- Python 3.10+
 - Django 5.2+ (ships with Alliance Auth 5.0+)
 - Alliance Auth 5.0+
 - A Telegram bot (created via @BotFather)
@@ -152,6 +152,15 @@ generates a random `secret_token` and stores it in settings; every incoming
 webhook call is then verified against that token, so only real Telegram
 requests are processed. Webhook mode takes precedence over polling.
 
+Webhook routing only becomes active when `dtb` is listed in the
+`APPS_WITH_PUBLIC_VIEWS` setting (add it in `myauth/settings/local.py`):
+
+```python
+APPS_WITH_PUBLIC_VIEWS += ['dtb']
+```
+
+Long polling needs no such change — only webhook deployments require it.
+
 ### 6. Restart services
 
 ```bash
@@ -199,6 +208,10 @@ Open the DTB Settings page (`/admin/` → DTB Settings) and fill in:
   Leave empty to disable the membership check.
 - **Discord Bot Token** — from the Discord Developer Portal (optional).
 - **Discord Guild ID** — your Discord server ID (optional).
+- **Forward history retention (days)** — how long per-message forwarding
+  history is kept before the nightly cleanup deletes it. `0` disables the
+  cleanup entirely. Keep this low if your community cares about GDPR:
+  the history records who forwarded what and when.
 
 After saving, start the bot:
 
@@ -213,6 +226,22 @@ systemctl status aa-dtb-bot
 journalctl -u aa-dtb-bot -f
 ```
 
+### 9. Schedule the periodic tasks (celery beat)
+
+DTB no longer registers its own beat schedules automatically (that used to
+race with django-celery-beat's database scheduler). Create both entries by
+hand in the Auth admin under *Celery → Periodic tasks* (django-celery-beat):
+
+| Task                        | Schedule            | What it does                                    |
+|-----------------------------|---------------------|-------------------------------------------------|
+| `dtb_test_connections`      | Every hour (`5 * * * *`)   | Re-checks bot connectivity, updates status page |
+| `dtb_validate_telegram_users` | Every 6 hours (`15 */6 * * *`) | Kicks linked users who lost the access permission |
+
+Exact cron syntax is fine to type in; just make sure the *Task (registered)*
+field points at the same names the plugin registered under celery.
+Without these two entries nothing is auto-kicked when permissions change —
+the dashboard and "Validate & Kick Now" remain as manual fallbacks.
+
 ## Updating
 
 ```bash
@@ -226,6 +255,29 @@ python manage.py migrate aa_discord_telegram_bridge
 # Restart all services
 systemctl restart aa-gunicorn aa-celery aa-celerybeat aa-dtb-bot
 ```
+
+## Uninstall
+
+```bash
+# Stop and disable the bot
+systemctl stop aa-dtb-bot
+systemctl disable aa-dtb-bot
+
+# Remove the app (keep the DB for now)
+pip uninstall aa-discord-telegram-bridge
+
+# Remove 'aa_discord_telegram_bridge' from INSTALLED_APPS
+# and 'dtb' from APPS_WITH_PUBLIC_VIEWS in local.py
+
+# Delete the two beat entries in the admin
+# (Celery → Periodic tasks: dtb_test_connections, dtb_validate_telegram_users)
+
+# Optionally drop the tables (this destroys all links and history!)
+python manage.py migrate aa_discord_telegram_bridge zero
+```
+
+The DTB log directory (`<BASE_DIR>/log/`) is not touched by any of this —
+remove it by hand if you no longer need it.
 
 ## Management Commands
 
@@ -404,6 +456,23 @@ Groups are auto-registered when:
    is outdated; update from GitHub.
 5. Verify ForwardRules: Discord channel IDs must match exactly (use Developer Mode
    to copy IDs). Telegram targets use `chat_id:thread_id` for forum topics.
+
+## Development and tests
+
+The test suite lives in the separate `dtb_tests` package (kept out of the
+wheel) and runs against a full Alliance Auth install:
+
+```bash
+python manage.py test dtb_tests
+# or explicitly:
+DJANGO_SETTINGS_MODULE=dtb_tests.settings python -m django test dtb_tests
+```
+
+By default it uses SQLite in memory and a local Redis on `127.0.0.1:6379`
+(database 15). To test against MariaDB, set `DTB_TEST_DB=mariadb` and
+`DTB_TEST_DB_PASSWORD`. CI (`.github/workflows/ci.yml`) runs the suite on
+Python 3.10 and 3.12 against both databases, plus a `makemigrations --check`
+guard and a packaging build.
 
 ## License
 

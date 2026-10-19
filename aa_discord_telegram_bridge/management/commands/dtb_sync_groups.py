@@ -10,7 +10,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         from aa_discord_telegram_bridge.models import TelegramGroup, TelegramUser
         from aa_discord_telegram_bridge.manager import TelegramBotManager, redact_secrets
-        import logging
 
         found = 0
 

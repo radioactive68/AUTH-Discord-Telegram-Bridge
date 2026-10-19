@@ -1,22 +1,23 @@
 """Logging setup for the Discord-Telegram Bridge.
 
-Alliance Auth configures handlers for its own loggers (``allianceauth``,
-``extensions``, ``esi``, ``mumble_authenticator``) but nothing for third-party
-apps. Without a handler of its own, every DTB record falls through to
-``logging.lastResort``, which emits **WARNING and above only, as a bare line
-with no timestamp**. Two consequences that hurt in practice:
+The plugin logs through ``allianceauth.services.hooks.get_extension_logger``,
+so every record is a child of AA's ``extensions`` logger — the tree Alliance
+Auth actually configures handlers for. Before that change every DTB record
+fell through to ``logging.lastResort``, which emits **WARNING and above only,
+as a bare line with no timestamp**. Two consequences that hurt in practice:
 
 * the INFO messages that actually identify a kick ("Kicked user X from
   Telegram group Y", "no longer has the DTB access permission, kicking from
-  Telegram", "Unlinked Telegram for user X") are dropped in every process, so
+  Telegram", "Unlinked Telegram for user X") were dropped in every process, so
   the log never says who was removed and why;
-* what does survive (warnings, errors) arrives without a timestamp, so it
-  cannot be placed on a timeline.
+* what did survive (warnings, errors) arrived without a timestamp, so it
+  could not be placed on a timeline.
 
 This module attaches a rotating, timestamped file handler so the plugin has a
 real audit trail in every process that loads it: gunicorn, the celery workers,
-the bot and the management commands. It is deliberately self-contained and
-overridable through Django settings:
+the bot and the management commands. Propagation stays off, so the same lines
+are not duplicated into AA's ``extensions.log`` and gunicorn output. It is
+deliberately self-contained and overridable through Django settings:
 
 ``DTB_LOG_DIR``   directory for the log file (default ``<BASE_DIR>/log``)
 ``DTB_LOG_FILE``  full path, wins over ``DTB_LOG_DIR``
@@ -26,7 +27,10 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-LOGGER_NAME = 'aa_discord_telegram_bridge'
+# get_extension_logger() registers its logger under 'extensions.<name>' and
+# only then renames the object, so this is the key our handlers must live on
+# for the whole plugin tree (views, tasks, manager, ...) to reach them.
+LOGGER_NAME = 'extensions.aa_discord_telegram_bridge'
 DEFAULT_FILENAME = 'dtb-bridge.log'
 DEFAULT_LEVEL = 'INFO'
 DEFAULT_MAX_BYTES = 5 * 1024 * 1024
@@ -85,6 +89,21 @@ def _reset(logger):
     logger._dtb_signature = None
 
 
+def _adopt_descendants(base):
+    """Re-point DTB child loggers that were created before ``base``.
+
+    ``get_extension_logger`` resolves a logger's parent once, at creation
+    time. A module imported before ``configure()`` ran (signals, models) ends
+    up parented directly to AA's ``extensions`` logger and would then bypass
+    our file handler for the whole life of the process. Children created
+    later find ``base`` in the logger dict on their own.
+    """
+    prefix = LOGGER_NAME + '.'
+    for name, candidate in list(logging.Logger.manager.loggerDict.items()):
+        if name.startswith(prefix) and isinstance(candidate, logging.Logger):
+            candidate.parent = base
+
+
 def configure(force=False):
     """Attach our handlers once per process.
 
@@ -95,6 +114,7 @@ def configure(force=False):
     picked up instead of being silently ignored; ``force=True`` re-installs.
     """
     logger = logging.getLogger(LOGGER_NAME)
+    _adopt_descendants(logger)
 
     path = log_file()
     level = _level()

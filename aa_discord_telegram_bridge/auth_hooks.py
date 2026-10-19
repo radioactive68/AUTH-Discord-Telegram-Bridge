@@ -1,5 +1,3 @@
-import logging
-
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
@@ -7,14 +5,16 @@ from django.urls import NoReverseMatch, reverse
 
 from allianceauth import hooks
 from allianceauth.menu.hooks import MenuItemHook
-from allianceauth.services.hooks import ServicesHook, UrlHook
+from allianceauth.services.hooks import (
+    ServicesHook, UrlHook, get_extension_logger,
+)
 from django.utils.translation import gettext_lazy as _
 
 from . import urls
 from .models import TelegramUser
 from .permissions import PERM_ACCESS_DTB, user_can_use_dtb, user_is_dtb_admin
 
-logger = logging.getLogger(__name__)
+logger = get_extension_logger(__name__)
 
 
 @hooks.register('services_hook')
@@ -65,13 +65,11 @@ class DiscordTelegramBridgeService(ServicesHook):
         bot_link = None
         bot_username = None
         try:
-            from .manager import TelegramBotManager
-            bot = TelegramBotManager()
-            res = bot.get_me()
-            if res.get('ok'):
-                bot_username = res.get('result', {}).get('username')
-                if bot_username:
-                    bot_link = f'https://t.me/{bot_username}'
+            from .manager import get_cached_bot_username
+
+            bot_username = get_cached_bot_username()
+            if bot_username:
+                bot_link = f'https://t.me/{bot_username}'
         except Exception:
             pass
 
@@ -137,31 +135,85 @@ def register_urls():
             'aa_discord_telegram_bridge.views.link_telegram',
             'aa_discord_telegram_bridge.views.unlink_telegram',
             'aa_discord_telegram_bridge.views.forward_history',
-            'aa_discord_telegram_bridge.views.connection_status',
             'aa_discord_telegram_bridge.telegram_handler.telegram_webhook',
         ],
     )
 
 
-class DTBMenu(MenuItemHook):
-    def __init__(self):
-        MenuItemHook.__init__(
-            self,
-            'DTB',
-            'fa-solid fa-comments',
-            'dtb:admin_index',
-            navactive=['dtb:'],
-        )
+@hooks.register('menu_item_hook')
+def register_menu_item():
+    def show_menu_item(request):
+        return user_can_use_dtb(request.user)
 
-    def render(self, request):
-        if user_is_dtb_admin(request.user):
-            try:
-                return MenuItemHook.render(self, request)
-            except (NoReverseMatch, Exception):
-                return ''
-        return ''
+    item = MenuItemHook(
+        text=_('Discord-Telegram Bridge'),
+        classes='fa-solid fa-bridge',
+        url_name='dtb:services_overview',
+        order=800,
+        navactive=[
+            'dtb:services_overview',
+            'dtb:link_telegram',
+            'dtb:unlink_telegram',
+            'dtb:forward_history',
+            'dtb:connection_status',
+        ],
+    )
+    item.show_menu_item = show_menu_item
+    original_render = item.render
+
+    def render(request):
+        if not show_menu_item(request):
+            return ''
+        try:
+            return original_render(request)
+        except NoReverseMatch:
+            return ''
+
+    item.render = render
+    return item
 
 
 @hooks.register('menu_item_hook')
-def register_menu():
-    return DTBMenu()
+def register_admin_menu_item():
+    def show_menu_item(request):
+        return user_is_dtb_admin(request.user)
+
+    item = MenuItemHook(
+        text=_('DTB Admin'),
+        classes='fa-solid fa-shield-halved',
+        url_name='dtb:admin_index',
+        order=801,
+        navactive=[
+            'dtb:admin_index',
+            'dtb:admin_rules',
+            'dtb:admin_rule_add',
+            'dtb:admin_rule_edit',
+            'dtb:admin_rule_delete',
+            'dtb:admin_rule_toggle',
+            'dtb:admin_groups',
+            'dtb:admin_validate_now',
+            'dtb:admin_test_connection',
+            'dtb:admin_settings',
+            'dtb:admin_logs',
+            'dtb:admin_members',
+            'dtb:admin_member_info',
+            'dtb:admin_member_kick',
+            'dtb:admin_tg_kick',
+            'dtb:admin_setup',
+        ],
+    )
+    item.show_menu_item = show_menu_item
+    original_render = item.render
+
+    def render(request):
+        if not show_menu_item(request):
+            return ''
+        try:
+            return original_render(request)
+        except NoReverseMatch:
+            return ''
+
+    item.render = render
+    return item
+
+

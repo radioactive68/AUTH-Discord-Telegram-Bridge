@@ -1,13 +1,14 @@
 import os
 import sys
 import time
-import logging
 
 from django.core.management.base import BaseCommand
 
+from allianceauth.services.hooks import get_extension_logger
+
 from aa_discord_telegram_bridge.manager import redact_secrets
 
-logger = logging.getLogger('aa_discord_telegram_bridge.bot_runner')
+logger = get_extension_logger('aa_discord_telegram_bridge.bot_runner')
 
 
 class Command(BaseCommand):

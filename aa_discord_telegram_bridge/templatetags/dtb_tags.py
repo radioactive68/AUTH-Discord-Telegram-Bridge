@@ -8,21 +8,21 @@ register = template.Library()
 def telegram_status_badge(is_active):
     """Render a status badge for Telegram connection."""
     if is_active:
-        return mark_safe('<span class="badge badge-success">Active</span>')
-    return mark_safe('<span class="badge badge-secondary">Inactive</span>')
+        return mark_safe('<span class="badge bg-success">Active</span>')
+    return mark_safe('<span class="badge bg-secondary">Inactive</span>')
 
 
 @register.filter
 def rule_status_badge(is_enabled):
     """Render a status badge for rule enabled state."""
     if is_enabled:
-        return mark_safe('<span class="badge badge-success">Enabled</span>')
-    return mark_safe('<span class="badge badge-warning">Disabled</span>')
+        return mark_safe('<span class="badge bg-success">Enabled</span>')
+    return mark_safe('<span class="badge bg-warning text-dark">Disabled</span>')
 
 
 @register.filter
 def connection_badge(is_connected):
     """Render a badge for connection status."""
     if is_connected:
-        return mark_safe('<span class="badge badge-success">Connected</span>')
-    return mark_safe('<span class="badge badge-danger">Disconnected</span>')
+        return mark_safe('<span class="badge bg-success">Connected</span>')
+    return mark_safe('<span class="badge bg-danger">Disconnected</span>')
