@@ -12,6 +12,7 @@ authors = [
     {name = "DTB Contributors"},
 ]
 keywords = ["allianceauth", "discord", "telegram", "bridge", "forwarding"]
+dynamic = ["version"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Framework :: Django",

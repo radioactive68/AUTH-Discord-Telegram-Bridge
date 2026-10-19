@@ -15,8 +15,8 @@ permissions:
 
 jobs:
   test:
-    name: py${{ matrix.python }} / ${{ matrix.database }}
-    runs-on: ubuntu-latest
+    name: py${{ matrix.python-version }} / ${{ matrix.database }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -46,9 +46,9 @@ jobs:
         ports: ['3306:3306']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -78,12 +78,12 @@ jobs:
 
   package:
     name: sdist/wheel build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
