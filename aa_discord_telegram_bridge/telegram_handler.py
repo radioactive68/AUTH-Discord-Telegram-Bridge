@@ -524,19 +524,6 @@ def _process_plain_start(user_id, chat_id, username, tg_lang='en'):
         text='✅ Verified! Your access to the alliance Telegram groups is confirmed.',
     )
 
-    profile.telegram_chat_id = str(chat_id)
-    if username:
-        profile.telegram_username = username
-    profile.is_active = True
-    profile.save()
-
-    bot = TelegramBotManager()
-    _invite_to_groups(bot, user_id, chat_id=chat_id)
-    bot.send_message(
-        chat_id=chat_id,
-        text='✅ Verified! Your access to the alliance Telegram groups is confirmed.',
-    )
-
 
 def _process_join_request(req):
     """Gatekeep group join requests: approve only authorized (linked) Auth users."""
