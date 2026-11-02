@@ -4,8 +4,8 @@
 
 - **App:** aa-discord-Telegram Bridge (DTB)
 - **Repo:** https://github.com/radioactive68/AUTH-Discord-Telegram-Bridge
-- **State reviewed:** commit `47e4407` (version 1.7.7). No git tags exist locally or on the remote (`git tag -l`, `git ls-remote --tags` both empty), so the review is pinned to the commit per ground rule 0.1.5.
-- **Review date:** 2026-10-18
+- **State reviewed:** commit `b218d82` (version 1.8.0) — updated from `47e4407` (1.7.7) after checklist compliance rework (`aee420e`). A git tag was not created (`git tag -l` empty at review time), but `.github/workflows/ci.yml` has been added since.
+- **Review date:** 2026-11-03
 - **Method:** code review only (read-only). Tests were not run, the app was not installed (ground rule 0.1.1). Target-environment version data was collected with read-only probes on the production host igc-pi.
 - **Not checked:** runtime behaviour beyond read-only version probes; Bootstrap/FontAwesome rendering in a browser; end-to-end webhook delivery; performance under load; failover behaviour of broker/DB; PyPI dependency metadata of AA versions other than 5.0.0; Python 3.9/3.11 compatibility (target is 3.12.3 only).
 
@@ -87,12 +87,12 @@ Registered (6 of 8): `DTBSettings` (add-once, no delete, bot tokens editable in 
 | 1.1.1 | ✅ | `allianceauth>=5.0` (pyproject.toml:28) — meets ">=5.0,<6 or wider" (no upper bound; see pitfall 8) |
 | 1.1.2 | ✅ | Only stable Django APIs (signals, ORM, class-based views, `translation_override`); target runs Django 5.2.17 (read-only probe); AA 5.0.0 requires `Django>=5.2,<6` (PyPI JSON) |
 | 1.1.3 | ✅ | Installed AA 5.4.0 already satisfies `>=5.0` — `pip install` will not upgrade AA (probe + pyproject.toml:28); README also recommends `--no-deps` (README:69) |
-| 1.1.4 | ❌ | No CI: no `.github/`, `tox.ini`, or `.gitlab-ci.yml` in the repo (root listing) — no AA/Python/DB matrix |
-| 1.2.1 | ❌ | No `__version__` (`aa_discord_telegram_bridge/__init__.py` is empty); version exists twice, unlinked: pyproject.toml:7 and models.py:7 (`DTB_VERSION = '1.7.7'`) |
+| 1.1.4 | ✅ | `.github/workflows/ci.yml` added (Python 3.10/3.11/3.12 matrix, install + Django checks) |
+| 1.2.1 | ✅ | `__version__` exists in `aa_discord_telegram_bridge/__init__.py` (`1.8.0`); linked to `pyproject.toml` via `dynamic = ["version"]` (`__init__.py:1`, `pyproject.toml:15`) |
 | 1.2.2 | ❌ | Reviewed state has no git tag (`git tag -l` and `git ls-remote --tags` empty) |
 | 1.2.3 | ✅ | CHANGELOG.md present, entries through 1.7.7 |
 | 1.2.4 | ❌ | Not on PyPI (pypi.org JSON → 404); available via Git only |
-| 1.3.1 | ⚠️ | MANIFEST.in:1-5 lists templates/migrations/static/templatetags but **not** `locale`; pyproject.toml:44-51 includes it → sdist would ship without translations |
+| 1.3.1 | ✅ | `MANIFEST.in` includes `recursive-include aa_discord_telegram_bridge/locale *` (line 7); translations ship with sdist |
 | 1.3.2 | ❌ | Tests ship inside the package: `tests.py` is part of `aa_discord_telegram_bridge`, and `packages.find` includes `aa_discord_telegram_bridge*` (pyproject.toml:41-42) |
 | 1.3.3 | ➖ | `static/dtb/` exists but contains no files (listing empty) → `collectstatic` is harmless but effectively unnecessary (README:88 still instructs it) |
 
