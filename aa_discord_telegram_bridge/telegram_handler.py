@@ -90,15 +90,18 @@ def _dispatch_update(data):
     user_id = user_info.get('id')
     username = user_info.get('username', '')
 
-    # Handle /start command
+    # Handle /start command (only in private chats with the bot, not in groups)
     if text.startswith('/start'):
-        parts = text.split()
-        tg_lang = user_info.get('language_code', 'en')
-        if len(parts) > 1:
-            # The token is case-sensitive; never normalise it.
-            _process_linking_code(parts[1].strip(), chat_id, user_id, username, tg_lang)
-        else:
-            _process_plain_start(user_id, chat_id, username, tg_lang)
+        chat_type = chat.get('type', '')
+        is_private = chat_type == 'private'
+        if is_private:
+            parts = text.split()
+            tg_lang = user_info.get('language_code', 'en')
+            if len(parts) > 1:
+                # The token is case-sensitive; never normalise it.
+                _process_linking_code(parts[1].strip(), chat_id, user_id, username, tg_lang)
+            else:
+                _process_plain_start(user_id, chat_id, username, tg_lang)
 
     # Handle /stop command
     if text.startswith('/stop'):
